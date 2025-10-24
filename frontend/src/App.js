@@ -12,6 +12,9 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
+import OrdersPage from '@/pages/OrdersPage';
+import ProductsPage from '@/pages/ProductsPage';
+import CustomersPage from '@/pages/CustomersPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
