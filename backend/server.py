@@ -18,6 +18,9 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request, Cookie, File, UploadFile
+from fastapi.staticfiles import StaticFiles
+
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
