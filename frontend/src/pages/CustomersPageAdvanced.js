@@ -121,6 +121,38 @@ const CustomersPageAdvanced = () => {
       instagram_url: '',
       profile_picture: ''
     });
+    setPreviewImage(null);
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Le fichier doit être une image (JPG, PNG)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La taille de l\'image ne doit pas dépasser 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const response = await uploadProfilePicture(file);
+      const imageUrl = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      setFormData({...formData, profile_picture: imageUrl});
+      setPreviewImage(imageUrl);
+      toast.success('Image uploadée avec succès!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erreur lors de l\'upload de l\'image');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleGenerateQR = async (customer) => {
