@@ -44,6 +44,9 @@ const CustomersPageAdvanced = () => {
     profile_picture: ''
   });
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
   useEffect(() => {
     fetchCustomers();
   }, []);
