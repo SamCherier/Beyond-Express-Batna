@@ -166,10 +166,14 @@ class DeliveryPartner(DeliveryPartnerBase):
 class CustomerBase(BaseModel):
     name: str
     phone: str
+    phone2: Optional[str] = None
     address: str
     wilaya: str
     commune: str
     notes: Optional[str] = None
+    profile_picture: Optional[str] = None
+    facebook_url: Optional[str] = None
+    instagram_url: Optional[str] = None
 
 class CustomerCreate(CustomerBase):
     pass
@@ -177,8 +181,10 @@ class CustomerCreate(CustomerBase):
 class Customer(CustomerBase):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    customer_id: str  # BEX-CUST-XXX
     user_id: str
     order_count: int = 0
+    qr_code_data: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Invoice Models
