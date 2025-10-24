@@ -14,7 +14,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
 import OrdersPage from '@/pages/OrdersPage';
 import ProductsPage from '@/pages/ProductsPage';
-import CustomersPage from '@/pages/CustomersPage';
+import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
