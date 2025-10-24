@@ -208,13 +208,30 @@ const CustomersPageAdvanced = () => {
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="col-span-2 space-y-2">
-                <Label>Photo de profil (URL)</Label>
-                <Input
-                  value={formData.profile_picture}
-                  onChange={(e) => setFormData({...formData, profile_picture: e.target.value})}
-                  placeholder="https://example.com/photo.jpg"
-                  data-testid="profile-picture-input"
-                />
+                <Label>Photo de profil</Label>
+                <div className="flex items-center gap-4">
+                  {(previewImage || formData.profile_picture) && (
+                    <img 
+                      src={previewImage || formData.profile_picture} 
+                      alt="Preview" 
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      data-testid="profile-picture-input"
+                      className="cursor-pointer"
+                    />
+                    {uploadingImage && (
+                      <p className="text-sm text-gray-500 mt-1">Upload en cours...</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">JPG, PNG (Max 5MB)</p>
+                  </div>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Nom complet *</Label>
