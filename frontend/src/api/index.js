@@ -19,6 +19,13 @@ export const updateOrderStatus = (id, status) => api.patch(`/orders/${id}/status
 export const generateBordereau = (orderIds) => 
   api.post('/orders/bordereau', orderIds, { responseType: 'blob' });
 
+// Tracking
+export const addTrackingEvent = (orderId, data) => api.post(`/orders/${orderId}/tracking`, data);
+export const getTrackingEvents = (orderId) => api.get(`/orders/${orderId}/tracking`);
+export const filterOrdersByDeliveryPartner = (partner) => api.get('/orders/filter/by-delivery-partner', { params: { delivery_partner: partner } });
+export const filterOrdersByUser = (userId) => api.get('/orders/filter/by-user', { params: { user_id: userId } });
+export const getEcommerceUsers = () => api.get('/users/ecommerce');
+
 // Products
 export const getProducts = () => api.get('/products');
 export const createProduct = (data) => api.post('/products', data);
@@ -27,6 +34,8 @@ export const updateProductStock = (id, stock) => api.patch(`/products/${id}/stoc
 // Customers
 export const getCustomers = () => api.get('/customers');
 export const createCustomer = (data) => api.post('/customers', data);
+export const updateCustomer = (id, data) => api.patch(`/customers/${id}`, data);
+export const generateCustomerQR = (id) => api.post(`/customers/${id}/generate-qr`, null, { responseType: 'blob' });
 
 // Delivery Partners
 export const getDeliveryPartners = () => api.get('/delivery-partners');
