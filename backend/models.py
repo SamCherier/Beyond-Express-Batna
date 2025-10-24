@@ -181,7 +181,7 @@ class CustomerCreate(CustomerBase):
 class Customer(CustomerBase):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    customer_id: str  # BEX-CUST-XXX
+    customer_id: Optional[str] = None  # BEX-CUST-XXX
     user_id: str
     order_count: int = 0
     qr_code_data: Optional[str] = None
