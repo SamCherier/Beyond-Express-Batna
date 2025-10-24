@@ -1,15 +1,20 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Response, Request, Cookie
+from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+from typing import List, Optional
+from datetime import datetime, timedelta, timezone
+import requests
+import secrets
 
+from models import *
+from auth_utils import hash_password, verify_password, create_access_token, verify_token, generate_session_token
+from pdf_generator import generate_bordereau_pdf
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -25,46 +30,672 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
+# Auth dependency
+async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
+    token = session_token
     
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    # Fallback to Authorization header if cookie not present
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Try session token first
+    session_doc = await db.sessions.find_one({"session_token": token, "_id": 0})
+    if session_doc:
+        if datetime.fromisoformat(session_doc['expires_at']) > datetime.now(timezone.utc):
+            user_doc = await db.users.find_one({"id": session_doc['user_id']}, {"_id": 0})
+            if user_doc:
+                return User(**user_doc)
+    
+    # Try JWT token
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_doc = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return User(**user_doc)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+# Admin dependency
+async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
 
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
+# ===== AUTH ROUTES =====
+@api_router.post("/auth/register", response_model=User)
+async def register(user_data: UserCreate):
+    # Check if user exists
+    existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password
+    hashed_pw = hash_password(user_data.password)
+    
+    # Create user
+    user_obj = User(
+        email=user_data.email,
+        name=user_data.name,
+        role=user_data.role
+    )
+    user_dict = user_obj.model_dump()
+    user_dict['password'] = hashed_pw
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    
+    await db.users.insert_one(user_dict)
+    
+    return user_obj
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
+@api_router.post("/auth/login")
+async def login(credentials: UserLogin, response: Response):
+    user_doc = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
+    if not verify_password(credentials.password, user_doc['password']):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
+    # Create JWT token
+    access_token = create_access_token(data={"sub": user_doc['id']})
+    
+    # Create session
+    session_token = generate_session_token()
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_doc['id'],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.sessions.insert_one(session_doc)
+    
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        max_age=7 * 24 * 60 * 60,
+        path="/",
+        httponly=True,
+        samesite="none",
+        secure=True
+    )
+    
+    user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user_obj
+    }
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
+@api_router.post("/auth/google-session")
+async def process_google_session(request: Request, response: Response):
+    session_id = request.headers.get("X-Session-ID")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID required")
     
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
+    # Call Emergent auth service
+    auth_response = requests.get(
+        "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+        headers={"X-Session-ID": session_id}
+    )
     
-    return status_checks
+    if auth_response.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    session_data = auth_response.json()
+    
+    # Check if user exists
+    user_doc = await db.users.find_one({"email": session_data['email']}, {"_id": 0})
+    
+    if not user_doc:
+        # Create new user (default ecommerce role)
+        user_obj = User(
+            email=session_data['email'],
+            name=session_data['name'],
+            role=UserRole.ECOMMERCE,
+            picture=session_data.get('picture')
+        )
+        user_dict = user_obj.model_dump()
+        user_dict['password'] = hash_password(secrets.token_urlsafe(32))
+        user_dict['created_at'] = user_dict['created_at'].isoformat()
+        await db.users.insert_one(user_dict)
+        user_doc = user_dict
+    
+    # Create session
+    session_token = session_data['session_token']
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_doc['id'],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.sessions.insert_one(session_doc)
+    
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        max_age=7 * 24 * 60 * 60,
+        path="/",
+        httponly=True,
+        samesite="none",
+        secure=True
+    )
+    
+    user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
+    
+    return {
+        "user": user_obj,
+        "session_token": session_token
+    }
+
+@api_router.post("/auth/logout")
+async def logout(response: Response, session_token: Optional[str] = Cookie(None)):
+    if session_token:
+        await db.sessions.delete_one({"session_token": session_token})
+    
+    response.delete_cookie(key="session_token", path="/")
+    return {"message": "Logged out successfully"}
+
+@api_router.get("/auth/me", response_model=User)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+# ===== USER ROUTES =====
+@api_router.patch("/users/me", response_model=User)
+async def update_profile(update_data: UserUpdate, current_user: User = Depends(get_current_user)):
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    if update_dict:
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$set": update_dict}
+        )
+    
+    updated_user = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    return User(**{k: v for k, v in updated_user.items() if k != 'password'})
+
+# ===== DASHBOARD STATS =====
+@api_router.get("/dashboard/stats")
+async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
+    if current_user.role == UserRole.ADMIN:
+        total_orders = await db.orders.count_documents({})
+        total_users = await db.users.count_documents({"role": "ecommerce"})
+        total_products = await db.products.count_documents({})
+        in_transit = await db.orders.count_documents({"status": OrderStatus.IN_TRANSIT})
+    elif current_user.role == UserRole.ECOMMERCE:
+        total_orders = await db.orders.count_documents({"user_id": current_user.id})
+        total_products = await db.products.count_documents({"user_id": current_user.id})
+        total_users = 0
+        in_transit = await db.orders.count_documents({"user_id": current_user.id, "status": OrderStatus.IN_TRANSIT})
+    else:  # DELIVERY
+        assigned_orders = await db.orders.count_documents({"delivery_partner": current_user.id})
+        in_transit = await db.orders.count_documents({"delivery_partner": current_user.id, "status": OrderStatus.IN_TRANSIT})
+        total_orders = assigned_orders
+        total_users = 0
+        total_products = 0
+    
+    return {
+        "total_orders": total_orders,
+        "total_users": total_users,
+        "total_products": total_products,
+        "in_transit": in_transit
+    }
+
+# ===== ORDER ROUTES =====
+@api_router.post("/orders", response_model=Order)
+async def create_order(order_data: OrderCreate, current_user: User = Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.ECOMMERCE]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Generate tracking ID
+    tracking_id = f"BEX-{secrets.token_hex(6).upper()}"
+    
+    # Get organization info for sender
+    org = await db.organizations.find_one({}, {"_id": 0})
+    if not org:
+        org = Organization().model_dump()
+        org['created_at'] = org['created_at'].isoformat()
+        await db.organizations.insert_one(org)
+    
+    sender_info = AddressInfo(
+        name=org['name'],
+        phone=org['phone'],
+        address=org['address'],
+        wilaya="Batna",
+        commune="Batna"
+    )
+    
+    order_obj = Order(
+        **order_data.model_dump(),
+        tracking_id=tracking_id,
+        user_id=current_user.id,
+        sender=sender_info
+    )
+    
+    order_dict = order_obj.model_dump()
+    order_dict['created_at'] = order_dict['created_at'].isoformat()
+    order_dict['updated_at'] = order_dict['updated_at'].isoformat()
+    
+    await db.orders.insert_one(order_dict)
+    
+    return order_obj
+
+@api_router.get("/orders", response_model=List[Order])
+async def get_orders(
+    status: Optional[OrderStatus] = None,
+    current_user: User = Depends(get_current_user)
+):
+    query = {}
+    
+    if current_user.role == UserRole.ECOMMERCE:
+        query["user_id"] = current_user.id
+    elif current_user.role == UserRole.DELIVERY:
+        query["delivery_partner"] = current_user.id
+    
+    if status:
+        query["status"] = status
+    
+    orders = await db.orders.find(query, {"_id": 0}).to_list(1000)
+    
+    for order in orders:
+        if isinstance(order['created_at'], str):
+            order['created_at'] = datetime.fromisoformat(order['created_at'])
+        if isinstance(order['updated_at'], str):
+            order['updated_at'] = datetime.fromisoformat(order['updated_at'])
+    
+    return orders
+
+@api_router.get("/orders/{order_id}", response_model=Order)
+async def get_order(order_id: str, current_user: User = Depends(get_current_user)):
+    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions
+    if current_user.role == UserRole.ECOMMERCE and order['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if isinstance(order['created_at'], str):
+        order['created_at'] = datetime.fromisoformat(order['created_at'])
+    if isinstance(order['updated_at'], str):
+        order['updated_at'] = datetime.fromisoformat(order['updated_at'])
+    
+    return Order(**order)
+
+@api_router.patch("/orders/{order_id}/status")
+async def update_order_status(
+    order_id: str,
+    status: OrderStatus,
+    current_user: User = Depends(get_current_user)
+):
+    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    await db.orders.update_one(
+        {"id": order_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Status updated"}
+
+@api_router.post("/orders/bordereau")
+async def generate_bordereau(order_ids: List[str], current_user: User = Depends(get_current_user)):
+    if not order_ids:
+        raise HTTPException(status_code=400, detail="No orders selected")
+    
+    # Get first order for now (single bordereau)
+    order = await db.orders.find_one({"id": order_ids[0]}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions
+    if current_user.role == UserRole.ECOMMERCE and order['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    pdf_buffer = generate_bordereau_pdf(order)
+    
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=bordereau_{order['tracking_id']}.pdf"}
+    )
+
+# ===== PRODUCT ROUTES =====
+@api_router.post("/products", response_model=Product)
+async def create_product(product_data: ProductCreate, current_user: User = Depends(get_current_user)):
+    if current_user.role not in [UserRole.ADMIN, UserRole.ECOMMERCE]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Check if SKU exists
+    existing = await db.products.find_one({"sku": product_data.sku, "user_id": current_user.id}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="SKU already exists")
+    
+    product_obj = Product(**product_data.model_dump(), user_id=current_user.id)
+    product_dict = product_obj.model_dump()
+    product_dict['created_at'] = product_dict['created_at'].isoformat()
+    
+    await db.products.insert_one(product_dict)
+    
+    return product_obj
+
+@api_router.get("/products", response_model=List[Product])
+async def get_products(current_user: User = Depends(get_current_user)):
+    if current_user.role == UserRole.ECOMMERCE:
+        query = {"user_id": current_user.id}
+    else:
+        query = {}
+    
+    products = await db.products.find(query, {"_id": 0}).to_list(1000)
+    
+    for product in products:
+        if isinstance(product['created_at'], str):
+            product['created_at'] = datetime.fromisoformat(product['created_at'])
+    
+    return products
+
+@api_router.patch("/products/{product_id}/stock")
+async def update_product_stock(
+    product_id: str,
+    stock_available: int,
+    current_user: User = Depends(get_current_user)
+):
+    product = await db.products.find_one({"id": product_id}, {"_id": 0})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    if current_user.role == UserRole.ECOMMERCE and product['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.products.update_one(
+        {"id": product_id},
+        {"$set": {"stock_available": stock_available}}
+    )
+    
+    return {"message": "Stock updated"}
+
+# ===== DELIVERY PARTNER ROUTES (ADMIN ONLY) =====
+@api_router.post("/delivery-partners", response_model=DeliveryPartner)
+async def create_delivery_partner(
+    partner_data: DeliveryPartnerCreate,
+    current_user: User = Depends(get_current_admin)
+):
+    partner_obj = DeliveryPartner(**partner_data.model_dump())
+    partner_dict = partner_obj.model_dump()
+    partner_dict['created_at'] = partner_dict['created_at'].isoformat()
+    
+    await db.delivery_partners.insert_one(partner_dict)
+    
+    return partner_obj
+
+@api_router.get("/delivery-partners", response_model=List[DeliveryPartner])
+async def get_delivery_partners(current_user: User = Depends(get_current_admin)):
+    partners = await db.delivery_partners.find({}, {"_id": 0}).to_list(100)
+    
+    for partner in partners:
+        if isinstance(partner['created_at'], str):
+            partner['created_at'] = datetime.fromisoformat(partner['created_at'])
+    
+    return partners
+
+# ===== CUSTOMER ROUTES =====
+@api_router.post("/customers", response_model=Customer)
+async def create_customer(
+    customer_data: CustomerCreate,
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role not in [UserRole.ADMIN, UserRole.ECOMMERCE]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    customer_obj = Customer(**customer_data.model_dump(), user_id=current_user.id)
+    customer_dict = customer_obj.model_dump()
+    customer_dict['created_at'] = customer_dict['created_at'].isoformat()
+    
+    await db.customers.insert_one(customer_dict)
+    
+    return customer_obj
+
+@api_router.get("/customers", response_model=List[Customer])
+async def get_customers(current_user: User = Depends(get_current_user)):
+    if current_user.role == UserRole.ECOMMERCE:
+        query = {"user_id": current_user.id}
+    else:
+        query = {}
+    
+    customers = await db.customers.find(query, {"_id": 0}).to_list(1000)
+    
+    for customer in customers:
+        if isinstance(customer['created_at'], str):
+            customer['created_at'] = datetime.fromisoformat(customer['created_at'])
+    
+    return customers
+
+# ===== INVOICE ROUTES =====
+@api_router.get("/invoices", response_model=List[Invoice])
+async def get_invoices(current_user: User = Depends(get_current_user)):
+    if current_user.role == UserRole.ECOMMERCE:
+        query = {"user_id": current_user.id}
+    else:
+        query = {}
+    
+    invoices = await db.invoices.find(query, {"_id": 0}).to_list(1000)
+    
+    for invoice in invoices:
+        if isinstance(invoice['created_at'], str):
+            invoice['created_at'] = datetime.fromisoformat(invoice['created_at'])
+        if invoice.get('due_date') and isinstance(invoice['due_date'], str):
+            invoice['due_date'] = datetime.fromisoformat(invoice['due_date'])
+        if invoice.get('paid_at') and isinstance(invoice['paid_at'], str):
+            invoice['paid_at'] = datetime.fromisoformat(invoice['paid_at'])
+    
+    return invoices
+
+# ===== AI CHAT ROUTES =====
+@api_router.post("/ai-chat")
+async def ai_chat(
+    message: str,
+    model: str = "gpt-4o",
+    provider: str = "openai",
+    session_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    if not session_id:
+        session_id = str(uuid.uuid4())
+    
+    # Get or create chat session
+    chat_session = await db.chat_sessions.find_one({
+        "user_id": current_user.id,
+        "session_id": session_id
+    }, {"_id": 0})
+    
+    if not chat_session:
+        chat_session = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user.id,
+            "session_id": session_id,
+            "model": model,
+            "provider": provider,
+            "messages": [],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.chat_sessions.insert_one(chat_session)
+    
+    # Initialize LLM chat
+    api_key = os.environ.get('EMERGENT_LLM_KEY')
+    
+    system_message = f"""You are an AI assistant for Beyond Express, a 3PL logistics platform. 
+User role: {current_user.role}
+User name: {current_user.name}
+You can help with:
+- Order status queries (format: BEX-XXXXXX)
+- Stock information
+- Creating shipments
+- Generating shipping labels
+- General logistics questions
+
+Answer in the user's preferred language: {current_user.language}"""
+    
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=session_id,
+        system_message=system_message
+    ).with_model(provider, model)
+    
+    user_message = UserMessage(text=message)
+    response = await chat.send_message(user_message)
+    
+    # Save messages
+    chat_session['messages'].append({
+        "role": "user",
+        "content": message,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    chat_session['messages'].append({
+        "role": "assistant",
+        "content": response,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    await db.chat_sessions.update_one(
+        {"user_id": current_user.id, "session_id": session_id},
+        {"$set": {"messages": chat_session['messages']}}
+    )
+    
+    return {
+        "response": response,
+        "session_id": session_id
+    }
+
+@api_router.get("/ai-chat/history")
+async def get_chat_history(
+    session_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    query = {"user_id": current_user.id}
+    if session_id:
+        query["session_id"] = session_id
+    
+    sessions = await db.chat_sessions.find(query, {"_id": 0}).sort("created_at", -1).to_list(10)
+    
+    return sessions
+
+# ===== ORGANIZATION ROUTES (ADMIN ONLY) =====
+@api_router.get("/organization", response_model=Organization)
+async def get_organization():
+    org = await db.organizations.find_one({}, {"_id": 0})
+    if not org:
+        org_obj = Organization()
+        org_dict = org_obj.model_dump()
+        org_dict['created_at'] = org_dict['created_at'].isoformat()
+        await db.organizations.insert_one(org_dict)
+        return org_obj
+    
+    if isinstance(org['created_at'], str):
+        org['created_at'] = datetime.fromisoformat(org['created_at'])
+    
+    return Organization(**org)
+
+@api_router.patch("/organization")
+async def update_organization(
+    update_data: OrganizationBase,
+    current_user: User = Depends(get_current_admin)
+):
+    org = await db.organizations.find_one({}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    
+    await db.organizations.update_one(
+        {"id": org['id']},
+        {"$set": update_data.model_dump()}
+    )
+    
+    return {"message": "Organization updated"}
+
+# ===== API KEY ROUTES =====
+@api_router.post("/api-keys")
+async def create_api_key(
+    name: str,
+    current_user: User = Depends(get_current_user)
+):
+    api_key = f"bex_{secrets.token_urlsafe(32)}"
+    
+    api_key_obj = APIKey(
+        user_id=current_user.id,
+        key=api_key,
+        name=name
+    )
+    
+    api_key_dict = api_key_obj.model_dump()
+    api_key_dict['created_at'] = api_key_dict['created_at'].isoformat()
+    
+    await db.api_keys.insert_one(api_key_dict)
+    
+    return {"api_key": api_key, "name": name}
+
+@api_router.get("/api-keys", response_model=List[APIKey])
+async def get_api_keys(current_user: User = Depends(get_current_user)):
+    keys = await db.api_keys.find({"user_id": current_user.id}, {"_id": 0}).to_list(100)
+    
+    for key in keys:
+        if isinstance(key['created_at'], str):
+            key['created_at'] = datetime.fromisoformat(key['created_at'])
+    
+    return keys
+
+# ===== SUPPORT ROUTES =====
+@api_router.post("/support/tickets", response_model=SupportTicket)
+async def create_support_ticket(
+    ticket_data: SupportTicketCreate,
+    current_user: User = Depends(get_current_user)
+):
+    ticket_obj = SupportTicket(**ticket_data.model_dump(), user_id=current_user.id)
+    ticket_dict = ticket_obj.model_dump()
+    ticket_dict['created_at'] = ticket_dict['created_at'].isoformat()
+    
+    await db.support_tickets.insert_one(ticket_dict)
+    
+    return ticket_obj
+
+@api_router.get("/support/tickets", response_model=List[SupportTicket])
+async def get_support_tickets(current_user: User = Depends(get_current_user)):
+    if current_user.role == UserRole.ADMIN:
+        query = {}
+    else:
+        query = {"user_id": current_user.id}
+    
+    tickets = await db.support_tickets.find(query, {"_id": 0}).to_list(100)
+    
+    for ticket in tickets:
+        if isinstance(ticket['created_at'], str):
+            ticket['created_at'] = datetime.fromisoformat(ticket['created_at'])
+    
+    return tickets
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -76,13 +707,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
