@@ -1,0 +1,73 @@
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes slideArrow {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 87, 87, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 87, 87, 0.6);
+  }
+}
+
+@keyframes rotateIn {
+  from {
+    transform: rotate(-180deg) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.animated-logo {
+  animation: rotateIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.logo-bg {
+  animation: pulse 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.logo-letter {
+  transform-origin: center;
+}
+
+.logo-arrow {
+  animation: slideArrow 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.logo-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: glow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.animated-logo:hover .logo-bg {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.animated-logo:hover .logo-arrow {
+  animation: slideArrow 1s ease-in-out infinite;
+}
