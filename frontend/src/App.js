@@ -86,9 +86,9 @@ function AppRoutes() {
         }
       >
         <Route index element={<AdminDashboard />} />
-        <Route path="orders" element={<div className="p-8 text-center">Orders Page - Coming Soon</div>} />
-        <Route path="products" element={<div className="p-8 text-center">Products Page - Coming Soon</div>} />
-        <Route path="customers" element={<div className="p-8 text-center">Customers Page - Coming Soon</div>} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route path="products" element={<ProductsPage />} />
+        <Route path="customers" element={<CustomersPage />} />
         <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
         <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
         <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
