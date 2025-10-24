@@ -12,7 +12,7 @@ import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardLayout from '@/components/DashboardLayout';
 import AdminDashboard from '@/pages/AdminDashboard';
-import OrdersPage from '@/pages/OrdersPage';
+import OrdersPageAdvanced from '@/pages/OrdersPageAdvanced';
 import ProductsPage from '@/pages/ProductsPage';
 import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
 
