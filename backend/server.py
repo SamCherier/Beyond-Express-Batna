@@ -597,6 +597,31 @@ async def get_customers(current_user: User = Depends(get_current_user)):
     
     return customers
 
+
+@api_router.post("/upload-profile-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    # Validate file type
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Generate unique filename
+    import uuid
+    file_extension = file.filename.split('.')[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = UPLOAD_DIR / "profile_pictures" / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        content = await file.read()
+        buffer.write(content)
+    
+    # Return URL
+    file_url = f"/uploads/profile_pictures/{unique_filename}"
+    return {"url": file_url}
+
 @api_router.post("/customers/{customer_id}/generate-qr")
 async def generate_customer_qr(
     customer_id: str,
