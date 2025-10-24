@@ -473,7 +473,11 @@ async def create_customer(
     if current_user.role not in [UserRole.ADMIN, UserRole.ECOMMERCE]:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    customer_obj = Customer(**customer_data.model_dump(), user_id=current_user.id)
+    # Generate unique customer ID
+    count = await db.customers.count_documents({})
+    customer_id = f"BEX-CUST-{str(count + 1).zfill(4)}"
+    
+    customer_obj = Customer(**customer_data.model_dump(), user_id=current_user.id, customer_id=customer_id)
     customer_dict = customer_obj.model_dump()
     customer_dict['created_at'] = customer_dict['created_at'].isoformat()
     
@@ -495,6 +499,54 @@ async def get_customers(current_user: User = Depends(get_current_user)):
             customer['created_at'] = datetime.fromisoformat(customer['created_at'])
     
     return customers
+
+@api_router.post("/customers/{customer_id}/generate-qr")
+async def generate_customer_qr(
+    customer_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    customer = await db.customers.find_one({"id": customer_id}, {"_id": 0})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Generate QR code data
+    qr_data = f"BeyondExpress|{customer['customer_id']}|{customer['name']}|{customer['phone']}"
+    
+    # Update customer with QR code data
+    await db.customers.update_one(
+        {"id": customer_id},
+        {"$set": {"qr_code_data": qr_data}}
+    )
+    
+    # Generate QR code image
+    from pdf_generator import generate_qr_code
+    qr_buffer = generate_qr_code(qr_data)
+    
+    return StreamingResponse(
+        qr_buffer,
+        media_type="image/png",
+        headers={"Content-Disposition": f"attachment; filename=qr_{customer['customer_id']}.png"}
+    )
+
+@api_router.patch("/customers/{customer_id}")
+async def update_customer(
+    customer_id: str,
+    update_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    customer = await db.customers.find_one({"id": customer_id}, {"_id": 0})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    if current_user.role == UserRole.ECOMMERCE and customer['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.customers.update_one(
+        {"id": customer_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Customer updated"}
 
 # ===== INVOICE ROUTES =====
 @api_router.get("/invoices", response_model=List[Invoice])
