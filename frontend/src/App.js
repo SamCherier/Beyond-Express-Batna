@@ -19,14 +19,14 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100\">
-        <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-red-500\"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to=\"/login\" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -38,14 +38,14 @@ const PublicRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100\">
-        <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-red-500\"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
       </div>
     );
   }
 
   if (user) {
-    return <Navigate to=\"/dashboard\" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -55,9 +55,9 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path=\"/\" element={<LandingPage />} />
+      <Route path="/" element={<LandingPage />} />
       <Route
-        path=\"/login\"
+        path="/login"
         element={
           <PublicRoute>
             <LoginPage />
@@ -65,7 +65,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path=\"/register\"
+        path="/register"
         element={
           <PublicRoute>
             <RegisterPage />
@@ -75,7 +75,7 @@ function AppRoutes() {
 
       {/* Protected Routes */}
       <Route
-        path=\"/dashboard\"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardLayout />
@@ -83,17 +83,17 @@ function AppRoutes() {
         }
       >
         <Route index element={<AdminDashboard />} />
-        <Route path=\"orders\" element={<div className=\"p-8 text-center\">Orders Page - Coming Soon</div>} />
-        <Route path=\"products\" element={<div className=\"p-8 text-center\">Products Page - Coming Soon</div>} />
-        <Route path=\"customers\" element={<div className=\"p-8 text-center\">Customers Page - Coming Soon</div>} />
-        <Route path=\"delivery-partners\" element={<div className=\"p-8 text-center\">Delivery Partners Page - Coming Soon</div>} />
-        <Route path=\"invoices\" element={<div className=\"p-8 text-center\">Invoices Page - Coming Soon</div>} />
-        <Route path=\"support\" element={<div className=\"p-8 text-center\">Support Page - Coming Soon</div>} />
-        <Route path=\"settings\" element={<div className=\"p-8 text-center\">Settings Page - Coming Soon</div>} />
+        <Route path="orders" element={<div className="p-8 text-center">Orders Page - Coming Soon</div>} />
+        <Route path="products" element={<div className="p-8 text-center">Products Page - Coming Soon</div>} />
+        <Route path="customers" element={<div className="p-8 text-center">Customers Page - Coming Soon</div>} />
+        <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
+        <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
+        <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
+        <Route path="settings" element={<div className="p-8 text-center">Settings Page - Coming Soon</div>} />
       </Route>
 
       {/* Catch all */}
-      <Route path=\"*\" element={<Navigate to=\"/\" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
@@ -120,7 +120,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <AppRoutes />
-          <Toaster position=\"top-right\" richColors />
+          <Toaster position="top-right" richColors />
         </BrowserRouter>
       </AuthProvider>
     </I18nextProvider>
