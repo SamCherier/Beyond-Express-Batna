@@ -236,6 +236,22 @@ class SupportTicket(SupportTicketBase):
     status: str = "open"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# Tracking Event Models
+class TrackingEventBase(BaseModel):
+    status: str
+    location: Optional[str] = None
+    notes: Optional[str] = None
+
+class TrackingEventCreate(TrackingEventBase):
+    pass
+
+class TrackingEvent(TrackingEventBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_id: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 # API Key Model
 class APIKey(BaseModel):
     model_config = ConfigDict(extra="ignore")
