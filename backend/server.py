@@ -386,6 +386,95 @@ async def generate_bordereau(order_ids: List[str], current_user: User = Depends(
         headers={"Content-Disposition": f"attachment; filename=bordereau_{order['tracking_id']}.pdf"}
     )
 
+
+# ===== TRACKING ROUTES =====
+@api_router.post("/orders/{order_id}/tracking")
+async def add_tracking_event(
+    order_id: str,
+    event_data: TrackingEventCreate,
+    current_user: User = Depends(get_current_user)
+):
+    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    tracking_event = TrackingEvent(**event_data.model_dump(), order_id=order_id)
+    tracking_dict = tracking_event.model_dump()
+    tracking_dict['timestamp'] = tracking_dict['timestamp'].isoformat()
+    
+    await db.tracking_events.insert_one(tracking_dict)
+    
+    # Update order status if provided
+    if event_data.status:
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": {"status": event_data.status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    
+    return {"message": "Tracking event added"}
+
+@api_router.get("/orders/{order_id}/tracking")
+async def get_tracking_events(
+    order_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    order = await db.orders.find_one({"id": order_id}, {"_id": 0})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    # Check permissions
+    if current_user.role == UserRole.ECOMMERCE and order['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    events = await db.tracking_events.find({"order_id": order_id}, {"_id": 0}).sort("timestamp", -1).to_list(100)
+    
+    for event in events:
+        if isinstance(event['timestamp'], str):
+            event['timestamp'] = datetime.fromisoformat(event['timestamp'])
+    
+    return events
+
+@api_router.get("/orders/filter/by-delivery-partner")
+async def filter_orders_by_delivery_partner(
+    delivery_partner: str,
+    current_user: User = Depends(get_current_user)
+):
+    query = {"delivery_partner": delivery_partner}
+    
+    if current_user.role == UserRole.ECOMMERCE:
+        query["user_id"] = current_user.id
+    
+    orders = await db.orders.find(query, {"_id": 0}).to_list(1000)
+    
+    for order in orders:
+        if isinstance(order['created_at'], str):
+            order['created_at'] = datetime.fromisoformat(order['created_at'])
+        if isinstance(order['updated_at'], str):
+            order['updated_at'] = datetime.fromisoformat(order['updated_at'])
+    
+    return orders
+
+@api_router.get("/orders/filter/by-user")
+async def filter_orders_by_user(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    orders = await db.orders.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+    
+    for order in orders:
+        if isinstance(order['created_at'], str):
+            order['created_at'] = datetime.fromisoformat(order['created_at'])
+        if isinstance(order['updated_at'], str):
+            order['updated_at'] = datetime.fromisoformat(order['updated_at'])
+    
+    return orders
+
+@api_router.get("/users/ecommerce")
+async def get_ecommerce_users(current_user: User = Depends(get_current_admin)):
+    users = await db.users.find({"role": "ecommerce"}, {"_id": 0, "password": 0}).to_list(1000)
+    return users
+
+
 # ===== PRODUCT ROUTES =====
 @api_router.post("/products", response_model=Product)
 async def create_product(product_data: ProductCreate, current_user: User = Depends(get_current_user)):
