@@ -29,6 +29,12 @@ db = client[os.environ['DB_NAME']]
 # Create the main app without a prefix
 app = FastAPI()
 
+# Mount uploads directory for serving images
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+(UPLOAD_DIR / "profile_pictures").mkdir(exist_ok=True)
+
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
