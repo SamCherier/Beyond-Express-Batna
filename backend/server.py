@@ -136,8 +136,8 @@ async def login(credentials: UserLogin, response: Response):
         max_age=7 * 24 * 60 * 60,
         path="/",
         httponly=True,
-        samesite="none",
-        secure=True
+        samesite="lax",
+        secure=False
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
@@ -202,8 +202,8 @@ async def process_google_session(request: Request, response: Response):
         max_age=7 * 24 * 60 * 60,
         path="/",
         httponly=True,
-        samesite="none",
-        secure=True
+        samesite="lax",
+        secure=False
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
