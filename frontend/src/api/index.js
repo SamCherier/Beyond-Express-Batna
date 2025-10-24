@@ -36,6 +36,13 @@ export const getCustomers = () => api.get('/customers');
 export const createCustomer = (data) => api.post('/customers', data);
 export const updateCustomer = (id, data) => api.patch(`/customers/${id}`, data);
 export const generateCustomerQR = (id) => api.post(`/customers/${id}/generate-qr`, null, { responseType: 'blob' });
+export const uploadProfilePicture = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/upload-profile-picture', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
 
 // Delivery Partners
 export const getDeliveryPartners = () => api.get('/delivery-partners');
