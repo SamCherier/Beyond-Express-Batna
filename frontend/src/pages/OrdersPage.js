@@ -260,9 +260,9 @@ const OrdersPage = () => {
                 <Label>Société de Livraison *</Label>
                 <Select value={formData.delivery_partner} onValueChange={(val) => setFormData({...formData, delivery_partner: val})}>
                   <SelectTrigger data-testid="delivery-partner-select">
-                    <SelectValue placeholder="Sélectionner" />
+                    <SelectValue placeholder="Sélectionner transporteur" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
                     {DELIVERY_PARTNERS.map(partner => (
                       <SelectItem key={partner} value={partner}>{partner}</SelectItem>
                     ))}
