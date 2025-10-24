@@ -1,0 +1,56 @@
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+export const API = `${API_URL}/api`;
+
+const api = axios.create({
+  baseURL: API,
+  withCredentials: true
+});
+
+// Dashboard
+export const getDashboardStats = () => api.get('/dashboard/stats');
+
+// Orders
+export const getOrders = (status) => api.get('/orders', { params: { status } });
+export const getOrder = (id) => api.get(`/orders/${id}`);
+export const createOrder = (data) => api.post('/orders', data);
+export const updateOrderStatus = (id, status) => api.patch(`/orders/${id}/status`, null, { params: { status } });
+export const generateBordereau = (orderIds) => 
+  api.post('/orders/bordereau', orderIds, { responseType: 'blob' });
+
+// Products
+export const getProducts = () => api.get('/products');
+export const createProduct = (data) => api.post('/products', data);
+export const updateProductStock = (id, stock) => api.patch(`/products/${id}/stock`, null, { params: { stock_available: stock } });
+
+// Customers
+export const getCustomers = () => api.get('/customers');
+export const createCustomer = (data) => api.post('/customers', data);
+
+// Delivery Partners
+export const getDeliveryPartners = () => api.get('/delivery-partners');
+export const createDeliveryPartner = (data) => api.post('/delivery-partners', data);
+
+// Invoices
+export const getInvoices = () => api.get('/invoices');
+
+// AI Chat
+export const sendAIMessage = (message, model, provider, sessionId) => 
+  api.post('/ai-chat', { message, model, provider, session_id: sessionId });
+export const getChatHistory = (sessionId) => 
+  api.get('/ai-chat/history', { params: { session_id: sessionId } });
+
+// Organization
+export const getOrganization = () => api.get('/organization');
+export const updateOrganization = (data) => api.patch('/organization', data);
+
+// API Keys
+export const getAPIKeys = () => api.get('/api-keys');
+export const createAPIKey = (name) => api.post('/api-keys', null, { params: { name } });
+
+// Support
+export const getSupportTickets = () => api.get('/support/tickets');
+export const createSupportTicket = (data) => api.post('/support/tickets', data);
+
+export default api;
