@@ -51,7 +51,7 @@ async def get_current_user(request: Request, session_token: Optional[str] = Cook
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     # Try session token first
-    session_doc = await db.sessions.find_one({"session_token": token, "_id": 0})
+    session_doc = await db.sessions.find_one({"session_token": token}, {"_id": 0})
     if session_doc:
         if datetime.fromisoformat(session_doc['expires_at']) > datetime.now(timezone.utc):
             user_doc = await db.users.find_one({"id": session_doc['user_id']}, {"_id": 0})
