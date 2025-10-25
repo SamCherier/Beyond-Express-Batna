@@ -292,9 +292,11 @@ test_plan:
     - "Linked Wilaya/Commune Dropdowns"
     - "Bulk Bordereau Generation"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
     message: "All Phase 2 features have been implemented in OrdersPageAdvanced.js. File was cleaned up (removed duplicate code). Features ready for testing: 1) Tracking Modal with timeline, 2) Linked Wilaya/Commune dropdowns, 3) Bulk selection with checkboxes, 4) Bulk bordereau generation, 5) Bulk status update dialog, 6) AI Risk Score using Emergent LLM key. Backend endpoints already exist. Ready for backend and frontend testing."
+  - agent: "testing"
+    message: "✅ BACKEND TESTING COMPLETE: All backend APIs for Phase 2 Orders Page Advanced Features are working correctly. Tested: 1) Authentication system, 2) Order creation with wilaya/commune, 3) Order retrieval, 4) Tracking events (POST/GET), 5) Bulk status update, 6) Bulk bordereau PDF generation, 7) AI chat for risk score analysis. All endpoints return proper responses and handle Algerian location data correctly. Backend is ready for production use."
