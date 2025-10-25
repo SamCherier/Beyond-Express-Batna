@@ -304,9 +304,9 @@ const AdminDashboardModern = () => {
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Package className="w-5 h-5 text-blue-600" />
                   </div>
-                  <span className="font-medium text-gray-700">Commandes Aujourd'hui</span>
+                  <span className="font-medium text-gray-700">Total Commandes</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">{Math.floor(stats.totalOrders * 0.1)}</span>
+                <span className="text-2xl font-bold text-gray-900">{stats.totalOrders}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
@@ -316,7 +316,9 @@ const AdminDashboardModern = () => {
                   </div>
                   <span className="font-medium text-gray-700">Livraisons Réussies</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">{orders.filter(o => o.status === 'delivered').length}</span>
+                <span className="text-2xl font-bold text-gray-900">
+                  {ordersByStatus.find(s => s.name === 'Livré')?.value || 0}
+                </span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
@@ -326,7 +328,7 @@ const AdminDashboardModern = () => {
                   </div>
                   <span className="font-medium text-gray-700">En Transit</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">{orders.filter(o => o.status === 'in_transit').length}</span>
+                <span className="text-2xl font-bold text-gray-900">{stats.inTransit}</span>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
@@ -336,7 +338,9 @@ const AdminDashboardModern = () => {
                   </div>
                   <span className="font-medium text-gray-700">Retours</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900">{orders.filter(o => o.status === 'returned').length}</span>
+                <span className="text-2xl font-bold text-gray-900">
+                  {ordersByStatus.find(s => s.name === 'Retourné')?.value || 0}
+                </span>
               </div>
             </div>
           </CardContent>
