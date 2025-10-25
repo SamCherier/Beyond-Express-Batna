@@ -52,10 +52,19 @@ def generate_bordereau_pdf(order_data: dict) -> BytesIO:
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Title'],
-        fontSize=24,
+        fontSize=20,
         textColor=colors.HexColor('#FF5757'),
         alignment=TA_CENTER,
-        spaceAfter=20
+        spaceAfter=4
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'SubTitle',
+        parent=styles['Title'],
+        fontSize=12,
+        textColor=colors.HexColor('#666666'),
+        alignment=TA_CENTER,
+        spaceAfter=12
     )
     
     header_style = ParagraphStyle(
@@ -73,8 +82,31 @@ def generate_bordereau_pdf(order_data: dict) -> BytesIO:
         spaceAfter=6
     )
     
-    # Header with logo and title
-    story.append(Paragraph("<b>BEYOND EXPRESS</b>", title_style))
+    # ===== HEADER WITH LOGO AND BRANDING =====
+    # Try to load the Beyond Express logo
+    logo_path = os.path.join(os.path.dirname(__file__), 'static', 'logos', 'beyond_express_logo_1.jpg')
+    
+    if os.path.exists(logo_path):
+        try:
+            # Load and resize logo
+            logo_img = Image(logo_path, width=40*mm, height=40*mm)
+            logo_img.hAlign = 'CENTER'
+            story.append(logo_img)
+            story.append(Spacer(1, 3*mm))
+        except Exception as e:
+            print(f"Error loading logo: {e}")
+            # Fallback to text-only header
+            story.append(Paragraph("<b>BEYOND EXPRESS</b>", title_style))
+    else:
+        # Fallback if logo doesn't exist
+        story.append(Paragraph("<b>BEYOND EXPRESS</b>", title_style))
+    
+    # Company Name
+    story.append(Paragraph("<b>Beyond Express</b>", title_style))
+    
+    # Dynamic "BY [TRANSPORTEUR]" based on delivery partner
+    delivery_partner = order_data.get('delivery_partner', 'TRANSPORTEUR')
+    story.append(Paragraph(f"<b>BY {delivery_partner.upper()}</b>", subtitle_style))
     story.append(Spacer(1, 5*mm))
     
     # Generate QR Code
@@ -133,6 +165,7 @@ def generate_bordereau_pdf(order_data: dict) -> BytesIO:
     details_data = [
         ["N° de suivi / Tracking:", f"<b>{tracking_id}</b>"],
         ["Code Wilaya:", f"<b>{wilaya_code}</b>"],
+        ["Partenaire Livraison:", f"<b>{delivery_partner}</b>"],
         ["Montant COD:", f"<b>{order_data['cod_amount']} DA</b>"],
         ["Description:", order_data['description']],
         ["Type de service:", order_data['service_type']],
