@@ -68,13 +68,6 @@ const LandingPageModern = () => {
       color: 'text-red-500'
     }
   ];
-    {
-      icon: <AlertCircle className="w-12 h-12" />,
-      titleKey: 'blacklistTitle',
-      descKey: 'blacklistDesc',
-      color: 'text-red-500'
-    }
-  ];
 
   const aiModels = [
     { name: 'OpenAI GPT', icon: '🤖' },
