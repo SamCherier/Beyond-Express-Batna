@@ -203,9 +203,9 @@ def test_order_creation():
         return False
 
 def test_get_orders():
-    """Test getting orders list"""
+    """Test getting orders list - CRITICAL: Test for updated_at KeyError fix"""
     
-    print("📋 Testing Get Orders...")
+    print("📋 Testing Get Orders (Critical Bug Fix Verification)...")
     
     try:
         response = requests.get(
@@ -218,31 +218,64 @@ def test_get_orders():
             data = response.json()
             
             if isinstance(data, list):
-                # Check if orders include wilaya/commune
-                has_location_data = False
-                for order in data:
-                    recipient = order.get('recipient', {})
-                    if 'wilaya' in recipient and 'commune' in recipient:
-                        has_location_data = True
-                        break
+                print(f"✅ SUCCESS: GET /api/orders returned 200 OK with {len(data)} orders")
                 
-                test_results.add_result(
-                    "Get Orders List",
-                    True,
-                    f"Retrieved {len(data)} orders, location data present: {has_location_data}"
-                )
-                return True
+                # Verify all orders have required fields including updated_at
+                missing_fields = []
+                orders_with_all_fields = 0
+                
+                required_fields = ['id', 'tracking_id', 'status', 'cod_amount', 'recipient', 'sender', 'updated_at']
+                
+                for i, order in enumerate(data):
+                    order_missing = []
+                    for field in required_fields:
+                        if field not in order:
+                            order_missing.append(field)
+                    
+                    if order_missing:
+                        missing_fields.append(f"Order {i+1}: missing {order_missing}")
+                    else:
+                        orders_with_all_fields += 1
+                    
+                    # Check recipient structure
+                    recipient = order.get('recipient', {})
+                    if not isinstance(recipient, dict) or 'wilaya' not in recipient or 'commune' not in recipient:
+                        missing_fields.append(f"Order {i+1}: recipient missing wilaya/commune")
+                
+                if not missing_fields:
+                    test_results.add_result(
+                        "Get Orders List - Critical Bug Fix",
+                        True,
+                        f"✅ CRITICAL FIX VERIFIED: All {len(data)} orders have required fields including updated_at. No KeyError occurred."
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Get Orders List - Critical Bug Fix",
+                        False,
+                        f"Some orders missing required fields: {orders_with_all_fields}/{len(data)} complete",
+                        "; ".join(missing_fields[:5])  # Show first 5 issues
+                    )
+                    return False
             else:
                 test_results.add_result(
-                    "Get Orders List",
+                    "Get Orders List - Critical Bug Fix",
                     False,
                     "Response is not a list",
                     str(data)
                 )
                 return False
+        elif response.status_code == 500:
+            test_results.add_result(
+                "Get Orders List - Critical Bug Fix",
+                False,
+                "❌ CRITICAL: 500 Internal Server Error - KeyError bug may still exist!",
+                response.text
+            )
+            return False
         else:
             test_results.add_result(
-                "Get Orders List",
+                "Get Orders List - Critical Bug Fix",
                 False,
                 f"Get orders failed with status {response.status_code}",
                 response.text
@@ -251,7 +284,7 @@ def test_get_orders():
             
     except Exception as e:
         test_results.add_result(
-            "Get Orders List",
+            "Get Orders List - Critical Bug Fix",
             False,
             f"Get orders request failed: {str(e)}"
         )
