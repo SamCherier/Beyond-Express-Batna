@@ -61,56 +61,25 @@ const AdminDashboardModern = () => {
     }
   };
 
-  // Données pour graphique des commandes par statut
-  const getOrdersByStatus = () => {
-    const statusCount = {
-      'En stock': 0,
-      'Préparation': 0,
-      'Prêt': 0,
-      'En transit': 0,
-      'Livré': 0,
-      'Retourné': 0
+  // Calculate derived stats for KPI cards
+  const calculateDerivedStats = () => {
+    const totalRevenue = revenueData.reduce((sum, day) => sum + (day.revenus || 0), 0);
+    const deliveredCount = ordersByStatus.find(s => s.name === 'Livré')?.value || 0;
+    const deliveryRate = stats.totalOrders > 0 
+      ? ((deliveredCount / stats.totalOrders) * 100).toFixed(1) 
+      : 0;
+    const pendingCount = ordersByStatus
+      .filter(s => ['En stock', 'Préparation', 'Prêt'].includes(s.name))
+      .reduce((sum, s) => sum + s.value, 0);
+
+    return {
+      totalRevenue,
+      deliveryRate,
+      pendingCount
     };
-
-    orders.forEach(order => {
-      switch(order.status) {
-        case 'in_stock': statusCount['En stock']++; break;
-        case 'preparing': statusCount['Préparation']++; break;
-        case 'ready_to_ship': statusCount['Prêt']++; break;
-        case 'in_transit': statusCount['En transit']++; break;
-        case 'delivered': statusCount['Livré']++; break;
-        case 'returned': statusCount['Retourné']++; break;
-        default: break;
-      }
-    });
-
-    return Object.entries(statusCount).map(([name, value]) => ({ name, value }));
   };
 
-  // Données pour top 5 wilayas
-  const getTop5Wilayas = () => {
-    const wilayaCount = {};
-    orders.forEach(order => {
-      const wilaya = order.recipient?.wilaya;
-      if (wilaya) {
-        wilayaCount[wilaya] = (wilayaCount[wilaya] || 0) + 1;
-      }
-    });
-
-    return Object.entries(wilayaCount)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, value]) => ({ name, value }));
-  };
-
-  // Données pour évolution des revenus (simulé par jour des 7 derniers jours)
-  const getRevenueData = () => {
-    const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    return days.map((day, index) => ({
-      name: day,
-      revenus: Math.floor(Math.random() * 50000) + 20000 // Simulé pour demo
-    }));
-  };
+  const derivedStats = calculateDerivedStats();
 
   // Couleurs pour les graphiques
   const COLORS = {
