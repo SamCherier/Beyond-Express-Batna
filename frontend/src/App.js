@@ -7,7 +7,7 @@ import i18n from '@/i18n';
 import { Toaster } from 'sonner';
 
 // Pages
-import LandingPage from '@/pages/LandingPage';
+import LandingPageModern from '@/pages/LandingPageModern';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardLayout from '@/components/DashboardLayout';
