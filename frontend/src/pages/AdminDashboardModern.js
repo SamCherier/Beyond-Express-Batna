@@ -204,6 +204,24 @@ const AdminDashboardModern = () => {
         ))}
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border-2 border-red-500 rounded-xl p-6 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-500 rounded-full">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-bold text-red-900 text-lg">Erreur de Chargement</h3>
+              <p className="text-red-700">{error}</p>
+              <p className="text-sm text-red-600 mt-2">Veuillez vérifier votre connexion et réessayer. Si le problème persiste, contactez le support.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Graphique Commandes par Statut */}
