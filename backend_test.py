@@ -778,7 +778,11 @@ def run_all_tests():
         ("Tracking Events", test_tracking_events),
         ("Bulk Status Update", test_bulk_status_update),
         ("Bulk Bordereau Generation", test_bulk_bordereau_generation),
-        ("AI Chat", test_ai_chat)
+        ("AI Chat", test_ai_chat),
+        ("Dashboard Stats", test_dashboard_stats),
+        ("Dashboard Orders by Status", test_dashboard_orders_by_status),
+        ("Dashboard Revenue Evolution", test_dashboard_revenue_evolution),
+        ("Dashboard Top Wilayas", test_dashboard_top_wilayas)
     ]
     
     for test_name, test_func in tests:
