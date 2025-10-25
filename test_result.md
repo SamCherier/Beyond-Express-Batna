@@ -346,19 +346,17 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.1"
-  test_sequence: 1
+  version: "1.2"
+  test_sequence: 2
   run_ui: false
-  backend_tested: true
-  backend_test_date: "2025-01-11"
+  backend_tested: false
+  backend_test_date: "2025-10-25"
 
 test_plan:
   current_focus:
-    - "AI Risk Score Column"
-    - "Tracking Modal Implementation"
-    - "Bulk Status Update"
-    - "Linked Wilaya/Commune Dropdowns"
-    - "Bulk Bordereau Generation"
+    - "Dashboard Analytics - Orders by Status API"
+    - "Dashboard Analytics - Revenue Evolution API"
+    - "Dashboard Analytics - Top Wilayas API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -368,3 +366,9 @@ agent_communication:
     message: "All Phase 2 features have been implemented in OrdersPageAdvanced.js. File was cleaned up (removed duplicate code). Features ready for testing: 1) Tracking Modal with timeline, 2) Linked Wilaya/Commune dropdowns, 3) Bulk selection with checkboxes, 4) Bulk bordereau generation, 5) Bulk status update dialog, 6) AI Risk Score using Emergent LLM key. Backend endpoints already exist. Ready for backend and frontend testing."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All backend APIs for Phase 2 Orders Page Advanced Features are working correctly. Tested: 1) Authentication system, 2) Order creation with wilaya/commune, 3) Order retrieval, 4) Tracking events (POST/GET), 5) Bulk status update, 6) Bulk bordereau PDF generation, 7) AI chat for risk score analysis. All endpoints return proper responses and handle Algerian location data correctly. Backend is ready for production use."
+  - agent: "user"
+    message: "USER CONFIRMED: Phase 1 (Bordereau PDF bugs: PIN unique, QR code, Type de Service) is VALIDATED and working. Phase 2 (Dashboard Refactor) is now in progress."
+  - agent: "user"
+    message: "USER REPORTED ISSUE: Admin Dashboard Recharts graphs NOT WORKING. The design is present but graphs (Évolution des Revenus, Commandes par Statut, Top 5 Wilayas) are not loading real data. Frontend not connected to Backend APIs."
+  - agent: "main"
+    message: "DASHBOARD FIX IMPLEMENTED: Created 3 new Backend endpoints: 1) GET /api/dashboard/orders-by-status (groups orders by status with French labels), 2) GET /api/dashboard/revenue-evolution (last 7 days revenue with French day names), 3) GET /api/dashboard/top-wilayas (top 5 wilayas by order count). Updated frontend API functions (getOrdersByStatus, getRevenueEvolution, getTopWilayas). Modified AdminDashboardModern.js to fetch real data from these APIs using Promise.all() instead of calculating client-side or using Math.random(). All charts now display real MongoDB data. Backend restarted successfully - endpoints returning 200 OK. Ready for backend testing to verify endpoints work correctly with authentication."
