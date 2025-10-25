@@ -403,7 +403,11 @@ async def get_top_wilayas(current_user: User = Depends(get_current_user)):
 
 # ===== ORDER ROUTES =====
 @api_router.post("/orders", response_model=Order)
-async def create_order(order_data: OrderCreate, current_user: User = Depends(get_current_user)):
+async def create_order(
+    order_data: OrderCreate, 
+    send_whatsapp_confirmation: bool = False,
+    current_user: User = Depends(get_current_user)
+):
     if current_user.role not in [UserRole.ADMIN, UserRole.ECOMMERCE]:
         raise HTTPException(status_code=403, detail="Not authorized")
     
@@ -442,6 +446,23 @@ async def create_order(order_data: OrderCreate, current_user: User = Depends(get
     order_dict['updated_at'] = order_dict['updated_at'].isoformat()
     
     await db.orders.insert_one(order_dict)
+    
+    # Optional: Send WhatsApp confirmation automatically
+    if send_whatsapp_confirmation and order_obj.recipient.phone:
+        try:
+            from services.twilio_service import twilio_service
+            twilio_service.send_order_confirmation(
+                to_phone=order_obj.recipient.phone,
+                order_id=order_obj.id,
+                tracking_id=tracking_id,
+                customer_name=order_obj.recipient.name,
+                items_description=order_obj.description or "Votre commande",
+                cod_amount=order_obj.cod_amount
+            )
+            logger.info(f"✅ WhatsApp confirmation sent for order {order_obj.id}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send WhatsApp confirmation: {str(e)}")
+            # Don't fail the order creation if WhatsApp fails
     
     return order_obj
 
