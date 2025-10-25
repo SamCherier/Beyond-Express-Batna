@@ -179,64 +179,79 @@ def generate_bordereau_pdf_modern(order_data: dict) -> BytesIO:
     
     # ===== LEFT SIDE: SENDER & RECIPIENT | RIGHT SIDE: QR + TRACKING =====
     
-    # Sender section
-    sender_content = [
-        Paragraph("<b>EXPÉDITEUR</b>", header_style),
-        Paragraph(f"<b>{order_data['sender']['name']}</b>", normal_style),
-        Paragraph(f"{order_data['sender']['address']}", small_style),
-        Paragraph(f"{order_data['sender']['commune']}, {order_data['sender']['wilaya']}", small_style),
-        Paragraph(f"Tél: {order_data['sender']['phone']}", small_style),
-    ]
+    # Create a simpler, cleaner layout using nested tables
+    # Sender info box
+    sender_table = Table([
+        [Paragraph("<b>EXPÉDITEUR</b>", header_style)],
+        [Paragraph(f"<b>{order_data['sender']['name']}</b>", normal_style)],
+        [Paragraph(f"{order_data['sender']['address']}", small_style)],
+        [Paragraph(f"{order_data['sender']['commune']}, {order_data['sender']['wilaya']}", small_style)],
+        [Paragraph(f"Tél: {order_data['sender']['phone']}", small_style)],
+    ], colWidths=[10*cm])
+    sender_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#FF5757')),
+        ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+        ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FFF8F8')),
+        ('LEFTPADDING', (0, 0), (-1, -1), 3*mm),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 3*mm),
+        ('TOPPADDING', (0, 0), (-1, -1), 2*mm),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2*mm),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#DDDDDD')),
+    ]))
     
-    # Recipient section
-    recipient_content = [
-        Paragraph("<b>DESTINATAIRE</b>", header_style),
-        Paragraph(f"<b>{order_data['recipient']['name']}</b>", normal_style),
-        Paragraph(f"Tél: <b>{order_data['recipient']['phone']}</b>", normal_style),
-        Paragraph(f"{order_data['recipient']['address']}", small_style),
-        Paragraph(f"<b>{order_data['recipient']['commune']}, {order_data['recipient']['wilaya']}</b>", small_style),
-    ]
-    
-    # Tracking info section
-    tracking_content = [
-        Paragraph(f"<b>N° SUIVI</b>", header_style),
-        Paragraph(f"<font size=14><b>{tracking_id}</b></font>", ParagraphStyle(
+    # QR and tracking box
+    qr_tracking_table = Table([
+        [Paragraph("<b>N° SUIVI</b>", header_style)],
+        [Paragraph(f"<font size=14><b>{tracking_id}</b></font>", ParagraphStyle(
             'TrackingNum',
             parent=normal_style,
             fontSize=14,
             alignment=TA_CENTER,
             textColor=colors.HexColor('#FF5757')
-        )),
-        Spacer(1, 2*mm),
-        Paragraph(f"Code Wilaya: <b>{wilaya_code}</b>", small_style),
-    ]
-    
-    # Main layout table
-    main_content = [
-        [
-            [sender_content[0], sender_content[1], sender_content[2], sender_content[3], sender_content[4]],
-            [qr_img, tracking_content]
-        ],
-        [
-            [recipient_content[0], recipient_content[1], recipient_content[2], recipient_content[3], recipient_content[4]],
-            ''
-        ]
-    ]
-    
-    main_table = Table(main_content, colWidths=[10*cm, 8*cm], rowHeights=[50*mm, 40*mm])
-    main_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, 1), colors.HexColor('#FFF8F8')),
-        ('BACKGROUND', (1, 0), (1, 0), colors.HexColor('#F0F0F0')),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#DDDDDD')),
-        ('LEFTPADDING', (0, 0), (-1, -1), 5*mm),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 5*mm),
-        ('TOPPADDING', (0, 0), (-1, -1), 3*mm),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 3*mm),
-        ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+        ))],
+        [qr_img],
+        [Paragraph(f"Wilaya: <b>{wilaya_code}</b>", small_style)],
+    ], colWidths=[7.5*cm])
+    qr_tracking_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#333333')),
+        ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+        ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#F5F5F5')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 3*mm),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 3*mm),
+        ('TOPPADDING', (0, 0), (-1, -1), 2*mm),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2*mm),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#DDDDDD')),
     ]))
     
-    story.append(main_table)
+    # Top row with sender and QR
+    top_row_table = Table([[sender_table, qr_tracking_table]], colWidths=[10*cm, 7.5*cm])
+    top_row_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    story.append(top_row_table)
+    story.append(Spacer(1, 3*mm))
+    
+    # Recipient info box
+    recipient_table = Table([
+        [Paragraph("<b>DESTINATAIRE</b>", header_style)],
+        [Paragraph(f"<b>{order_data['recipient']['name']}</b>", normal_style)],
+        [Paragraph(f"Tél: <b>{order_data['recipient']['phone']}</b>", normal_style)],
+        [Paragraph(f"{order_data['recipient']['address']}", small_style)],
+        [Paragraph(f"<b>{order_data['recipient']['commune']}, {order_data['recipient']['wilaya']}</b>", small_style)],
+    ], colWidths=[17.5*cm])
+    recipient_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 0), colors.HexColor('#FF5757')),
+        ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
+        ('BACKGROUND', (0, 1), (0, -1), colors.HexColor('#FFF8F8')),
+        ('LEFTPADDING', (0, 0), (-1, -1), 3*mm),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 3*mm),
+        ('TOPPADDING', (0, 0), (-1, -1), 2*mm),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2*mm),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#DDDDDD')),
+    ]))
+    story.append(recipient_table)
     story.append(Spacer(1, 4*mm))
     
     # ===== PACKAGE DETAILS - COMPACT TABLE =====
