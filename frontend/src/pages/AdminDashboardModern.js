@@ -106,7 +106,7 @@ const AdminDashboardModern = () => {
     },
     {
       title: 'Revenus du Mois',
-      value: `${stats.monthRevenue.toLocaleString()} DA`,
+      value: `${derivedStats.totalRevenue.toLocaleString()} DA`,
       icon: <DollarSign className="w-8 h-8" />,
       gradient: 'from-green-500 to-emerald-500',
       change: '+23%',
@@ -114,7 +114,7 @@ const AdminDashboardModern = () => {
     },
     {
       title: 'Taux de Livraison',
-      value: `${stats.deliveryRate}%`,
+      value: `${derivedStats.deliveryRate}%`,
       icon: <CheckCircle className="w-8 h-8" />,
       gradient: 'from-purple-500 to-pink-500',
       change: '+5%',
@@ -122,7 +122,7 @@ const AdminDashboardModern = () => {
     },
     {
       title: 'En Attente',
-      value: stats.pendingOrders,
+      value: derivedStats.pendingCount,
       icon: <Clock className="w-8 h-8" />,
       gradient: 'from-orange-500 to-red-500',
       change: '-8%',
