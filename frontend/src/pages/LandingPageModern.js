@@ -14,40 +14,60 @@ const LandingPageModern = () => {
     localStorage.setItem('language', lng);
   };
 
+  // Services avec traductions
   const services = [
     {
       icon: <Warehouse className="w-16 h-16" />,
-      title: 'Stockage Sécurisé',
-      description: 'Entrepôts modernes et optimisés pour vos produits e-commerce',
+      titleKey: 'storageTitle',
+      descKey: 'storageDesc',
       gradient: 'from-blue-500 to-cyan-500'
     },
     {
       icon: <Package className="w-16 h-16" />,
-      title: 'Préparation & Fulfillment',
-      description: 'Préparation professionnelle et rapide de toutes vos commandes',
+      titleKey: 'fulfillmentTitle',
+      descKey: 'fulfillmentDesc',
       gradient: 'from-purple-500 to-pink-500'
     },
     {
       icon: <Truck className="w-16 h-16" />,
-      title: 'Livraison Multi-Transporteurs',
-      description: 'Connecté à tous les transporteurs algériens pour une couverture totale',
+      titleKey: 'shippingTitle',
+      descKey: 'shippingDesc',
       gradient: 'from-orange-500 to-red-500'
     }
   ];
 
+  // Partenaires avec logos
   const deliveryPartners = [
-    'Yalidine', 'DHD', 'ZR EXPRESS', 'Maystro', 'ECOTRACK', 
-    'NOEST', 'GUEPEX', 'KAZI TOUR', 'Lynx Express', 
-    'DHL', 'EMS', 'ARAMEX', 'ANDERSON'
+    { name: 'Yalidine', logo: 'logo Yalidine.png' },
+    { name: 'DHD', logo: 'logo DHD Livraison.png' },
+    { name: 'ZR EXPRESS', logo: 'logo ZR eXPRESS.jpg' },
+    { name: 'Maystro', logo: 'logo Maystro Delivery.png' },
+    { name: 'EcoTrack', logo: 'logo EcoTrack.png' },
+    { name: 'Noest', logo: 'logo Noest.png' },
+    { name: 'Guepex', logo: 'logo Guepex.png' },
+    { name: 'Kazi Tour', logo: 'logo Kazi Tour.png' },
+    { name: 'Lynx Express', logo: 'logo Lynx Express.png' },
+    { name: 'DHL', logo: 'logo DHL.png' },
+    { name: 'EMS', logo: 'logo EMS.png' },
+    { name: 'ARAMEX', logo: 'logo ARAMEX.png' },
+    { name: 'ANDERSON', logo: 'logo ANDERSON.png' }
   ];
 
+  // Features IA avec traductions
   const aiFeatures = [
     {
       icon: <Shield className="w-12 h-12" />,
-      title: 'Score de Risque Intelligent',
-      description: 'Notre IA analyse chaque commande pour prédire les risques de retour et protéger vos revenus. Détection automatique des comportements suspects.',
+      titleKey: 'riskScoreTitle',
+      descKey: 'riskScoreDesc',
       color: 'text-green-500'
     },
+    {
+      icon: <AlertCircle className="w-12 h-12" />,
+      titleKey: 'blacklistTitle',
+      descKey: 'blacklistDesc',
+      color: 'text-red-500'
+    }
+  ];
     {
       icon: <AlertCircle className="w-12 h-12" />,
       title: 'Blacklist Nationale',
