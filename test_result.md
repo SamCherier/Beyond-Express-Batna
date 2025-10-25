@@ -332,6 +332,18 @@ frontend:
         agent: "main"
         comment: "COMMUNES_BY_WILAYA data structure exists and is imported in OrdersPageAdvanced.js"
 
+  - task: "Admin Dashboard Modern UI - Data Visualization"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboardModern.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created AdminDashboardModern.js with Recharts integration. Implemented: 1) Four KPI cards with gradients (Total Commandes, Revenus du Mois, Taux de Livraison, En Attente), 2) Bar chart for Orders by Status using getOrdersByStatus API, 3) Line chart for Revenue Evolution using getRevenueEvolution API (last 7 days), 4) Horizontal bar chart for Top 5 Wilayas using getTopWilayas API, 5) Quick Stats panel showing real-time counts. All charts use real data from new backend APIs. Previously used Math.random() for revenue - now fixed to use real data from MongoDB. App.js updated to route /dashboard to AdminDashboardModern."
+
 metadata:
   created_by: "main_agent"
   version: "1.1"
