@@ -641,7 +641,7 @@ async def generate_customer_qr(
     )
     
     # Generate QR code image
-    from pdf_generator import generate_qr_code
+    from pdf_generator_v2 import generate_qr_code
     qr_buffer = generate_qr_code(qr_data)
     
     return StreamingResponse(
