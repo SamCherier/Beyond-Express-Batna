@@ -178,7 +178,8 @@ const OrdersPageAdvanced = () => {
         },
         cod_amount: parseFloat(formData.cod_amount),
         description: formData.description,
-        delivery_partner: formData.delivery_partner
+        delivery_partner: formData.delivery_partner,
+        delivery_type: formData.delivery_type  // Add delivery_type
       };
 
       await createOrder(orderData);
