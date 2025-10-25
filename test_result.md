@@ -185,13 +185,19 @@ backend:
         comment: "❌ USER REPORT: PDF download fails with error message 'Erreur lors de la génération du bordereau'. Generation does not work."
       - working: true
         agent: "main"
-        comment: "✅ BUG FIXED: The issue was in pdf_generator.py - AttributeError when delivery_partner was None. Fixed by adding null check: if delivery_partner is None, display 'BY TRANSPORTEUR' instead. Also added fallback for delivery_partner_display in details section. Tested with both None and valid delivery_partner values - both work correctly now."
+        comment: "✅ BUG FIXED: The issue was in pdf_generator.py - AttributeError when delivery_partner was None. Fixed by adding null check."
       - working: false
         agent: "user"
-        comment: "❌ USER REPORT: PDF generates but design is totally unacceptable. Old design, not modern, multiple pages. Requirement: 1) Single page modern design, 2) Replace text 'BY YALIDINE' with actual LOGOS of delivery partners."
+        comment: "❌ USER REPORT: Design totally unacceptable. Old, not modern, multiple pages. Required: 1) Single page modern design, 2) Replace text 'BY YALIDINE' with actual LOGOS."
       - working: true
         agent: "main"
-        comment: "✅ MAJOR REDESIGN COMPLETE: Created pdf_generator_v2.py with modern single-page design. Key changes: 1) Dual logo header (Beyond Express + Transporteur logos side by side), 2) Compact single-page layout with colored sections, 3) Dynamic logo loading from /static/logos/transporteurs/, 4) Modern table styling with gradients and borders, 5) All 13 transporteur logos extracted and organized (Yalidine, DHD, ZR EXPRESS, Maystro, EcoTrack, NOEST, GUEPEX, KAZI TOUR, Lynx Express, DHL, EMS, ARAMEX, ANDERSON). Tested: Yalidine PDF (1 page with both logos), DHD PDF (1 page with both logos), No partner PDF (1 page Beyond Express only)."
+        comment: "✅ V2 REDESIGN: Created pdf_generator_v2.py with modern single-page design and dual logos."
+      - working: false
+        agent: "user"
+        comment: "❌ USER REPORT: Design still not acceptable. Must follow exact Yalidine-inspired layout with specific sections: Dual logos, Expéditeur/Destinataire, HUGE wilaya number, Barcode+PIN, Type de service, Content table, Footer with signature and dynamic legal text."
+      - working: true
+        agent: "main"
+        comment: "✅ FINAL DESIGN V3 COMPLETE (pdf_generator_v3.py): Yalidine-inspired layout implemented with ALL specifications: 1) Header: Beyond Express + Transporteur logos side-by-side, 2) Service type badge (E-COMMERCE), 3) Sender section with clear formatting, 4) Recipient + HUGE Wilaya number (72pt font, centered), 5) QR code + Tracking ID + dynamically generated PIN code, 6) Type de service field (Livraison à Domicile/Bureau), 7) Content table (Description + Valeur DZD), 8) Footer: Départ, Date, Signature line, 9) Dynamic legal text: '[Sender] certifie que les détails...transport [Transporteur]'. All on single page. Tested: Yalidine (wilaya 19) and DHD (wilaya 16) both working."
 
   - task: "Authentication System"
     implemented: true
