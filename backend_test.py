@@ -97,11 +97,28 @@ def test_authentication():
     
     print("🔐 Testing Authentication...")
     
+    # First try to register the user
+    try:
+        register_response = requests.post(
+            f"{API_BASE}/auth/register",
+            json=TEST_USER,
+            timeout=30
+        )
+        
+        if register_response.status_code == 200:
+            print("✅ User registered successfully")
+        elif register_response.status_code == 400 and "already registered" in register_response.text:
+            print("ℹ️ User already exists, proceeding with login")
+        else:
+            print(f"⚠️ Registration failed: {register_response.status_code} - {register_response.text}")
+    except Exception as e:
+        print(f"⚠️ Registration request failed: {str(e)}")
+    
     try:
         # Test login
         response = requests.post(
             f"{API_BASE}/auth/login",
-            json=TEST_USER,
+            json={"email": TEST_USER["email"], "password": TEST_USER["password"]},
             timeout=30
         )
         
