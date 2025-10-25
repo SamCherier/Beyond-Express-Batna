@@ -65,25 +65,10 @@ def generate_qr_code(data: str) -> BytesIO:
     return buffer
 
 def generate_barcode_image(data: str) -> Image:
-    """Generate Code 128 barcode as image"""
-    from reportlab.graphics import renderPDF
-    from reportlab.graphics.barcode import code128
-    
-    barcode = code128.Code128(data, barHeight=12*mm, barWidth=0.8)
-    
-    # Create a drawing with the barcode
-    drawing = Drawing(150*mm, 15*mm)
-    barcode.x = 10*mm
-    barcode.y = 1*mm
-    drawing.add(barcode)
-    
-    # Convert drawing to image buffer
-    img_buffer = BytesIO()
-    renderPDF.drawToFile(drawing, img_buffer, fmt='PNG')
-    img_buffer.seek(0)
-    
-    # Return as reportlab Image
-    return Image(img_buffer, width=150*mm, height=15*mm)
+    """Generate barcode-like QR code for compatibility"""
+    # Use QR code as a reliable alternative to barcode
+    qr_buffer = generate_qr_code(data)
+    return Image(qr_buffer, width=40*mm, height=40*mm)
 
 def generate_pin_code() -> str:
     """Generate random 4-digit PIN code"""
