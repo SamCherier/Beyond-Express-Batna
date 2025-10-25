@@ -380,10 +380,7 @@ metadata:
   backend_test_date: "2025-10-25"
 
 test_plan:
-  current_focus:
-    - "Dashboard Analytics - Orders by Status API"
-    - "Dashboard Analytics - Revenue Evolution API"
-    - "Dashboard Analytics - Top Wilayas API"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
