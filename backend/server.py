@@ -14,7 +14,7 @@ import secrets
 
 from models import *
 from auth_utils import hash_password, verify_password, create_access_token, verify_token, generate_session_token
-from pdf_generator_v3 import generate_bordereau_pdf_final as generate_bordereau_pdf
+from pdf_generator_yalidine import generate_bordereau_pdf_yalidine_format as generate_bordereau_pdf
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 ROOT_DIR = Path(__file__).parent
