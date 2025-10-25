@@ -338,17 +338,17 @@ const LandingPageModern = () => {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-5xl font-bold mb-6 text-white" style={{ fontFamily: 'EB Garamond, serif' }}>
-            Prêt à révolutionner votre e-commerce?
+            {t('ctaTitle')}
           </h2>
           <p className="text-2xl text-white/90 mb-10">
-            Rejoignez les e-commerçants qui ont choisi l'excellence
+            {t('ctaSubtitle')}
           </p>
           <Button
             size="lg"
             onClick={() => navigate('/register')}
             className="bg-white text-red-600 hover:bg-gray-100 text-xl px-12 py-8 rounded-full shadow-2xl transform hover:scale-105 transition-all border-0 font-bold"
           >
-            🎯 Créer mon compte gratuitement
+            {t('ctaButton')}
           </Button>
         </div>
       </section>
