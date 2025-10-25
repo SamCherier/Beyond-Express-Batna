@@ -283,6 +283,10 @@ async def create_order(order_data: OrderCreate, current_user: User = Depends(get
     # Generate tracking ID
     tracking_id = f"BEX-{secrets.token_hex(6).upper()}"
     
+    # Generate unique PIN code (4 digits)
+    import random
+    pin_code = str(random.randint(1000, 9999))
+    
     # Get organization info for sender
     org = await db.organizations.find_one({}, {"_id": 0})
     if not org:
@@ -302,7 +306,8 @@ async def create_order(order_data: OrderCreate, current_user: User = Depends(get
         **order_data.model_dump(),
         tracking_id=tracking_id,
         user_id=current_user.id,
-        sender=sender_info
+        sender=sender_info,
+        pin_code=pin_code  # Store unique PIN
     )
     
     order_dict = order_obj.model_dump()
