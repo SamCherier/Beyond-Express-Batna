@@ -280,9 +280,11 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 0
+  version: "1.1"
+  test_sequence: 1
   run_ui: false
+  backend_tested: true
+  backend_test_date: "2025-01-11"
 
 test_plan:
   current_focus:
