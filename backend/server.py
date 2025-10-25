@@ -274,6 +274,132 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
         "in_transit": in_transit
     }
 
+@api_router.get("/dashboard/orders-by-status")
+async def get_orders_by_status(current_user: User = Depends(get_current_user)):
+    """Get order count grouped by status for charts"""
+    pipeline = []
+    
+    # Filter by user role
+    if current_user.role == UserRole.ECOMMERCE:
+        pipeline.append({"$match": {"user_id": current_user.id}})
+    elif current_user.role == UserRole.DELIVERY:
+        pipeline.append({"$match": {"delivery_partner": current_user.id}})
+    
+    # Group by status
+    pipeline.extend([
+        {"$group": {"_id": "$status", "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}}
+    ])
+    
+    result = await db.orders.aggregate(pipeline).to_list(length=None)
+    
+    # Format response with French labels
+    status_labels = {
+        "in_stock": "En stock",
+        "preparing": "Préparation",
+        "ready_to_ship": "Prêt",
+        "in_transit": "En transit",
+        "delivered": "Livré",
+        "returned": "Retourné"
+    }
+    
+    return [
+        {"name": status_labels.get(item["_id"], item["_id"]), "value": item["count"]}
+        for item in result
+    ]
+
+@api_router.get("/dashboard/revenue-evolution")
+async def get_revenue_evolution(current_user: User = Depends(get_current_user)):
+    """Get revenue evolution over the last 7 days"""
+    # Calculate date range (last 7 days)
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    seven_days_ago = today - timedelta(days=6)
+    
+    pipeline = []
+    
+    # Filter by user role and date range
+    match_stage = {"created_at": {"$gte": seven_days_ago.isoformat()}}
+    if current_user.role == UserRole.ECOMMERCE:
+        match_stage["user_id"] = current_user.id
+    elif current_user.role == UserRole.DELIVERY:
+        match_stage["delivery_partner"] = current_user.id
+    
+    pipeline.append({"$match": match_stage})
+    
+    # Parse created_at and group by date
+    pipeline.extend([
+        {
+            "$addFields": {
+                "date": {
+                    "$dateFromString": {
+                        "dateString": "$created_at",
+                        "onError": None,
+                        "onNull": None
+                    }
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$date"
+                    }
+                },
+                "revenue": {"$sum": "$cod_amount"}
+            }
+        },
+        {"$sort": {"_id": 1}}
+    ])
+    
+    result = await db.orders.aggregate(pipeline).to_list(length=None)
+    
+    # Create a map of dates to revenue
+    revenue_map = {item["_id"]: item["revenue"] for item in result if item["_id"]}
+    
+    # Generate all 7 days with French day names
+    day_names = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+    response = []
+    
+    for i in range(7):
+        date = seven_days_ago + timedelta(days=i)
+        date_str = date.strftime("%Y-%m-%d")
+        day_of_week = date.weekday()  # 0=Monday, 6=Sunday
+        
+        response.append({
+            "name": day_names[day_of_week],
+            "date": date_str,
+            "revenus": revenue_map.get(date_str, 0)
+        })
+    
+    return response
+
+@api_router.get("/dashboard/top-wilayas")
+async def get_top_wilayas(current_user: User = Depends(get_current_user)):
+    """Get top 5 wilayas by order count"""
+    pipeline = []
+    
+    # Filter by user role
+    if current_user.role == UserRole.ECOMMERCE:
+        pipeline.append({"$match": {"user_id": current_user.id}})
+    elif current_user.role == UserRole.DELIVERY:
+        pipeline.append({"$match": {"delivery_partner": current_user.id}})
+    
+    # Group by wilaya
+    pipeline.extend([
+        {"$group": {"_id": "$recipient.wilaya", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ])
+    
+    result = await db.orders.aggregate(pipeline).to_list(length=None)
+    
+    return [
+        {"name": item["_id"] if item["_id"] else "Non spécifié", "value": item["count"]}
+        for item in result
+    ]
+
 # ===== ORDER ROUTES =====
 @api_router.post("/orders", response_model=Order)
 async def create_order(order_data: OrderCreate, current_user: User = Depends(get_current_user)):
