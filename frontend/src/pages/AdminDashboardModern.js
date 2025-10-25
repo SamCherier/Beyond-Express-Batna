@@ -156,8 +156,20 @@ const AdminDashboardModern = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-500"></div>
+        <p className="text-gray-600">Chargement du tableau de bord...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <div className="p-4 bg-yellow-50 border-2 border-yellow-500 rounded-xl">
+          <p className="text-yellow-900 font-semibold">⚠️ Vous devez être connecté pour accéder au dashboard</p>
+          <p className="text-yellow-700 text-sm mt-2">Veuillez vous connecter pour voir vos données.</p>
+        </div>
       </div>
     );
   }
