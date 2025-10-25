@@ -65,7 +65,8 @@ const OrdersPageAdvanced = () => {
     recipient_commune: '',
     cod_amount: '',
     description: '',
-    delivery_partner: ''
+    delivery_partner: '',
+    delivery_type: 'Livraison à Domicile'  // New field
   });
 
   useEffect(() => {
