@@ -749,6 +749,74 @@ def test_dashboard_top_wilayas():
         )
         return False
 
+def test_orders_count_verification():
+    """Test orders count matches expected 20 orders from review request"""
+    
+    print("🔢 Testing Orders Count Verification...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/orders",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if isinstance(data, list):
+                order_count = len(data)
+                expected_count = 20  # From review request
+                
+                # Check if we have the expected number of orders
+                if order_count >= expected_count:
+                    test_results.add_result(
+                        "Orders Count Verification",
+                        True,
+                        f"✅ Found {order_count} orders (expected at least {expected_count})"
+                    )
+                    
+                    # Verify admin user assignment
+                    admin_orders = [order for order in data if order.get('user_id') == ADMIN_USER_ID]
+                    test_results.add_result(
+                        "Admin User Orders Assignment",
+                        len(admin_orders) > 0,
+                        f"Found {len(admin_orders)} orders assigned to admin user {ADMIN_USER_ID}"
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Orders Count Verification",
+                        False,
+                        f"Expected at least {expected_count} orders, found {order_count}",
+                        "Database may not have been properly populated with test orders"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Orders Count Verification",
+                    False,
+                    "Response is not a list",
+                    str(data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Orders Count Verification",
+                False,
+                f"Orders count check failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Orders Count Verification",
+            False,
+            f"Orders count check request failed: {str(e)}"
+        )
+        return False
+
 def test_dashboard_stats():
     """Test existing dashboard stats endpoint"""
     
