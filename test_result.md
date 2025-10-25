@@ -175,7 +175,7 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: true
         agent: "testing"
@@ -186,6 +186,12 @@ backend:
       - working: true
         agent: "main"
         comment: "✅ BUG FIXED: The issue was in pdf_generator.py - AttributeError when delivery_partner was None. Fixed by adding null check: if delivery_partner is None, display 'BY TRANSPORTEUR' instead. Also added fallback for delivery_partner_display in details section. Tested with both None and valid delivery_partner values - both work correctly now."
+      - working: false
+        agent: "user"
+        comment: "❌ USER REPORT: PDF generates but design is totally unacceptable. Old design, not modern, multiple pages. Requirement: 1) Single page modern design, 2) Replace text 'BY YALIDINE' with actual LOGOS of delivery partners."
+      - working: true
+        agent: "main"
+        comment: "✅ MAJOR REDESIGN COMPLETE: Created pdf_generator_v2.py with modern single-page design. Key changes: 1) Dual logo header (Beyond Express + Transporteur logos side by side), 2) Compact single-page layout with colored sections, 3) Dynamic logo loading from /static/logos/transporteurs/, 4) Modern table styling with gradients and borders, 5) All 13 transporteur logos extracted and organized (Yalidine, DHD, ZR EXPRESS, Maystro, EcoTrack, NOEST, GUEPEX, KAZI TOUR, Lynx Express, DHL, EMS, ARAMEX, ANDERSON). Tested: Yalidine PDF (1 page with both logos), DHD PDF (1 page with both logos), No partner PDF (1 page Beyond Express only)."
 
   - task: "Authentication System"
     implemented: true
