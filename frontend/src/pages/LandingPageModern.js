@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import AnimatedLogo from '@/components/AnimatedLogo';
+import BeyondExpressLogo from '@/components/BeyondExpressLogo';
 import { Package, Warehouse, Truck, Shield, Brain, AlertCircle } from 'lucide-react';
 
 const LandingPageModern = () => {
