@@ -13,6 +13,7 @@ from typing import Optional
 from models import SendWhatsAppMessageRequest
 from services.twilio_service import twilio_service
 from services.webhook_service import webhook_service
+from services.ai_agent_service import ai_agent_service
 
 # Note: get_current_user will be imported when routes are included in server.py
 # For now, we'll use Depends without importing it directly
