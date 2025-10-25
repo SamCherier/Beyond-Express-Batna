@@ -440,6 +440,18 @@ const OrdersPageAdvanced = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label>Type de Livraison *</Label>
+                <Select value={formData.delivery_type} onValueChange={(val) => setFormData({...formData, delivery_type: val})}>
+                  <SelectTrigger data-testid="delivery-type-select">
+                    <SelectValue placeholder="Type de livraison" />
+                  </SelectTrigger>
+                  <SelectContent position="popper" sideOffset={5}>
+                    <SelectItem value="Livraison à Domicile">Livraison à Domicile</SelectItem>
+                    <SelectItem value="Livraison au Bureau (Stop Desk)">Livraison au Bureau (Stop Desk)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="col-span-2 space-y-2">
                 <Label>Description</Label>
                 <Input
