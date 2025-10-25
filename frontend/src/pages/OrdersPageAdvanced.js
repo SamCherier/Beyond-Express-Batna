@@ -488,6 +488,21 @@ const OrdersPageAdvanced = () => {
                   data-testid="description-input"
                 />
               </div>
+              
+              {/* WhatsApp Confirmation Checkbox */}
+              <div className="col-span-2 flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="whatsapp-confirmation"
+                  checked={formData.send_whatsapp_confirmation}
+                  onChange={(e) => setFormData({...formData, send_whatsapp_confirmation: e.target.checked})}
+                  className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                />
+                <label htmlFor="whatsapp-confirmation" className="flex items-center gap-2 text-sm cursor-pointer">
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  <span className="font-medium text-gray-700">Envoyer une confirmation WhatsApp automatiquement</span>
+                </label>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Annuler</Button>
