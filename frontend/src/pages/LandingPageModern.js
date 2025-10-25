@@ -249,27 +249,30 @@ const LandingPageModern = () => {
               className="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
               style={{ fontFamily: 'EB Garamond, serif' }}
             >
-              Nos Partenaires de Livraison
+              {t('partnersTitle')}
             </h2>
-            <p className="text-xl text-gray-400">Connectés à tous les transporteurs majeurs d'Algérie</p>
+            <p className="text-xl text-gray-400">{t('partnersSubtitle')}</p>
           </div>
           
-          {/* Logo Wall with Animation */}
-          <div className="relative overflow-hidden py-12">
-            <div className="flex gap-8 animate-scroll">
-              {[...deliveryPartners, ...deliveryPartners].map((partner, index) => (
-                <div
-                  key={index}
-                  className="flex-shrink-0 w-48 h-32 bg-white rounded-xl flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 border-2 border-transparent hover:border-red-500"
-                >
-                  <span className="text-2xl font-bold text-gray-800">{partner}</span>
-                </div>
-              ))}
-            </div>
+          {/* Grid of Partners with Logos */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {deliveryPartners.map((partner, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 border-2 border-transparent hover:border-red-500"
+              >
+                <img 
+                  src={`/images/partners/${partner.logo}`}
+                  alt={partner.name}
+                  className="w-20 h-20 object-contain"
+                />
+                <span className="text-sm font-bold text-gray-800 text-center">{partner.name}</span>
+              </div>
+            ))}
           </div>
           
-          <p className="text-center text-gray-400 mt-8">
-            + Plus de 13 partenaires pour une couverture totale du territoire algérien
+          <p className="text-center text-gray-400 mt-12 text-lg">
+            {t('partnersMore')}
           </p>
         </div>
       </section>
