@@ -9,6 +9,7 @@ import qrcode
 from io import BytesIO
 import os
 from datetime import datetime
+from PIL import Image as PILImage
 
 WILAYA_CODES = {
     "Adrar": "01", "Chlef": "02", "Laghouat": "03", "Oum El Bouaghi": "04", "Batna": "05",
