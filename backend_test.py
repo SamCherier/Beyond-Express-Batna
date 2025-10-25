@@ -34,12 +34,9 @@ TEST_ORDER_DATA = {
         "wilaya": "Alger",
         "commune": "Bab Ezzouar"
     },
-    "product_name": "Smartphone Samsung Galaxy A54",
-    "product_description": "Téléphone portable Samsung Galaxy A54 5G 128GB",
+    "description": "Smartphone Samsung Galaxy A54 5G 128GB - Téléphone portable",
     "cod_amount": 45000.0,
-    "weight": 0.5,
-    "dimensions": "15x8x1 cm",
-    "delivery_type": "standard"
+    "service_type": "E-COMMERCE"
 }
 
 TEST_TRACKING_EVENT = {
