@@ -110,7 +110,8 @@ def create_single_bordereau(c: canvas.Canvas, order_data: dict, x_offset: float,
     commune_name = order_data['recipient']['commune']
     cod_amount = order_data.get('cod_amount', 0)
     description = order_data.get('description', 'N/A')
-    pin_code = generate_pin_code()
+    pin_code = order_data.get('pin_code', generate_pin_code())  # Use stored PIN or generate
+    delivery_type = order_data.get('delivery_type', 'Livraison à Domicile')  # New field
     sender_name = order_data['sender']['name']
     recipient_name = order_data['recipient']['name']
     recipient_phone = order_data['recipient']['phone']
