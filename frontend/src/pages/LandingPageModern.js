@@ -69,7 +69,7 @@ const LandingPageModern = () => {
       <header className="fixed top-0 w-full bg-black/90 backdrop-blur-lg border-b border-red-500/20 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <BeyondExpressLogo size="sm" />
+            <BeyondExpressLogo size="sm" variant="header" />
             <span className="text-2xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent" style={{ fontFamily: 'Brockmann, sans-serif' }}>
               Beyond Express
             </span>
