@@ -72,4 +72,23 @@ export const createAPIKey = (name) => api.post('/api-keys', null, { params: { na
 export const getSupportTickets = () => api.get('/support/tickets');
 export const createSupportTicket = (data) => api.post('/support/tickets', data);
 
+
+// WhatsApp
+export const getWhatsAppConversations = (status = null, skip = 0, limit = 20) => 
+  api.get('/whatsapp/conversations', { params: { status, skip, limit } });
+
+export const getConversationMessages = (conversationId, limit = 50) => 
+  api.get(`/whatsapp/conversation/${conversationId}/messages`, { params: { limit } });
+
+export const sendWhatsAppMessage = (data) => api.post('/whatsapp/send', data);
+
+export const sendOrderConfirmation = (orderId) => 
+  api.post(`/whatsapp/send-order-confirmation/${orderId}`);
+
+export const assignConversationToHuman = (conversationId) => 
+  api.post(`/whatsapp/conversation/${conversationId}/assign`);
+
+export const markConversationRead = (conversationId) => 
+  api.post(`/whatsapp/conversation/${conversationId}/mark-read`);
+
 export default api;
