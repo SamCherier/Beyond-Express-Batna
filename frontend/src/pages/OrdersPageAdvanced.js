@@ -260,6 +260,25 @@ const OrdersPageAdvanced = () => {
     }
   };
 
+  const handleSendWhatsAppConfirmation = async (order) => {
+    try {
+      // Check if order has phone number
+      if (!order.recipient?.phone) {
+        toast.error('Cette commande n\'a pas de numéro de téléphone');
+        return;
+      }
+
+      toast.loading('Envoi de la confirmation WhatsApp...', { id: 'whatsapp-send' });
+      
+      await sendOrderConfirmation(order.id);
+      
+      toast.success('✅ Confirmation WhatsApp envoyée avec succès!', { id: 'whatsapp-send' });
+    } catch (error) {
+      console.error('Error sending WhatsApp confirmation:', error);
+      toast.error('❌ Erreur lors de l\'envoi WhatsApp. Vérifiez la configuration Twilio.', { id: 'whatsapp-send' });
+    }
+  };
+
   const openTrackingDialog = async (order) => {
     setSelectedOrder(order);
     setTrackingDialogOpen(true);
