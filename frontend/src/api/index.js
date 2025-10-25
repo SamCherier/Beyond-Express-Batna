@@ -10,6 +10,9 @@ const api = axios.create({
 
 // Dashboard
 export const getDashboardStats = () => api.get('/dashboard/stats');
+export const getOrdersByStatus = () => api.get('/dashboard/orders-by-status');
+export const getRevenueEvolution = () => api.get('/dashboard/revenue-evolution');
+export const getTopWilayas = () => api.get('/dashboard/top-wilayas');
 
 // Orders
 export const getOrders = (status) => api.get('/orders', { params: { status } });
