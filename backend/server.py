@@ -1015,6 +1015,9 @@ async def get_support_tickets(current_user: User = Depends(get_current_user)):
 # Include the router in the main app
 app.include_router(api_router)
 
+# Include WhatsApp routes
+app.include_router(whatsapp_router.router, prefix="/api/whatsapp", tags=["whatsapp"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
