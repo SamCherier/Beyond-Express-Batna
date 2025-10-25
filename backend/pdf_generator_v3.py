@@ -278,8 +278,8 @@ def generate_bordereau_pdf_final(order_data: dict) -> BytesIO:
     story.append(Spacer(1, 2*mm))
     
     # ===== 4. BARCODE + TRACKING CODE + PIN =====
-    # Generate barcode
-    barcode_drawing = generate_barcode(tracking_id)
+    # Generate barcode image
+    barcode_img = generate_barcode_image(tracking_id)
     
     # PIN code
     pin_code = generate_pin_code()
