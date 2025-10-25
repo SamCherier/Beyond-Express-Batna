@@ -500,6 +500,268 @@ def test_ai_chat():
         )
         return False
 
+def test_dashboard_orders_by_status():
+    """Test dashboard orders by status endpoint"""
+    
+    print("📊 Testing Dashboard - Orders by Status...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/dashboard/orders-by-status",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if isinstance(data, list):
+                # Check if response has correct structure
+                valid_structure = True
+                french_labels_found = False
+                
+                for item in data:
+                    if not isinstance(item, dict) or 'name' not in item or 'value' not in item:
+                        valid_structure = False
+                        break
+                    
+                    # Check for French labels
+                    french_statuses = ["En stock", "Préparation", "Prêt", "En transit", "Livré", "Retourné"]
+                    if item['name'] in french_statuses:
+                        french_labels_found = True
+                
+                if valid_structure:
+                    test_results.add_result(
+                        "Dashboard - Orders by Status",
+                        True,
+                        f"Retrieved {len(data)} status groups, French labels: {french_labels_found}"
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Dashboard - Orders by Status",
+                        False,
+                        "Response structure invalid - missing name/value fields",
+                        str(data)
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Dashboard - Orders by Status",
+                    False,
+                    "Response is not a list",
+                    str(data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Dashboard - Orders by Status",
+                False,
+                f"Orders by status failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Dashboard - Orders by Status",
+            False,
+            f"Orders by status request failed: {str(e)}"
+        )
+        return False
+
+def test_dashboard_revenue_evolution():
+    """Test dashboard revenue evolution endpoint"""
+    
+    print("📈 Testing Dashboard - Revenue Evolution...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/dashboard/revenue-evolution",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if isinstance(data, list) and len(data) == 7:
+                # Check if response has correct structure for 7 days
+                valid_structure = True
+                french_days_found = False
+                
+                french_days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+                
+                for item in data:
+                    if not isinstance(item, dict) or 'name' not in item or 'date' not in item or 'revenus' not in item:
+                        valid_structure = False
+                        break
+                    
+                    # Check for French day names
+                    if item['name'] in french_days:
+                        french_days_found = True
+                
+                if valid_structure:
+                    total_revenue = sum(item['revenus'] for item in data)
+                    test_results.add_result(
+                        "Dashboard - Revenue Evolution",
+                        True,
+                        f"Retrieved 7 days revenue data, French days: {french_days_found}, Total: {total_revenue} DA"
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Dashboard - Revenue Evolution",
+                        False,
+                        "Response structure invalid - missing name/date/revenus fields",
+                        str(data)
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Dashboard - Revenue Evolution",
+                    False,
+                    f"Response should be list of 7 items, got {len(data) if isinstance(data, list) else 'not a list'}",
+                    str(data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Dashboard - Revenue Evolution",
+                False,
+                f"Revenue evolution failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Dashboard - Revenue Evolution",
+            False,
+            f"Revenue evolution request failed: {str(e)}"
+        )
+        return False
+
+def test_dashboard_top_wilayas():
+    """Test dashboard top wilayas endpoint"""
+    
+    print("🗺️ Testing Dashboard - Top Wilayas...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/dashboard/top-wilayas",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if isinstance(data, list):
+                # Check if response has correct structure
+                valid_structure = True
+                has_algerian_wilayas = False
+                
+                algerian_wilayas = ["Alger", "Oran", "Constantine", "Batna", "Blida", "Sétif", "Annaba"]
+                
+                for item in data:
+                    if not isinstance(item, dict) or 'name' not in item or 'value' not in item:
+                        valid_structure = False
+                        break
+                    
+                    # Check for Algerian wilaya names
+                    if item['name'] in algerian_wilayas or item['name'] == "Non spécifié":
+                        has_algerian_wilayas = True
+                
+                if valid_structure:
+                    test_results.add_result(
+                        "Dashboard - Top Wilayas",
+                        True,
+                        f"Retrieved {len(data)} wilayas (max 5), Algerian names: {has_algerian_wilayas}"
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Dashboard - Top Wilayas",
+                        False,
+                        "Response structure invalid - missing name/value fields",
+                        str(data)
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Dashboard - Top Wilayas",
+                    False,
+                    "Response is not a list",
+                    str(data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Dashboard - Top Wilayas",
+                False,
+                f"Top wilayas failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Dashboard - Top Wilayas",
+            False,
+            f"Top wilayas request failed: {str(e)}"
+        )
+        return False
+
+def test_dashboard_stats():
+    """Test existing dashboard stats endpoint"""
+    
+    print("📋 Testing Dashboard - Stats...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/dashboard/stats",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            required_fields = ['total_orders', 'total_users', 'total_products', 'in_transit']
+            
+            if isinstance(data, dict) and all(field in data for field in required_fields):
+                test_results.add_result(
+                    "Dashboard - Stats",
+                    True,
+                    f"Stats retrieved: Orders={data['total_orders']}, Users={data['total_users']}, Products={data['total_products']}, In Transit={data['in_transit']}"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Dashboard - Stats",
+                    False,
+                    "Response missing required fields",
+                    f"Expected: {required_fields}, Got: {list(data.keys()) if isinstance(data, dict) else 'not a dict'}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Dashboard - Stats",
+                False,
+                f"Dashboard stats failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Dashboard - Stats",
+            False,
+            f"Dashboard stats request failed: {str(e)}"
+        )
+        return False
+
 def run_all_tests():
     """Run all backend tests"""
     
