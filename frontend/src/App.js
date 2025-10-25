@@ -11,7 +11,7 @@ import LandingPageModern from '@/pages/LandingPageModern';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardLayout from '@/components/DashboardLayout';
-import AdminDashboard from '@/pages/AdminDashboard';
+import AdminDashboardModern from '@/pages/AdminDashboardModern';
 import OrdersPageAdvanced from '@/pages/OrdersPageAdvanced';
 import ProductsPage from '@/pages/ProductsPage';
 import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
