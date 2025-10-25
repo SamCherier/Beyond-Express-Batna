@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   getOrders, createOrder, updateOrderStatus, generateBordereau,
   getTrackingEvents, addTrackingEvent, filterOrdersByDeliveryPartner,
-  filterOrdersByUser, getEcommerceUsers, sendAIMessage
+  filterOrdersByUser, getEcommerceUsers, sendAIMessage, sendOrderConfirmation
 } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
