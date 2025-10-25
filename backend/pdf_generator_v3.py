@@ -66,9 +66,11 @@ def generate_qr_code(data: str) -> BytesIO:
 
 def generate_barcode(data: str) -> Drawing:
     """Generate Code 128 barcode"""
-    barcode = code128.Code128(data, barHeight=15*mm, barWidth=1.2)
-    drawing = Drawing(barcode.width, barcode.height)
-    drawing.add(barcode)
+    barcode = code128.Code128(data, barHeight=15*mm, barWidth=1.0)
+    drawing = Drawing(150*mm, 20*mm)
+    barcode.x = 0
+    barcode.y = 0
+    drawing.add(barcode, name='barcode')
     return drawing
 
 def generate_pin_code() -> str:
