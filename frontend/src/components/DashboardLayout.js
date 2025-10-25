@@ -68,7 +68,7 @@ const DashboardLayout = () => {
             </Button>
             
             <div className="flex items-center gap-3">
-              <AnimatedLogo size="sm" />
+              <BeyondExpressLogo size="sm" />
               <span className="text-xl font-bold text-gray-900 hidden sm:block" style={{ fontFamily: 'Brockmann, sans-serif' }}>
                 Beyond Express
               </span>
