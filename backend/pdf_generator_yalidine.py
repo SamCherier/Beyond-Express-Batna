@@ -196,11 +196,26 @@ def create_single_bordereau(c: canvas.Canvas, order_data: dict, x_offset: float,
     # ===== 4. QR CODE + TRACKING + PIN =====
     # QR Code
     qr_buffer = generate_qr_code(tracking_id)
+    qr_buffer.seek(0)  # Reset buffer position
     try:
-        c.drawImage(qr_buffer, x_offset + 5*mm, current_y - 20*mm, 
+        from PIL import Image as PILImage
+        # Save to temp file for reliable rendering
+        qr_temp_path = f'/tmp/qr_{tracking_id}.png'
+        with open(qr_temp_path, 'wb') as f:
+            f.write(qr_buffer.read())
+        c.drawImage(qr_temp_path, x_offset + 5*mm, current_y - 20*mm, 
                    width=20*mm, height=20*mm, preserveAspectRatio=True)
-    except:
-        pass
+        # Clean up
+        try:
+            os.remove(qr_temp_path)
+        except:
+            pass
+    except Exception as e:
+        # Fallback: draw a box where QR should be
+        c.setStrokeColor(colors.black)
+        c.rect(x_offset + 5*mm, current_y - 20*mm, 20*mm, 20*mm)
+        c.setFont("Helvetica", 6)
+        c.drawString(x_offset + 7*mm, current_y - 11*mm, "QR CODE")
     
     # Tracking ID and PIN
     c.setFont("Helvetica-Bold", 9)
