@@ -231,39 +231,48 @@ backend:
 
   - task: "Dashboard Analytics - Orders by Status API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/dashboard/orders-by-status endpoint. Uses MongoDB aggregation to group orders by status field. Returns array of {name, value} objects with French status labels (En stock, Préparation, Prêt, En transit, Livré, Retourné). Filters by user role (Admin sees all, Ecommerce/Delivery see their own)."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Dashboard Orders by Status API working correctly. Endpoint returns proper array structure with French status labels. Test data shows: [{'name': 'En stock', 'value': 1}, {'name': 'En transit', 'value': 1}, {'name': 'Prêt', 'value': 1}]. Authentication working, role-based filtering functional."
 
   - task: "Dashboard Analytics - Revenue Evolution API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/dashboard/revenue-evolution endpoint. Calculates revenue over last 7 days using MongoDB aggregation. Groups orders by date and sums cod_amount. Returns array with French day names (Lun, Mar, Mer, etc.) and revenue per day. Handles missing dates by filling with 0 revenue."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Dashboard Revenue Evolution API working correctly. Returns exactly 7 days of data with French day names (Lun, Mar, Mer, Jeu, Ven, Sam, Dim). Properly fills missing dates with 0 revenue. Test shows total revenue of 95000 DA for current period. Date format and aggregation working properly."
 
   - task: "Dashboard Analytics - Top Wilayas API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/dashboard/top-wilayas endpoint. Uses MongoDB aggregation to group orders by recipient.wilaya field. Sorts by count descending and limits to top 5. Returns array of {name, value} objects. Filters by user role."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Dashboard Top Wilayas API working correctly. Returns proper array structure with Algerian wilaya names. Test data shows: [{'name': 'Alger', 'value': 2}, {'name': 'Batna', 'value': 1}]. Correctly sorts by count descending and limits to top 5. Role-based filtering functional."
 
 frontend:
   - task: "Tracking Modal Implementation"
