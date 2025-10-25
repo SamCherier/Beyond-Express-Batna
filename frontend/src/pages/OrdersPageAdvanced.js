@@ -66,7 +66,8 @@ const OrdersPageAdvanced = () => {
     cod_amount: '',
     description: '',
     delivery_partner: '',
-    delivery_type: 'Livraison à Domicile'  // New field
+    delivery_type: 'Livraison à Domicile',  // New field
+    send_whatsapp_confirmation: false  // New field for automatic WhatsApp confirmation
   });
 
   useEffect(() => {
