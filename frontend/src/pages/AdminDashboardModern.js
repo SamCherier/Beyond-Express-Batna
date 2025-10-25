@@ -20,14 +20,16 @@ import {
 const AdminDashboardModern = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalOrders: 0,
-    monthRevenue: 0,
-    deliveryRate: 0,
-    pendingOrders: 0
+    totalUsers: 0,
+    totalProducts: 0,
+    inTransit: 0
   });
+  const [ordersByStatus, setOrdersByStatus] = useState([]);
+  const [revenueData, setRevenueData] = useState([]);
+  const [topWilayas, setTopWilayas] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -35,29 +37,28 @@ const AdminDashboardModern = () => {
 
   const fetchData = async () => {
     try {
-      const response = await getOrders();
-      const ordersData = response.data;
-      setOrders(ordersData);
-      calculateStats(ordersData);
+      // Fetch all dashboard data in parallel
+      const [statsRes, statusRes, revenueRes, wilayasRes] = await Promise.all([
+        getDashboardStats(),
+        getOrdersByStatus(),
+        getRevenueEvolution(),
+        getTopWilayas()
+      ]);
+
+      setStats({
+        totalOrders: statsRes.data.total_orders || 0,
+        totalUsers: statsRes.data.total_users || 0,
+        totalProducts: statsRes.data.total_products || 0,
+        inTransit: statsRes.data.in_transit || 0
+      });
+      setOrdersByStatus(statusRes.data || []);
+      setRevenueData(revenueRes.data || []);
+      setTopWilayas(wilayasRes.data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const calculateStats = (ordersData) => {
-    const total = ordersData.length;
-    const delivered = ordersData.filter(o => o.status === 'delivered').length;
-    const monthRevenue = ordersData.reduce((sum, o) => sum + (o.cod_amount || 0), 0);
-    const pending = ordersData.filter(o => ['in_stock', 'preparing', 'ready_to_ship'].includes(o.status)).length;
-
-    setStats({
-      totalOrders: total,
-      monthRevenue: monthRevenue,
-      deliveryRate: total > 0 ? ((delivered / total) * 100).toFixed(1) : 0,
-      pendingOrders: pending
-    });
   };
 
   // Données pour graphique des commandes par statut
