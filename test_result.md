@@ -394,11 +394,13 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.3"
-  test_sequence: 3
+  version: "1.4"
+  test_sequence: 4
   run_ui: false
   backend_tested: true
   backend_test_date: "2025-10-25"
+  critical_bug_fix_verified: true
+  orders_page_recovery_confirmed: true
 
 test_plan:
   current_focus: []
