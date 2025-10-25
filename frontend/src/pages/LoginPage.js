@@ -73,7 +73,7 @@ const LoginPage = () => {
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="space-y-4 pb-8">
           <div className="flex justify-center">
-            <AnimatedLogo size="lg" />
+            <BeyondExpressLogo size="lg" />
           </div>
           <div className="text-center">
             <CardTitle className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'EB Garamond, serif' }}>
