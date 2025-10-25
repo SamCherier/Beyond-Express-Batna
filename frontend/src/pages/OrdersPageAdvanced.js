@@ -209,7 +209,8 @@ const OrdersPageAdvanced = () => {
       cod_amount: '',
       description: '',
       delivery_partner: '',
-      delivery_type: 'Livraison à Domicile'
+      delivery_type: 'Livraison à Domicile',
+      send_whatsapp_confirmation: false
     });
     setAvailableCommunes([]);
   };
