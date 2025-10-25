@@ -32,10 +32,19 @@ const AdminDashboardModern = () => {
   const [topWilayas, setTopWilayas] = useState([]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // Only fetch data if user is authenticated
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
   const fetchData = async () => {
+    // Guard clause: don't fetch if user is not authenticated
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       // Fetch all dashboard data in parallel
       const [statsRes, statusRes, revenueRes, wilayasRes] = await Promise.all([
