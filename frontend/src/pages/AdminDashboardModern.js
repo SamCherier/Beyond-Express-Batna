@@ -266,7 +266,7 @@ const AdminDashboardModern = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getTop5Wilayas()} layout="vertical">
+              <BarChart data={topWilayas} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis type="number" style={{ fontSize: '12px' }} />
                 <YAxis dataKey="name" type="category" style={{ fontSize: '12px' }} width={100} />
@@ -279,7 +279,7 @@ const AdminDashboardModern = () => {
                   }}
                 />
                 <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                  {getTop5Wilayas().map((entry, index) => (
+                  {topWilayas.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={STATUS_COLORS[index]} />
                   ))}
                 </Bar>
