@@ -2,7 +2,7 @@
 WhatsApp API Routes
 Provides REST endpoints for WhatsApp messaging and conversation management
 """
-from fastapi import APIRouter, HTTPException, Request, Form, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Request, Form, BackgroundTasks
 from fastapi.responses import Response
 from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
@@ -10,7 +10,7 @@ import os
 import logging
 from typing import Optional
 
-from models import SendWhatsAppMessageRequest, User
+from models import SendWhatsAppMessageRequest
 from services.twilio_service import twilio_service
 from services.webhook_service import webhook_service
 
