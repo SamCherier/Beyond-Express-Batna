@@ -285,7 +285,7 @@ def generate_bordereau_pdf_final(order_data: dict) -> BytesIO:
     pin_code = generate_pin_code()
     
     barcode_section = [
-        [barcode_drawing],
+        [barcode_img],
         [Paragraph(f"<b>{tracking_id}</b>", ParagraphStyle(
             'TrackingCode',
             parent=normal_style,
