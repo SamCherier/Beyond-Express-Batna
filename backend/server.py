@@ -462,10 +462,13 @@ async def get_orders(
     orders = await db.orders.find(query, {"_id": 0}).to_list(1000)
     
     for order in orders:
-        if isinstance(order['created_at'], str):
+        if isinstance(order.get('created_at'), str):
             order['created_at'] = datetime.fromisoformat(order['created_at'])
-        if isinstance(order['updated_at'], str):
+        if 'updated_at' in order and isinstance(order['updated_at'], str):
             order['updated_at'] = datetime.fromisoformat(order['updated_at'])
+        elif 'updated_at' not in order:
+            # Set updated_at to created_at if missing
+            order['updated_at'] = order.get('created_at', datetime.now(timezone.utc))
     
     return orders
 
@@ -586,10 +589,13 @@ async def filter_orders_by_delivery_partner(
     orders = await db.orders.find(query, {"_id": 0}).to_list(1000)
     
     for order in orders:
-        if isinstance(order['created_at'], str):
+        if isinstance(order.get('created_at'), str):
             order['created_at'] = datetime.fromisoformat(order['created_at'])
-        if isinstance(order['updated_at'], str):
+        if 'updated_at' in order and isinstance(order['updated_at'], str):
             order['updated_at'] = datetime.fromisoformat(order['updated_at'])
+        elif 'updated_at' not in order:
+            # Set updated_at to created_at if missing
+            order['updated_at'] = order.get('created_at', datetime.now(timezone.utc))
     
     return orders
 
