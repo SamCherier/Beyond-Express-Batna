@@ -183,8 +183,13 @@ const OrdersPageAdvanced = () => {
         delivery_type: formData.delivery_type  // Add delivery_type
       };
 
-      await createOrder(orderData);
-      toast.success('Commande créée avec succès!');
+      await createOrder(orderData, formData.send_whatsapp_confirmation);
+      
+      const successMessage = formData.send_whatsapp_confirmation
+        ? 'Commande créée avec succès! Confirmation WhatsApp envoyée.'
+        : 'Commande créée avec succès!';
+      
+      toast.success(successMessage);
       setCreateDialogOpen(false);
       fetchOrders();
       resetForm();
