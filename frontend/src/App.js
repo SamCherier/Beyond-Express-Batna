@@ -15,6 +15,7 @@ import AdminDashboardModern from '@/pages/AdminDashboardModern';
 import OrdersPageAdvanced from '@/pages/OrdersPageAdvanced';
 import ProductsPage from '@/pages/ProductsPage';
 import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
+import WhatsAppDashboard from '@/pages/WhatsAppDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
