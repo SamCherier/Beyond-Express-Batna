@@ -165,10 +165,14 @@ def generate_bordereau_pdf(order_data: dict) -> BytesIO:
     
     # Tracking and payment info
     story.append(Paragraph("<b>DÉTAILS DU COLIS / PACKAGE DETAILS</b>", header_style))
+    
+    # Get delivery partner with fallback
+    delivery_partner_display = delivery_partner if delivery_partner else "Non spécifié"
+    
     details_data = [
         ["N° de suivi / Tracking:", f"<b>{tracking_id}</b>"],
         ["Code Wilaya:", f"<b>{wilaya_code}</b>"],
-        ["Partenaire Livraison:", f"<b>{delivery_partner}</b>"],
+        ["Partenaire Livraison:", f"<b>{delivery_partner_display}</b>"],
         ["Montant COD:", f"<b>{order_data['cod_amount']} DA</b>"],
         ["Description:", order_data['description']],
         ["Type de service:", order_data['service_type']],
