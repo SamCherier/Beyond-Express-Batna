@@ -211,6 +211,42 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Authentication system working correctly. POST /api/auth/register and POST /api/auth/login both functional. JWT token generation and Bearer authentication working properly."
 
+  - task: "Dashboard Analytics - Orders by Status API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/dashboard/orders-by-status endpoint. Uses MongoDB aggregation to group orders by status field. Returns array of {name, value} objects with French status labels (En stock, Préparation, Prêt, En transit, Livré, Retourné). Filters by user role (Admin sees all, Ecommerce/Delivery see their own)."
+
+  - task: "Dashboard Analytics - Revenue Evolution API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/dashboard/revenue-evolution endpoint. Calculates revenue over last 7 days using MongoDB aggregation. Groups orders by date and sums cod_amount. Returns array with French day names (Lun, Mar, Mer, etc.) and revenue per day. Handles missing dates by filling with 0 revenue."
+
+  - task: "Dashboard Analytics - Top Wilayas API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/dashboard/top-wilayas endpoint. Uses MongoDB aggregation to group orders by recipient.wilaya field. Sorts by count descending and limits to top 5. Returns array of {name, value} objects. Filters by user role."
+
 frontend:
   - task: "Tracking Modal Implementation"
     implemented: true
