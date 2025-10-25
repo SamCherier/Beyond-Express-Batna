@@ -17,7 +17,8 @@ export const getTopWilayas = () => api.get('/dashboard/top-wilayas');
 // Orders
 export const getOrders = (status) => api.get('/orders', { params: { status } });
 export const getOrder = (id) => api.get(`/orders/${id}`);
-export const createOrder = (data) => api.post('/orders', data);
+export const createOrder = (data, sendWhatsAppConfirmation = false) => 
+  api.post('/orders', data, { params: { send_whatsapp_confirmation: sendWhatsAppConfirmation } });
 export const updateOrderStatus = (id, status) => api.patch(`/orders/${id}/status`, null, { params: { status } });
 export const generateBordereau = (orderIds) => 
   api.post('/orders/bordereau', orderIds, { responseType: 'blob' });
