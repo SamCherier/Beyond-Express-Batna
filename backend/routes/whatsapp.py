@@ -170,7 +170,7 @@ async def handle_incoming_whatsapp_message(
             raise HTTPException(status_code=403, detail="Invalid signature")
     
     try:
-        # Process the incoming message
+        # Process the incoming message and store in DB
         result = await webhook_service.process_incoming_message(
             sender_phone=From,
             recipient_phone=To,
@@ -180,9 +180,46 @@ async def handle_incoming_whatsapp_message(
         
         logger.info(f"✅ Processed incoming message: {result}")
         
-        # Return TwiML response (empty for now - AI will respond later)
+        # Generate AI response
+        conversation_id = result.get("conversation_id")
+        sender_normalized = From.replace("whatsapp:", "")
+        
+        ai_response, should_transfer = await ai_agent_service.process_message_and_respond(
+            conversation_id=conversation_id,
+            customer_phone=sender_normalized,
+            message=Body
+        )
+        
+        logger.info(f"🤖 AI Response: {ai_response[:100]}... | Transfer: {should_transfer}")
+        
+        # If AI says to transfer, update conversation status
+        if should_transfer:
+            await webhook_service.connect()
+            conversations_collection = webhook_service.db["whatsapp_conversations"]
+            await conversations_collection.update_one(
+                {"conversation_id": conversation_id},
+                {
+                    "$set": {
+                        "status": "waiting",
+                        "needs_human": True
+                    }
+                }
+            )
+            logger.info(f"🔔 Conversation {conversation_id} flagged for human takeover")
+        
+        # Send AI response back via Twilio
+        response_result = twilio_service.send_whatsapp_message(
+            to_phone=sender_normalized,
+            message_body=ai_response
+        )
+        
+        if response_result["success"]:
+            logger.info(f"✅ AI response sent successfully")
+        else:
+            logger.error(f"❌ Failed to send AI response: {response_result.get('error')}")
+        
+        # Return empty TwiML (we already sent the response programmatically)
         response = MessagingResponse()
-        # Don't auto-reply here - let AI agent handle it
         
         return Response(
             content=str(response),
