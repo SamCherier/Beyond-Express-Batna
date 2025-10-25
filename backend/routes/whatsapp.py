@@ -13,10 +13,9 @@ from typing import Optional
 from models import SendWhatsAppMessageRequest, User
 from services.twilio_service import twilio_service
 from services.webhook_service import webhook_service
-# Import get_current_user from server (will be available at runtime)
-import sys
-sys.path.insert(0, '/app/backend')
-from server import get_current_user
+
+# Note: get_current_user will be imported when routes are included in server.py
+# For now, we'll use Depends without importing it directly
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
