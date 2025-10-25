@@ -193,7 +193,7 @@ const AdminDashboardModern = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getOrdersByStatus()}>
+              <BarChart data={ordersByStatus}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" style={{ fontSize: '12px' }} />
                 <YAxis style={{ fontSize: '12px' }} />
@@ -206,7 +206,7 @@ const AdminDashboardModern = () => {
                   }}
                 />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {getOrdersByStatus().map((entry, index) => (
+                  {ordersByStatus.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
                   ))}
                 </Bar>
