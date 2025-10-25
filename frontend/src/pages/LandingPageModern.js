@@ -365,22 +365,22 @@ const LandingPageModern = () => {
                 <span className="text-2xl font-bold text-white">Beyond Express</span>
               </div>
               <p className="text-gray-400 leading-relaxed">
-                La plateforme 3PL la plus avancée d'Algérie. Propulsée par l'Intelligence Artificielle.
+                {t('footerAbout')}
               </p>
             </div>
             
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">Services</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('footerServices')}</h3>
               <ul className="space-y-3 text-gray-400">
-                <li className="hover:text-red-400 transition-colors cursor-pointer">Stockage</li>
-                <li className="hover:text-red-400 transition-colors cursor-pointer">Fulfillment</li>
-                <li className="hover:text-red-400 transition-colors cursor-pointer">Livraison</li>
-                <li className="hover:text-red-400 transition-colors cursor-pointer">Score de Risque IA</li>
+                <li className="hover:text-red-400 transition-colors cursor-pointer">{t('storage')}</li>
+                <li className="hover:text-red-400 transition-colors cursor-pointer">{t('fulfillment')}</li>
+                <li className="hover:text-red-400 transition-colors cursor-pointer">{t('shipping')}</li>
+                <li className="hover:text-red-400 transition-colors cursor-pointer">{t('riskScore')}</li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">Contact</h3>
+              <h3 className="text-xl font-bold text-white mb-4">{t('footerContact')}</h3>
               <ul className="space-y-3 text-gray-400">
                 <li className="hover:text-red-400 transition-colors">📧 contact@beyondexpress-batna.com</li>
                 <li className="hover:text-red-400 transition-colors">📧 beyondexpress@hotmail.com</li>
@@ -392,7 +392,7 @@ const LandingPageModern = () => {
           </div>
           
           <div className="border-t border-gray-800 pt-8 text-center text-gray-500">
-            <p>&copy; 2025 Beyond Express. Tous droits réservés. Made with ❤️ in Algeria</p>
+            <p>&copy; 2025 Beyond Express. {t('footerRights')}</p>
           </div>
         </div>
       </footer>
