@@ -294,9 +294,9 @@ const LandingPageModern = () => {
               className="text-5xl font-bold mb-4 bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent"
               style={{ fontFamily: 'EB Garamond, serif' }}
             >
-              Intelligence Artificielle & Technologie
+              {t('aiTitle')}
             </h2>
-            <p className="text-xl text-gray-400">La première plateforme logistique algérienne propulsée par l'IA</p>
+            <p className="text-xl text-gray-400">{t('aiSubtitle')}</p>
           </div>
           
           {/* AI Features */}
@@ -309,15 +309,15 @@ const LandingPageModern = () => {
                 <div className={`${feature.color} mb-6 group-hover:scale-110 transition-transform`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-3xl font-bold mb-4 text-white">{feature.title}</h3>
-                <p className="text-gray-400 text-lg leading-relaxed">{feature.description}</p>
+                <h3 className="text-3xl font-bold mb-4 text-white">{t(feature.titleKey)}</h3>
+                <p className="text-gray-400 text-lg leading-relaxed">{t(feature.descKey)}</p>
               </div>
             ))}
           </div>
           
           {/* Powered By AI Models */}
           <div className="text-center mt-20">
-            <p className="text-gray-500 text-sm uppercase tracking-wider mb-6">Powered by</p>
+            <p className="text-gray-500 text-sm uppercase tracking-wider mb-6">{t('poweredBy')}</p>
             <div className="flex justify-center items-center gap-12 flex-wrap">
               {aiModels.map((model, index) => (
                 <div
