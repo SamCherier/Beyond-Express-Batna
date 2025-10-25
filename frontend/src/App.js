@@ -85,7 +85,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<AdminDashboard />} />
+        <Route index element={<AdminDashboardModern />} />
         <Route path="orders" element={<OrdersPageAdvanced />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="customers" element={<CustomersPageAdvanced />} />
