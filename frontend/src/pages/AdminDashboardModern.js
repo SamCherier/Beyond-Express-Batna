@@ -226,7 +226,7 @@ const AdminDashboardModern = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={getRevenueData()}>
+              <LineChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" style={{ fontSize: '12px' }} />
                 <YAxis style={{ fontSize: '12px' }} />
