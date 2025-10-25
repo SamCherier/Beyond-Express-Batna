@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   MessageSquare,
+  MessageCircle,
   Menu,
   X,
   Bot
