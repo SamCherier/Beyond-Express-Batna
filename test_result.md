@@ -373,10 +373,10 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.2"
-  test_sequence: 2
+  version: "1.3"
+  test_sequence: 3
   run_ui: false
-  backend_tested: false
+  backend_tested: true
   backend_test_date: "2025-10-25"
 
 test_plan:
