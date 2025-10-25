@@ -180,6 +180,12 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Bordereau generation endpoint working correctly. POST /api/orders/bordereau successfully generates PDF for provided order IDs. Returns proper PDF content-type and file attachment."
+      - working: false
+        agent: "user"
+        comment: "❌ USER REPORT: PDF download fails with error message 'Erreur lors de la génération du bordereau'. Generation does not work."
+      - working: true
+        agent: "main"
+        comment: "✅ BUG FIXED: The issue was in pdf_generator.py - AttributeError when delivery_partner was None. Fixed by adding null check: if delivery_partner is None, display 'BY TRANSPORTEUR' instead. Also added fallback for delivery_partner_display in details section. Tested with both None and valid delivery_partner values - both work correctly now."
 
   - task: "Authentication System"
     implemented: true
