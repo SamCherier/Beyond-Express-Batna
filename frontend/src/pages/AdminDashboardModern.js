@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { getOrders } from '@/api';
+import { 
+  getDashboardStats, 
+  getOrdersByStatus, 
+  getRevenueEvolution, 
+  getTopWilayas 
+} from '@/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
