@@ -874,11 +874,12 @@ def run_all_tests():
     print(f"API Base: {API_BASE}")
     print(f"{'='*60}")
     
-    # Test sequence
+    # Test sequence - CRITICAL TESTS FIRST
     tests = [
         ("Authentication", test_authentication),
+        ("Get Orders - CRITICAL BUG FIX", test_get_orders),
+        ("Orders Count Verification", test_orders_count_verification),
         ("Order Creation", test_order_creation),
-        ("Get Orders", test_get_orders),
         ("Tracking Events", test_tracking_events),
         ("Bulk Status Update", test_bulk_status_update),
         ("Bulk Bordereau Generation", test_bulk_bordereau_generation),
