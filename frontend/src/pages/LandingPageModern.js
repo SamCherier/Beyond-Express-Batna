@@ -359,9 +359,11 @@ const LandingPageModern = () => {
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Contact</h3>
               <ul className="space-y-3 text-gray-400">
-                <li>📧 contact@beyondexpress.dz</li>
-                <li>📞 +213 XXX XXX XXX</li>
-                <li>📍 Alger, Algérie</li>
+                <li className="hover:text-red-400 transition-colors">📧 contact@beyondexpress-batna.com</li>
+                <li className="hover:text-red-400 transition-colors">📧 beyondexpress@hotmail.com</li>
+                <li className="hover:text-red-400 transition-colors">📞 +213 655 36 33 16</li>
+                <li className="hover:text-red-400 transition-colors">📞 +213 784 20 03 41</li>
+                <li className="hover:text-red-400 transition-colors">📍 cité 84 Logs Batna, Algeria</li>
               </ul>
             </div>
           </div>
