@@ -140,7 +140,7 @@ const LandingPageModern = () => {
         {/* Hero Content */}
         <div className="relative z-10 container mx-auto px-4 text-center">
           <div className="mb-8">
-            <AnimatedLogo size="xl" />
+            <BeyondExpressLogo size="xl" />
           </div>
           
           <h1 
