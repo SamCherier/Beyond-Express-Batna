@@ -26,6 +26,9 @@ TEST_USER = {
     "role": "admin"
 }
 
+# Admin user mentioned in review request
+ADMIN_USER_ID = "9d275120-3f24-4c1a-86d4-3aeff0fa3e95"
+
 TEST_ORDER_DATA = {
     "recipient": {
         "name": "Ahmed Benali",
