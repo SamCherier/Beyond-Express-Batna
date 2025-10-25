@@ -42,18 +42,30 @@ const AdminDashboardModern = () => {
   const fetchData = async () => {
     // Guard clause: don't fetch if user is not authenticated
     if (!user) {
+      console.log('❌ AdminDashboard: No user authenticated, skipping data fetch');
       setLoading(false);
       return;
     }
 
+    console.log('✅ AdminDashboard: User authenticated, fetching dashboard data...', user);
+    setError(null);
+
     try {
       // Fetch all dashboard data in parallel
+      console.log('📊 Fetching dashboard endpoints...');
       const [statsRes, statusRes, revenueRes, wilayasRes] = await Promise.all([
         getDashboardStats(),
         getOrdersByStatus(),
         getRevenueEvolution(),
         getTopWilayas()
       ]);
+
+      console.log('✅ Dashboard data received:', {
+        stats: statsRes.data,
+        ordersByStatus: statusRes.data,
+        revenueData: revenueRes.data,
+        topWilayas: wilayasRes.data
+      });
 
       setStats({
         totalOrders: statsRes.data.total_orders || 0,
@@ -65,7 +77,9 @@ const AdminDashboardModern = () => {
       setRevenueData(revenueRes.data || []);
       setTopWilayas(wilayasRes.data || []);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('❌ Error fetching dashboard data:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      setError(`Erreur de chargement des données: ${error.response?.status || error.message}`);
     } finally {
       setLoading(false);
     }
