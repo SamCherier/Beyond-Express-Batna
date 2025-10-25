@@ -70,8 +70,8 @@ const LandingPageModern = () => {
   ];
     {
       icon: <AlertCircle className="w-12 h-12" />,
-      title: 'Blacklist Nationale',
-      description: 'Accès instantané à la liste noire nationale des clients non sérieux, partagée par tous les transporteurs algériens. Protection collective en temps réel.',
+      titleKey: 'blacklistTitle',
+      descKey: 'blacklistDesc',
       color: 'text-red-500'
     }
   ];
