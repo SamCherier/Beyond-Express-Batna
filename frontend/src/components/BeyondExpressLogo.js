@@ -1,6 +1,7 @@
 import React from 'react';
+import './BeyondExpressLogo.css';
 
-const BeyondExpressLogo = ({ size = 'md', className = '' }) => {
+const BeyondExpressLogo = ({ size = 'md', className = '', variant = 'default' }) => {
   const sizes = {
     xs: 'w-8 h-8',
     sm: 'w-12 h-12',
@@ -9,12 +10,18 @@ const BeyondExpressLogo = ({ size = 'md', className = '' }) => {
     xl: 'w-48 h-48'
   };
 
+  const animationClasses = {
+    default: 'beyond-logo-animated',
+    header: 'beyond-logo-animated beyond-logo-header',
+    hero: 'beyond-logo-animated beyond-logo-hero'
+  };
+
   return (
-    <div className={`${sizes[size]} ${className}`} data-testid="beyond-express-logo">
+    <div className={`beyond-logo-container ${sizes[size]} ${className}`} data-testid="beyond-express-logo">
       <img 
         src="/images/beyond-express-logo.jpg" 
         alt="Beyond Express Logo" 
-        className="w-full h-full object-contain"
+        className={`w-full h-full object-contain ${animationClasses[variant]}`}
       />
     </div>
   );
