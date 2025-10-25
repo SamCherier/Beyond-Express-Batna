@@ -170,7 +170,7 @@ const LandingPageModern = () => {
               onClick={() => navigate('/login')}
               className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-10 py-7 rounded-full backdrop-blur-sm"
             >
-              Connexion
+              {t('loginButton')}
             </Button>
           </div>
         </div>
