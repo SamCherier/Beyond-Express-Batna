@@ -703,16 +703,30 @@ const OrdersPageAdvanced = () => {
                         </Select>
                       </td>
                       <td className="px-6 py-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openTrackingDialog(order)}
-                          data-testid={`tracking-button-${order.id}`}
-                          className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          Suivi
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openTrackingDialog(order)}
+                            data-testid={`tracking-button-${order.id}`}
+                            className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Suivi
+                          </Button>
+                          
+                          {order.recipient?.phone && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSendWhatsAppConfirmation(order)}
+                              className="hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                              title="Envoyer confirmation WhatsApp"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
