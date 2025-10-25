@@ -101,3 +101,155 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Phase 2: Orders Page Advanced Features Implementation
+  The task is to implement the following features for the "Commandes" (Orders) page:
+  1. Tracking Modal - Detailed historical status view for each order
+  2. Linked Wilaya/Commune Dropdowns - Commune selection depends on Wilaya
+  3. Bulk Actions - Checkboxes for selecting multiple orders, bulk bordereau generation
+  4. Bulk Status Update - Update status for multiple orders at once  
+  5. AI-driven Risk Score - Fraud detection using Emergent LLM key
+
+backend:
+  - task: "AI Chat Endpoint for Risk Score"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend AI endpoint already exists at /api/ai-chat using Emergent LLM key with emergentintegrations library. EMERGENT_LLM_KEY is configured in .env file."
+
+  - task: "Order Tracking Events API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Tracking events endpoints exist: POST /api/orders/{id}/tracking and GET /api/orders/{id}/tracking"
+
+  - task: "Bulk Status Update API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Status update endpoint exists: PATCH /api/orders/{id}/status. Frontend handles bulk by calling multiple times."
+
+frontend:
+  - task: "Tracking Modal Implementation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Tracking dialog implemented with timeline view, showing historical events with icons, status colors, locations, and timestamps. Admin can add new tracking events."
+
+  - task: "Linked Wilaya/Commune Dropdowns"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Wilaya/Commune linking implemented using COMMUNES_BY_WILAYA data. useEffect updates available communes when wilaya changes (lines 83-90). Commune dropdown disabled until wilaya selected."
+
+  - task: "Bulk Selection Checkboxes"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Checkboxes implemented with toggleSelectAll function for header checkbox. Individual checkboxes for each order row. selectedOrders state tracks selected order IDs."
+
+  - task: "Bulk Bordereau Generation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Bulk bordereau button implemented, calls handleGenerateBordereau which generates PDF for all selected orders. Button shows count of selected orders and is disabled when none selected."
+
+  - task: "Bulk Status Update"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Bulk status update dialog implemented with status selector. handleBulkStatusUpdate updates all selected orders using Promise.all. Shows count of selected orders."
+
+  - task: "AI Risk Score Column"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Risk Score column added to orders table. calculateRiskScore function uses sendAIMessage API with prompt analyzing COD amount, wilaya, and description. Risk levels: Faible/Moyen/Élevé with color coding (green/yellow/red) and alert icon for high risk."
+
+  - task: "Communes Data File"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/data/communes.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "COMMUNES_BY_WILAYA data structure exists and is imported in OrdersPageAdvanced.js"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "AI Risk Score Column"
+    - "Tracking Modal Implementation"
+    - "Bulk Status Update"
+    - "Linked Wilaya/Commune Dropdowns"
+    - "Bulk Bordereau Generation"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "All Phase 2 features have been implemented in OrdersPageAdvanced.js. File was cleaned up (removed duplicate code). Features ready for testing: 1) Tracking Modal with timeline, 2) Linked Wilaya/Commune dropdowns, 3) Bulk selection with checkboxes, 4) Bulk bordereau generation, 5) Bulk status update dialog, 6) AI Risk Score using Emergent LLM key. Backend endpoints already exist. Ready for backend and frontend testing."
