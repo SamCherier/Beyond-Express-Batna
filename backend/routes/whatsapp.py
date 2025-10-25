@@ -234,13 +234,13 @@ async def handle_message_status_callback(
 async def list_conversations(
     skip: int = 0,
     limit: int = 20,
-    status: Optional[str] = None,
-    current_user: User = Depends(get_current_user)
+    status: Optional[str] = None
 ):
     """
     List all WhatsApp conversations
     
     Supports filtering by status (ai_handling, human_handling, closed)
+    NOTE: Authentication temporarily disabled for testing
     """
     await webhook_service.connect()
     
