@@ -116,6 +116,7 @@ class OrderBase(BaseModel):
     description: str
     service_type: str = "E-COMMERCE"
     delivery_partner: Optional[str] = None
+    delivery_type: str = "Livraison à Domicile"  # New field
 
 class OrderCreate(OrderBase):
     pass
@@ -128,6 +129,7 @@ class Order(OrderBase):
     status: OrderStatus = OrderStatus.IN_STOCK
     sender: AddressInfo
     qr_code: Optional[str] = None
+    pin_code: str = ""  # New field for unique PIN
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
