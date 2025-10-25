@@ -105,8 +105,11 @@ def generate_bordereau_pdf(order_data: dict) -> BytesIO:
     story.append(Paragraph("<b>Beyond Express</b>", title_style))
     
     # Dynamic "BY [TRANSPORTEUR]" based on delivery partner
-    delivery_partner = order_data.get('delivery_partner', 'TRANSPORTEUR')
-    story.append(Paragraph(f"<b>BY {delivery_partner.upper()}</b>", subtitle_style))
+    delivery_partner = order_data.get('delivery_partner')
+    if delivery_partner:
+        story.append(Paragraph(f"<b>BY {delivery_partner.upper()}</b>", subtitle_style))
+    else:
+        story.append(Paragraph("<b>BY TRANSPORTEUR</b>", subtitle_style))
     story.append(Spacer(1, 5*mm))
     
     # Generate QR Code
