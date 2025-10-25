@@ -211,9 +211,9 @@ const LandingPageModern = () => {
               className="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
               style={{ fontFamily: 'EB Garamond, serif' }}
             >
-              Nos Services
+              {t('services')}
             </h2>
-            <p className="text-xl text-gray-400">Solutions complètes pour votre e-commerce</p>
+            <p className="text-xl text-gray-400">{t('servicesSubtitle')}</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -229,8 +229,8 @@ const LandingPageModern = () => {
                   <div className={`text-white mb-6 group-hover:scale-110 transition-transform duration-300 bg-gradient-to-br ${service.gradient} p-4 rounded-2xl w-fit`}>
                     {service.icon}
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-white">{service.title}</h3>
-                  <p className="text-gray-400">{service.description}</p>
+                  <h3 className="text-2xl font-bold mb-3 text-white">{t(service.titleKey)}</h3>
+                  <p className="text-gray-400">{t(service.descKey)}</p>
                 </div>
                 
                 {/* Glow Effect */}
