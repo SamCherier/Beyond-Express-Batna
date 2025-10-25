@@ -241,7 +241,13 @@ def create_single_bordereau(c: canvas.Canvas, order_data: dict, x_offset: float,
     c.setFont("Helvetica-Bold", 7)
     c.drawString(x_offset + 60*mm, current_y, f"{cod_amount} DA")
     
-    current_y -= 8*mm
+    current_y -= 6*mm
+    
+    # ===== 5B. TYPE DE SERVICE =====
+    c.setFont("Helvetica-Bold", 7)
+    c.drawString(x_offset + 5*mm, current_y, f"Type: {delivery_type}")
+    
+    current_y -= 6*mm
     
     # ===== 6. FOOTER =====
     c.setFont("Helvetica", 6)
