@@ -147,13 +147,13 @@ const LandingPageModern = () => {
             className="text-6xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-white via-red-200 to-orange-200 bg-clip-text text-transparent leading-tight"
             style={{ fontFamily: 'EB Garamond, serif' }}
           >
-            خليك مركز على البيع
+            {t('heroTitle')}
           </h1>
           <p className="text-3xl lg:text-4xl font-bold mb-8 text-red-400" style={{ fontFamily: 'EB Garamond, serif' }}>
-            ...وخلي الباقي علينا!
+            {t('heroSubtitle')}
           </p>
           <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            La plateforme 3PL la plus avancée d'Algérie. Stockage, Fulfillment et Livraison multi-transporteurs avec Intelligence Artificielle.
+            {t('heroDescription')}
           </p>
           
           <div className="flex gap-6 justify-center">
@@ -162,7 +162,7 @@ const LandingPageModern = () => {
               onClick={() => navigate('/register')}
               className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-lg px-10 py-7 rounded-full shadow-2xl hover:shadow-red-500/50 transition-all border-0 transform hover:scale-105"
             >
-              🚀 Commencer Maintenant
+              {t('getStarted')}
             </Button>
             <Button
               size="lg"
