@@ -21,6 +21,7 @@ const AdminDashboardModern = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalUsers: 0,
