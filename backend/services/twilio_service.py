@@ -33,8 +33,21 @@ class TwilioService:
         """Normalize phone number to WhatsApp format"""
         if phone.startswith("whatsapp:"):
             return phone
-        if not phone.startswith("+"):
-            phone = f"+{phone}"
+        
+        # Remove all spaces, dashes, and parentheses
+        phone = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+        
+        # Handle Algerian numbers specifically
+        if phone.startswith("0"):
+            # Algerian local format (0550096136) → +213550096136
+            phone = "+213" + phone[1:]
+        elif phone.startswith("+0"):
+            # Fix incorrect format (+0550096136) → +213550096136
+            phone = "+213" + phone[2:]
+        elif not phone.startswith("+"):
+            # No country code, assume Algeria
+            phone = f"+213{phone}"
+        
         return f"whatsapp:{phone}"
     
     def send_whatsapp_message(
