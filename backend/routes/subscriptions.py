@@ -279,10 +279,13 @@ async def check_feature_limit(
         logger.error(f"Error checking feature limit: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to check limit")
 
+class CancelRequest(BaseModel):
+    cancellation_reason: Optional[str] = None
+
 @router.post("/cancel")
 async def cancel_subscription(
-    cancellation_reason: Optional[str] = None,
-    current_user: User = Depends(get_current_user_dependency)
+    request: CancelRequest = CancelRequest(),
+    current_user: User = Depends(lambda: get_current_user_dependency)
 ):
     """
     Cancel current user's active subscription
