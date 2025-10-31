@@ -126,8 +126,8 @@ async def subscribe_to_plan(
         
         # Create subscription
         subscription = {
-            "id": f"sub_{now.timestamp()}",
-            "user_id": test_user_id,
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
             "plan_id": plan.get("id", plan_type),
             "plan_type": plan_type,
             "billing_period": billing_period,
@@ -147,7 +147,7 @@ async def subscribe_to_plan(
         # Update user's current plan
         users_collection = db["users"]
         await users_collection.update_one(
-            {"id": test_user_id},
+            {"id": user_id},
             {
                 "$set": {
                     "current_plan": plan_type,
@@ -157,7 +157,7 @@ async def subscribe_to_plan(
             }
         )
         
-        logger.info(f"✅ User {test_user_id} subscribed to {plan_type}")
+        logger.info(f"✅ User {user_id} subscribed to {plan_type}")
         
         return {
             "success": True,
