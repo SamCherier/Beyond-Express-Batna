@@ -172,16 +172,15 @@ async def subscribe_to_plan(
         logger.error(f"Error creating subscription: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create subscription")
 
-@router.get("/subscriptions/my-subscription")
-async def get_my_subscription():
+@router.get("/my-subscription")
+async def get_my_subscription(
+    current_user: User = Depends(get_current_user_dependency)
+):
     """
     Get current user's active subscription
-    
-    NOTE: Authentication temporarily disabled for testing
     """
     try:
-        # For now, use test user
-        test_user_id = "test_user_123"
+        user_id = current_user.id
         
         subscriptions_collection = db["subscriptions"]
         subscription = await subscriptions_collection.find_one(
