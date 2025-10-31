@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
 import FeatureLock from '@/components/FeatureLock';
+import PlanLimitBanner from '@/components/PlanLimitBanner';
 import { 
   getDashboardStats, 
   getOrdersByStatus, 
