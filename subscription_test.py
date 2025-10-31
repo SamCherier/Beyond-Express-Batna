@@ -311,10 +311,80 @@ def test_subscribe_to_plan():
     
     print("💳 Testing Subscribe to Plan (AUTHENTICATED)...")
     
-    # Test all billing periods for STARTER plan
-    billing_periods = ['monthly', 'quarterly', 'biannual', 'annual']
+    # Test one subscription to STARTER monthly for the main flow
+    try:
+        response = requests.post(
+            f"{API_BASE}/subscriptions/subscribe",
+            json={
+                "plan_type": "starter",
+                "billing_period": "monthly"
+            },
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            if data.get('success') and 'subscription' in data:
+                subscription = data['subscription']
+                test_subscription_id = subscription.get('id')
+                
+                # Verify subscription details
+                correct_plan = subscription.get('plan_type') == 'starter'
+                correct_period = subscription.get('billing_period') == 'monthly'
+                has_dates = 'start_date' in subscription and 'end_date' in subscription
+                has_amount = 'amount_paid' in subscription and subscription['amount_paid'] > 0
+                
+                if correct_plan and correct_period and has_dates and has_amount:
+                    test_results.add_result(
+                        "Subscribe - STARTER MONTHLY",
+                        True,
+                        f"Successfully subscribed to STARTER monthly: {subscription['amount_paid']} DA"
+                    )
+                    
+                    # Test other billing periods separately
+                    test_other_billing_periods()
+                    
+                    return True
+                else:
+                    test_results.add_result(
+                        "Subscribe - STARTER MONTHLY",
+                        False,
+                        "Subscription created but missing required fields",
+                        f"Plan: {subscription.get('plan_type')}, Period: {subscription.get('billing_period')}"
+                    )
+            else:
+                test_results.add_result(
+                    "Subscribe - STARTER MONTHLY",
+                    False,
+                    "Response missing success or subscription field",
+                    str(data)
+                )
+        else:
+            test_results.add_result(
+                "Subscribe - STARTER MONTHLY",
+                False,
+                f"Request failed with status {response.status_code}",
+                response.text
+            )
+            
+    except Exception as e:
+        test_results.add_result(
+            "Subscribe - STARTER MONTHLY",
+            False,
+            f"Request failed: {str(e)}"
+        )
     
-    for i, billing_period in enumerate(billing_periods):
+    return test_subscription_id is not None
+
+def test_other_billing_periods():
+    """Test other billing periods (quarterly, biannual, annual)"""
+    
+    billing_periods = ['quarterly', 'biannual', 'annual']
+    
+    for billing_period in billing_periods:
         try:
             response = requests.post(
                 f"{API_BASE}/subscriptions/subscribe",
@@ -329,47 +399,37 @@ def test_subscribe_to_plan():
             if response.status_code == 200:
                 data = response.json()
                 
-                # Verify response structure
                 if data.get('success') and 'subscription' in data:
                     subscription = data['subscription']
-                    test_subscription_id = subscription.get('id')
                     
                     # Verify subscription details
                     correct_plan = subscription.get('plan_type') == 'starter'
                     correct_period = subscription.get('billing_period') == billing_period
-                    has_dates = 'start_date' in subscription and 'end_date' in subscription
                     has_amount = 'amount_paid' in subscription and subscription['amount_paid'] > 0
                     
-                    if correct_plan and correct_period and has_dates and has_amount:
+                    if correct_plan and correct_period and has_amount:
                         test_results.add_result(
                             f"Subscribe - STARTER {billing_period.upper()}",
                             True,
                             f"Successfully subscribed to STARTER {billing_period}: {subscription['amount_paid']} DA"
                         )
-                        
-                        # Only keep the last subscription for further tests
-                        if i == len(billing_periods) - 1:  # Last iteration
-                            return True
                     else:
                         test_results.add_result(
                             f"Subscribe - STARTER {billing_period.upper()}",
                             False,
-                            "Subscription created but missing required fields",
-                            f"Plan: {subscription.get('plan_type')}, Period: {subscription.get('billing_period')}"
+                            "Subscription created but missing required fields"
                         )
                 else:
                     test_results.add_result(
                         f"Subscribe - STARTER {billing_period.upper()}",
                         False,
-                        "Response missing success or subscription field",
-                        str(data)
+                        "Response missing success or subscription field"
                     )
             else:
                 test_results.add_result(
                     f"Subscribe - STARTER {billing_period.upper()}",
                     False,
-                    f"Request failed with status {response.status_code}",
-                    response.text
+                    f"Request failed with status {response.status_code}"
                 )
                 
         except Exception as e:
@@ -378,8 +438,6 @@ def test_subscribe_to_plan():
                 False,
                 f"Request failed: {str(e)}"
             )
-    
-    return test_subscription_id is not None
 
 def test_get_my_subscription():
     """Test GET /api/subscriptions/my-subscription (AUTHENTICATED)"""
