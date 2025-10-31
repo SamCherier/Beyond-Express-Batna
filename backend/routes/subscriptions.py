@@ -311,7 +311,7 @@ async def cancel_subscription(
                 "$set": {
                     "status": "cancelled",
                     "cancelled_at": now,
-                    "cancellation_reason": cancellation_reason or "User requested",
+                    "cancellation_reason": request.cancellation_reason or "User requested",
                     "updated_at": now
                 }
             }
