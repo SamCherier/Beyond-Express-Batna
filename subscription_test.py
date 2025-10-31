@@ -348,7 +348,7 @@ def test_subscribe_to_plan():
                         )
                         
                         # Only keep the last subscription for further tests
-                        if billing_period == 'annual':
+                        if i == len(billing_periods) - 1:  # Last iteration
                             return True
                     else:
                         test_results.add_result(
