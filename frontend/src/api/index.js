@@ -73,6 +73,17 @@ export const createAPIKey = (name) => api.post('/api-keys', null, { params: { na
 export const getSupportTickets = () => api.get('/support/tickets');
 export const createSupportTicket = (data) => api.post('/support/tickets', data);
 
+// Subscriptions & Plans
+export const getAllPlans = () => api.get('/subscriptions/plans');
+export const getPlanByType = (planType) => api.get(`/subscriptions/plans/${planType}`);
+export const subscribeToPlan = (planType, billingPeriod = 'monthly') => 
+  api.post('/subscriptions/subscribe', { plan_type: planType, billing_period: billingPeriod });
+export const getMySubscription = () => api.get('/subscriptions/my-subscription');
+export const checkFeatureLimit = (feature) => api.get(`/subscriptions/check-limit/${feature}`);
+export const cancelSubscription = (reason = null) => 
+  api.post('/subscriptions/cancel', { cancellation_reason: reason });
+export const upgradeSubscription = (newPlanType, newBillingPeriod = 'monthly') => 
+  api.post('/subscriptions/upgrade', { new_plan_type: newPlanType, new_billing_period: newBillingPeriod });
 
 // WhatsApp
 export const getWhatsAppConversations = (status = null, skip = 0, limit = 20) => 
