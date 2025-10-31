@@ -194,7 +194,6 @@ async def subscribe_to_plan(
             "updated_at": now
         }
         
-        subscriptions_collection = db["subscriptions"]
         await subscriptions_collection.insert_one(subscription.copy())
         
         # Update user's current plan
