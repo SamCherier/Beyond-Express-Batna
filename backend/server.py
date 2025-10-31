@@ -1044,6 +1044,11 @@ app.include_router(whatsapp_router.router, prefix="/api/whatsapp", tags=["whatsa
 # Include Subscriptions routes
 app.include_router(subscriptions_router.router, prefix="/api/subscriptions", tags=["subscriptions"])
 
+# Include AI Assistant routes
+# Inject the get_current_user dependency
+ai_assistant_router.get_current_user_dependency = get_current_user
+app.include_router(ai_assistant_router.router, prefix="/api/ai", tags=["ai"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
