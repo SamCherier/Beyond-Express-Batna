@@ -271,6 +271,9 @@ const LandingPageModern = () => {
         </div>
       </section>
 
+      {/* Pricing Section - Nos Packs */}
+      <PricingSection />
+
       {/* AI & Technology Section */}
       <section className="py-24 bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
         {/* Animated Background Elements */}
