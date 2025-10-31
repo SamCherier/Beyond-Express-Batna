@@ -35,6 +35,14 @@ const AIAssistant = ({ onClose }) => {
     fetchUsage();
   }, []);
 
+  // Update model when provider changes
+  useEffect(() => {
+    // Set first model of new provider
+    if (models[provider] && models[provider].length > 0) {
+      setModel(models[provider][0]);
+    }
+  }, [provider]);
+
   const fetchUsage = async () => {
     try {
       const response = await getAIUsage();
