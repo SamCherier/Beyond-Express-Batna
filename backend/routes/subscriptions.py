@@ -7,9 +7,9 @@ from datetime import datetime, timezone, timedelta
 import os
 import logging
 from typing import List, Optional
+import uuid
 
 from models import Plan, Subscription, PlanType, BillingPeriod, SubscriptionStatus, User
-# Will import get_current_user from server.py at runtime
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -19,6 +19,12 @@ mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 db_name = os.environ.get('DB_NAME', 'beyond_express_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
+
+# Import auth dependency (will be injected at runtime from server.py)
+# This is a placeholder - the actual dependency will come from server.py
+async def get_current_user_dependency():
+    """Placeholder - will be replaced by actual dependency from server.py"""
+    raise HTTPException(status_code=500, detail="Auth dependency not configured")
 
 @router.get("/plans")
 async def get_all_plans():
