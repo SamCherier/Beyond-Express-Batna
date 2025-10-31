@@ -314,7 +314,7 @@ def test_subscribe_to_plan():
     # Test all billing periods for STARTER plan
     billing_periods = ['monthly', 'quarterly', 'biannual', 'annual']
     
-    for billing_period in billing_periods:
+    for i, billing_period in enumerate(billing_periods):
         try:
             response = requests.post(
                 f"{API_BASE}/subscriptions/subscribe",
