@@ -416,7 +416,15 @@ const AdminDashboardModern = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      ) : (
+        <FeatureLock
+          feature="pro_dashboard"
+          message="Passez au plan PRO pour accéder au Dashboard Analytics avec graphiques détaillés"
+          requiredPlan="pro"
+          variant="card"
+        />
+      )}
     </div>
   );
 };
