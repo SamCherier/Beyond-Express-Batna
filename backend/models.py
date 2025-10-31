@@ -333,6 +333,83 @@ class Conversation(ConversationBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     conversation_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# ===== SUBSCRIPTION & PLAN MODELS =====
+
+class PlanFeatures(BaseModel):
+    """Features and limits for each plan"""
+    # Core limits
+    max_orders_per_month: int
+    max_delivery_companies: int
+    max_connected_pages: int = 1
+    max_stock_items: Optional[int] = None
+    
+    # Included services
+    preparations_included: int = 0
+    pickups_per_week: int = 0
+    
+    # Features (boolean flags)
+    stock_management: bool = False
+    whatsapp_auto_confirmation: bool = False
+    ai_content_generator: bool = False
+    ai_generator_uses: int = 0
+    advanced_analytics: bool = False
+    pro_dashboard: bool = False
+    unlimited_delivery_companies: bool = False
+    package_tracking: bool = False
+    detailed_reports: bool = False
+    dedicated_account_manager: bool = False
+    preferred_partner_rates: bool = False
+    daily_pickup: bool = False
+
+class PlanPricing(BaseModel):
+    """Pricing information for a plan"""
+    monthly_price: float
+    quarterly_price: Optional[float] = None
+    biannual_price: Optional[float] = None
+    annual_price: Optional[float] = None
+    onboarding_fee: Optional[float] = None
+    currency: str = "DZD"
+
+class Plan(BaseModel):
+    """Subscription plan/pack"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    plan_type: PlanType
+    name_fr: str
+    name_ar: str
+    name_en: str
+    description_fr: str
+    description_ar: str
+    description_en: str
+    target_audience_fr: str
+    target_audience_ar: str
+    features: PlanFeatures
+    pricing: PlanPricing
+    is_active: bool = True
+    display_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SubscriptionBase(BaseModel):
+    """User subscription to a plan"""
+    user_id: str
+    plan_id: str
+    plan_type: PlanType
+    billing_period: BillingPeriod
+    status: SubscriptionStatus = SubscriptionStatus.PENDING
+    start_date: datetime
+    end_date: datetime
+    amount_paid: float = 0.0
+    payment_method: Optional[str] = None
+
+class Subscription(SubscriptionBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    auto_renew: bool = False
+    cancelled_at: Optional[datetime] = None
+    cancellation_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SendWhatsAppMessageRequest(BaseModel):
