@@ -21,14 +21,12 @@ db_name = os.environ.get('DB_NAME', 'beyond_express_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-# Import auth dependency (will be injected at runtime from server.py)
-# This is a placeholder - the actual dependency will come from server.py
-get_current_user_dependency = None
-
-def set_auth_dependency(dependency):
-    """Set the auth dependency from server.py"""
-    global get_current_user_dependency
-    get_current_user_dependency = dependency
+# We'll import the auth dependency directly when needed
+# This avoids circular import issues
+def get_current_user_dependency():
+    """Import auth dependency at runtime to avoid circular imports"""
+    from server import get_current_user
+    return get_current_user
 
 @router.get("/plans")
 async def get_all_plans():
