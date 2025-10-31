@@ -279,6 +279,90 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Dashboard Top Wilayas API working correctly. Returns proper array structure with Algerian wilaya names. Test data shows: [{'name': 'Alger', 'value': 2}, {'name': 'Batna', 'value': 1}]. Correctly sorts by count descending and limits to top 5. Role-based filtering functional."
 
+  - task: "Subscription Plans - Get All Plans API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/subscriptions/plans endpoint. PUBLIC endpoint (no auth required). Fetches all active plans from MongoDB, sorts by display_order, returns array with plan details including features and pricing for all billing periods."
+
+  - task: "Subscription Plans - Get Specific Plan API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/subscriptions/plans/{plan_type} endpoint. PUBLIC endpoint. Fetches specific plan by plan_type (free, starter, pro, business). Returns 404 if not found or inactive."
+
+  - task: "Subscribe to Plan API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/subscriptions/subscribe endpoint. AUTHENTICATED. Accepts plan_type and billing_period (monthly, quarterly, biannual, annual). Creates subscription record, updates user's current_plan, plan_expires_at, subscription_id. Mock payment (simulation mode). Calculates end_date based on billing period."
+
+  - task: "Get My Subscription API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/subscriptions/my-subscription endpoint. AUTHENTICATED. Returns current user's active subscription or 'free' if none. Includes subscription details (plan_type, billing_period, start_date, end_date, amount_paid)."
+
+  - task: "Check Feature Limit API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/subscriptions/check-limit/{feature} endpoint. AUTHENTICATED. Checks if user has access to features: orders (max_orders_per_month), delivery_companies, whatsapp, ai_generator, pro_dashboard. Returns has_access, limit, current_usage based on user's current_plan."
+
+  - task: "Cancel Subscription API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/subscriptions/cancel endpoint. AUTHENTICATED. Cancels user's active subscription, sets status to 'cancelled', records cancellation_reason and cancelled_at timestamp. Reverts user to FREE plan. Updates user's current_plan, plan_expires_at (null), subscription_id (null)."
+
+  - task: "Upgrade/Downgrade Subscription API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/subscriptions.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/subscriptions/upgrade endpoint. AUTHENTICATED. Accepts new_plan_type and new_billing_period. Cancels current subscription (if exists), creates new subscription with new plan. Updates user's plan information. Supports upgrade, downgrade, or switching billing periods."
+
   - task: "Orders Page Critical Bug Fix - KeyError updated_at"
     implemented: true
     working: true
