@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import useFeatureAccess from '@/hooks/useFeatureAccess';
+import FeatureLock from '@/components/FeatureLock';
 import BeyondExpressLogo from '@/components/BeyondExpressLogo';
 import { Button } from '@/components/ui/button';
 import {
