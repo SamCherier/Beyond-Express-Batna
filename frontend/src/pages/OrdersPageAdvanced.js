@@ -35,6 +35,7 @@ const DELIVERY_PARTNERS = [
 const OrdersPageAdvanced = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { checkAccess } = useFeatureAccess();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
