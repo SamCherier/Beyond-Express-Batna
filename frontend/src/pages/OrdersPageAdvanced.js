@@ -370,6 +370,9 @@ const OrdersPageAdvanced = () => {
 
   return (
     <div className="space-y-6" data-testid="orders-advanced-page">
+      {/* Plan Limit Banner */}
+      <PlanLimitBanner />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
