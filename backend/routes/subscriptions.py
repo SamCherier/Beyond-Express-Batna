@@ -88,7 +88,7 @@ async def get_plan_by_type(plan_type: str):
 async def subscribe_to_plan(
     plan_type: str,
     billing_period: str = "monthly",
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(lambda: get_current_user_dependency)
 ):
     """
     Subscribe to a plan (SIMULATION - no real payment)
