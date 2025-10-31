@@ -81,21 +81,20 @@ async def get_plan_by_type(plan_type: str):
         logger.error(f"Error fetching plan: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch plan")
 
-@router.post("/subscriptions/subscribe")
+@router.post("/subscribe")
 async def subscribe_to_plan(
     plan_type: str,
-    billing_period: str = "monthly"
+    billing_period: str = "monthly",
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Subscribe to a plan (SIMULATION - no real payment)
     
-    NOTE: Authentication temporarily disabled for testing
-    In production, add: current_user: User = Depends(get_current_user)
+    Simulates the subscription process without actual payment integration.
+    In production, integrate with payment provider (Stripe, CCP, etc.)
     """
     try:
-        # For now, simulate with a test user
-        # In production, get from current_user
-        test_user_id = "test_user_123"
+        user_id = current_user.id
         
         # Fetch the plan
         plans_collection = db["plans"]
