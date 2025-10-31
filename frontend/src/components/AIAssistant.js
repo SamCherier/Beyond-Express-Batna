@@ -1,20 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
+import useFeatureAccess from '@/hooks/useFeatureAccess';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { sendAIMessage } from '@/api';
-import { X, Send, Loader2, Bot } from 'lucide-react';
+import { sendAIMessage, getAIUsage } from '@/api';
+import { X, Send, Loader2, Bot, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AIAssistant = ({ onClose }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { currentPlan } = useFeatureAccess();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('gpt-4o');
   const [provider, setProvider] = useState('openai');
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
+  const [usage, setUsage] = useState({ used: 0, limit: 0, remaining: 0 });
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
