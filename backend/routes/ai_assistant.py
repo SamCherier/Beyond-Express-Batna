@@ -60,8 +60,8 @@ async def send_ai_message(
         # Define limits per plan
         plan_limits = {
             'free': 0,  # No access
-            'starter': 0,  # No AI generator in STARTER plan
-            'pro': 200,  # 200 uses per month
+            'starter': 200,  # 200 uses per month
+            'pro': 1000,  # 1000 uses per month  
             'business': -1  # Unlimited
         }
         
