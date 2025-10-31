@@ -348,7 +348,7 @@ class UpgradeRequest(BaseModel):
 @router.post("/upgrade")
 async def upgrade_subscription(
     request: UpgradeRequest,
-    current_user: User = Depends(lambda: get_current_user_dependency)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Upgrade or downgrade to a different plan
