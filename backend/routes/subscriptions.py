@@ -227,7 +227,7 @@ async def get_my_subscription(
 @router.get("/check-limit/{feature}")
 async def check_feature_limit(
     feature: str,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(lambda: get_current_user_dependency)
 ):
     """
     Check if current user has reached limit for a feature
