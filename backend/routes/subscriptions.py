@@ -25,8 +25,14 @@ db = client[db_name]
 # This avoids circular import issues
 def get_current_user_dependency():
     """Import auth dependency at runtime to avoid circular imports"""
-    from server import get_current_user
-    return get_current_user
+    import sys
+    server_module = sys.modules.get('server')
+    if server_module:
+        return server_module.get_current_user
+    else:
+        # Fallback import
+        from server import get_current_user
+        return get_current_user
 
 @router.get("/plans")
 async def get_all_plans():
