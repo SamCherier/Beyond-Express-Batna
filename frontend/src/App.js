@@ -92,6 +92,7 @@ function AppRoutes() {
         <Route path="products" element={<ProductsPage />} />
         <Route path="customers" element={<CustomersPageAdvanced />} />
         <Route path="whatsapp" element={<WhatsAppDashboard />} />
+        <Route path="subscriptions" element={<SubscriptionsPage />} />
         <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
         <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
         <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
