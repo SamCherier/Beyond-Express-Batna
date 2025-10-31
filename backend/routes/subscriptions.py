@@ -22,9 +22,12 @@ db = client[db_name]
 
 # Import auth dependency (will be injected at runtime from server.py)
 # This is a placeholder - the actual dependency will come from server.py
-async def get_current_user_dependency():
-    """Placeholder - will be replaced by actual dependency from server.py"""
-    raise HTTPException(status_code=500, detail="Auth dependency not configured")
+get_current_user_dependency = None
+
+def set_auth_dependency(dependency):
+    """Set the auth dependency from server.py"""
+    global get_current_user_dependency
+    get_current_user_dependency = dependency
 
 @router.get("/plans")
 async def get_all_plans():
