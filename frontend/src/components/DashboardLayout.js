@@ -181,15 +181,51 @@ const DashboardLayout = () => {
 
       {/* AI Assistant Button */}
       <button
-        onClick={() => setAiOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50"
+        onClick={() => {
+          if (checkAccess('ai_content_generator')) {
+            setAiOpen(true);
+          } else {
+            setShowLockModal(true);
+          }
+        }}
+        className={`fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center transition-all z-50 ${
+          checkAccess('ai_content_generator')
+            ? 'bg-red-500 hover:bg-red-600 hover:scale-110'
+            : 'bg-gray-400 cursor-not-allowed opacity-60'
+        }`}
         data-testid="ai-assistant-button"
+        title={checkAccess('ai_content_generator') 
+          ? 'Ouvrir l\'Assistant IA' 
+          : 'Plan PRO requis pour l\'Assistant IA'
+        }
       >
         <Bot className="w-6 h-6" />
+        {!checkAccess('ai_content_generator') && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">🔒</span>
+          </div>
+        )}
       </button>
 
       {/* AI Assistant Modal */}
-      {aiOpen && <AIAssistant onClose={() => setAiOpen(false)} />}
+      {aiOpen && checkAccess('ai_content_generator') && <AIAssistant onClose={() => setAiOpen(false)} />}
+
+      {/* Feature Lock Modal */}
+      {showLockModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowLockModal(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <FeatureLock
+              feature="ai_content_generator"
+              message={getUpgradeMessage('ai_content_generator')}
+              requiredPlan="pro"
+              variant="card"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
