@@ -16,6 +16,7 @@ import OrdersPageAdvanced from '@/pages/OrdersPageAdvanced';
 import ProductsPage from '@/pages/ProductsPage';
 import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
 import WhatsAppDashboard from '@/pages/WhatsAppDashboard';
+import SubscriptionsPage from '@/pages/SubscriptionsPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
