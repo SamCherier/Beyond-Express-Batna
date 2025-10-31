@@ -10,6 +10,7 @@ from typing import List, Optional
 import uuid
 
 from models import Plan, Subscription, PlanType, BillingPeriod, SubscriptionStatus, User
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
