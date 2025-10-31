@@ -362,6 +362,8 @@ async def upgrade_subscription(
     """
     try:
         user_id = current_user.id
+        new_plan_type = request.new_plan_type
+        new_billing_period = request.new_billing_period
         
         # Validate new plan exists
         plans_collection = db["plans"]
