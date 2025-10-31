@@ -764,8 +764,16 @@ const OrdersPageAdvanced = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleSendWhatsAppConfirmation(order)}
-                              className="hover:bg-green-50 hover:text-green-600 hover:border-green-200"
-                              title="Envoyer confirmation WhatsApp"
+                              disabled={!checkAccess('whatsapp_auto_confirmation')}
+                              className={`${
+                                checkAccess('whatsapp_auto_confirmation')
+                                  ? 'hover:bg-green-50 hover:text-green-600 hover:border-green-200'
+                                  : 'opacity-50 cursor-not-allowed'
+                              }`}
+                              title={checkAccess('whatsapp_auto_confirmation') 
+                                ? "Envoyer confirmation WhatsApp" 
+                                : "Plan STARTER requis pour WhatsApp"
+                              }
                             >
                               <MessageCircle className="w-4 h-4" />
                             </Button>
