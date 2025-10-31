@@ -176,7 +176,12 @@ async def get_ai_usage(
     """
     try:
         user_id = current_user.id
-        current_plan = current_user.current_plan or 'free'
+        # Convert Enum to string if needed
+        current_plan = current_user.current_plan
+        if hasattr(current_plan, 'value'):
+            current_plan = current_plan.value
+        else:
+            current_plan = str(current_plan).lower() if current_plan else 'free'
         
         # Define limits
         plan_limits = {
