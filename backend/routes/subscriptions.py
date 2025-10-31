@@ -23,8 +23,6 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # Auth dependency - copied from server.py to avoid circular imports
-from fastapi import Request, Cookie
-from auth_utils import verify_token
 
 async def get_current_user_dependency(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
     """Auth dependency for subscription routes"""
