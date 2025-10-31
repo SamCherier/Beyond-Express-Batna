@@ -238,112 +238,122 @@ const AdminDashboardModern = () => {
       )}
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Graphique Commandes par Statut */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-red-500" />
-              Commandes par Statut
-            </CardTitle>
-            <CardDescription>Répartition des commandes selon leur état actuel</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={ordersByStatus}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" style={{ fontSize: '12px' }} />
-                <YAxis style={{ fontSize: '12px' }} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {ordersByStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {checkAccess('pro_dashboard') ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Graphique Commandes par Statut */}
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-red-500" />
+                Commandes par Statut
+              </CardTitle>
+              <CardDescription>Répartition des commandes selon leur état actuel</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={ordersByStatus}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" style={{ fontSize: '12px' }} />
+                  <YAxis style={{ fontSize: '12px' }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                    {ordersByStatus.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-        {/* Graphique Évolution Revenus */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              Évolution des Revenus
-            </CardTitle>
-            <CardDescription>Revenus générés sur les 7 derniers jours</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" style={{ fontSize: '12px' }} />
-                <YAxis style={{ fontSize: '12px' }} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                  formatter={(value) => `${value.toLocaleString()} DA`}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenus" 
-                  stroke={COLORS.green} 
-                  strokeWidth={3}
-                  dot={{ fill: COLORS.green, r: 5 }}
-                  activeDot={{ r: 8 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Graphique Évolution Revenus */}
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-500" />
+                Évolution des Revenus
+              </CardTitle>
+              <CardDescription>Revenus générés sur les 7 derniers jours</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" style={{ fontSize: '12px' }} />
+                  <YAxis style={{ fontSize: '12px' }} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                    formatter={(value) => `${value.toLocaleString()} DA`}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenus" 
+                    stroke={COLORS.green} 
+                    strokeWidth={3}
+                    dot={{ fill: COLORS.green, r: 5 }}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <FeatureLock
+          feature="pro_dashboard"
+          message={getUpgradeMessage('pro_dashboard')}
+          requiredPlan="pro"
+          variant="card"
+        />
+      )}
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top 5 Wilayas */}
-        <Card className="border-0 shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-500" />
-              Top 5 Wilayas
-            </CardTitle>
-            <CardDescription>Wilayas avec le plus grand nombre de commandes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={topWilayas} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" style={{ fontSize: '12px' }} />
-                <YAxis dataKey="name" type="category" style={{ fontSize: '12px' }} width={100} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                  {topWilayas.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[index]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {checkAccess('pro_dashboard') ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top 5 Wilayas */}
+          <Card className="border-0 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-blue-500" />
+                Top 5 Wilayas
+              </CardTitle>
+              <CardDescription>Wilayas avec le plus grand nombre de commandes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topWilayas} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis type="number" style={{ fontSize: '12px' }} />
+                  <YAxis dataKey="name" type="category" style={{ fontSize: '12px' }} width={100} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                    {topWilayas.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[index]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
         {/* Statistiques Rapides */}
         <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 to-orange-50">
