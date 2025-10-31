@@ -53,6 +53,12 @@ const AIAssistant = ({ onClose }) => {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
+    // Check if limit reached
+    if (usage.limit !== -1 && usage.remaining <= 0) {
+      toast.error('Limite d\'utilisation atteinte. Passez au plan BUSINESS pour un accès illimité.');
+      return;
+    }
+
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
@@ -62,9 +68,17 @@ const AIAssistant = ({ onClose }) => {
       const response = await sendAIMessage(input, model, provider, sessionId);
       const assistantMessage = { role: 'assistant', content: response.data.response };
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Update usage
+      setUsage({
+        used: response.data.usage_count,
+        limit: response.data.limit,
+        remaining: response.data.remaining
+      });
     } catch (error) {
       console.error('AI error:', error);
-      toast.error('Erreur lors de la communication avec l\'assistant IA');
+      const errorMsg = error.response?.data?.detail || 'Erreur lors de la communication avec l\'assistant IA';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
