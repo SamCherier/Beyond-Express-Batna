@@ -214,23 +214,19 @@ async def get_my_subscription(
         logger.error(f"Error fetching subscription: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch subscription")
 
-@router.get("/subscriptions/check-limit/{feature}")
-async def check_feature_limit(feature: str):
+@router.get("/check-limit/{feature}")
+async def check_feature_limit(
+    feature: str,
+    current_user: User = Depends(get_current_user_dependency)
+):
     """
     Check if current user has reached limit for a feature
     
     Features: orders, delivery_companies, stock_items, whatsapp, ai_generator
     """
     try:
-        # For now, use test user and free plan
-        test_user_id = "test_user_123"
-        current_plan_type = "free"  # Default
-        
-        # Get user's current plan
-        users_collection = db["users"]
-        user = await users_collection.find_one({"id": test_user_id}, {"_id": 0})
-        if user and "current_plan" in user:
-            current_plan_type = user["current_plan"]
+        user_id = current_user.id
+        current_plan_type = current_user.current_plan  # Get from user object
         
         # Get plan details
         plans_collection = db["plans"]
