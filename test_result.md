@@ -492,7 +492,14 @@ metadata:
   orders_page_recovery_confirmed: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Subscription Plans - Get All Plans API"
+    - "Subscription Plans - Get Specific Plan API"
+    - "Subscribe to Plan API"
+    - "Get My Subscription API"
+    - "Check Feature Limit API"
+    - "Cancel Subscription API"
+    - "Upgrade/Downgrade Subscription API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
