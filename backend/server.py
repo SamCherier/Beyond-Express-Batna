@@ -1041,8 +1041,6 @@ app.include_router(api_router)
 app.include_router(whatsapp_router.router, prefix="/api/whatsapp", tags=["whatsapp"])
 
 # Include Subscriptions routes
-# Inject the get_current_user dependency into the subscriptions router
-subscriptions_router.set_auth_dependency(get_current_user)
 app.include_router(subscriptions_router.router, prefix="/api/subscriptions", tags=["subscriptions"])
 
 app.add_middleware(
