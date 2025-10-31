@@ -359,8 +359,8 @@ const AdminDashboardModern = () => {
             </CardContent>
           </Card>
 
-        {/* Statistiques Rapides */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 to-orange-50">
+          {/* Statistiques Rapides */}
+          <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 to-orange-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-red-500" />
