@@ -1,7 +1,7 @@
 """
 Subscription and Plans API Routes
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request, Cookie
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timezone, timedelta
 import os
@@ -11,6 +11,7 @@ import uuid
 
 from models import Plan, Subscription, PlanType, BillingPeriod, SubscriptionStatus, User
 from pydantic import BaseModel
+from auth_utils import verify_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
