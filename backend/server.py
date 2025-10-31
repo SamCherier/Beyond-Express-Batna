@@ -1040,6 +1040,11 @@ app.include_router(api_router)
 # Include WhatsApp routes
 app.include_router(whatsapp_router.router, prefix="/api/whatsapp", tags=["whatsapp"])
 
+# Include Subscriptions routes with auth dependency injection
+from routes.subscriptions import get_current_user_dependency
+subscriptions_router.get_current_user_dependency = lambda: get_current_user
+app.include_router(subscriptions_router.router, prefix="/api/subscriptions", tags=["subscriptions"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
