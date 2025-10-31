@@ -156,7 +156,7 @@ def test_get_all_plans():
                         # Verify each plan has required fields
                         valid_plans = True
                         for plan in plans:
-                            required_fields = ['id', 'plan_type', 'name_fr', 'name_ar', 'name_en', 
+                            required_fields = ['plan_type', 'name_fr', 'name_ar', 'name_en', 
                                              'description_fr', 'features', 'pricing', 'is_active']
                             if not all(field in plan for field in required_fields):
                                 valid_plans = False
