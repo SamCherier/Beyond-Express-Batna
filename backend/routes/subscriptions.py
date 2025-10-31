@@ -282,7 +282,7 @@ class CancelRequest(BaseModel):
 @router.post("/cancel")
 async def cancel_subscription(
     request: CancelRequest = CancelRequest(),
-    current_user: User = Depends(lambda: get_current_user_dependency)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Cancel current user's active subscription
