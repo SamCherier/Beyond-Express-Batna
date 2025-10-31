@@ -17,7 +17,8 @@ import {
   MessageCircle,
   Menu,
   X,
-  Bot
+  Bot,
+  CreditCard
 } from 'lucide-react';
 import AIAssistant from '@/components/AIAssistant';
 
