@@ -145,9 +145,23 @@ async def subscribe_to_plan(
         if not plan:
             raise HTTPException(status_code=404, detail="Plan not found")
         
-        # Calculate dates
+        # Cancel any existing active subscriptions first
+        subscriptions_collection = db["subscriptions"]
         now = datetime.now(timezone.utc)
         
+        await subscriptions_collection.update_many(
+            {"user_id": user_id, "status": "active"},
+            {
+                "$set": {
+                    "status": "cancelled",
+                    "cancelled_at": now,
+                    "cancellation_reason": f"Replaced by new {plan_type} subscription",
+                    "updated_at": now
+                }
+            }
+        )
+        
+        # Calculate dates
         if billing_period == "monthly":
             end_date = now + timedelta(days=30)
             amount = plan["pricing"]["monthly_price"]
