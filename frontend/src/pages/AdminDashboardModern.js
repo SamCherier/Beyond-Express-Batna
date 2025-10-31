@@ -22,6 +22,7 @@ import {
 const AdminDashboardModern = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { checkAccess, getUpgradeMessage, currentPlan } = useFeatureAccess();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
