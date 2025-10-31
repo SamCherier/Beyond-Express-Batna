@@ -111,7 +111,15 @@ const AIAssistant = ({ onClose }) => {
               <h2 className="text-lg font-bold text-white" style={{ fontFamily: 'EB Garamond, serif' }}>
                 {t('aiAssistant')}
               </h2>
-              <p className="text-xs text-red-100">Beyond Express AI</p>
+              <p className="text-xs text-red-100">
+                Beyond Express AI
+                {usage.limit !== -1 && (
+                  <span className="ml-2">
+                    ({usage.used}/{usage.limit} utilisé{usage.used > 1 ? 's' : ''})
+                  </span>
+                )}
+                {usage.limit === -1 && <span className="ml-2">(♾️ Illimité)</span>}
+              </p>
             </div>
           </div>
           <Button
