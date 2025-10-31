@@ -113,21 +113,26 @@ user_problem_statement: |
   - ✅ Bulk Status Update
   - ✅ AI-driven Risk Score using Emergent LLM key
   
-  Current Task: Admin Dashboard Modernization
-  The task is to implement a modern, data-driven Admin Dashboard with real-time analytics:
-  1. ✅ Backend API Endpoints - Created 3 new endpoints for dashboard data:
-     - GET /api/dashboard/orders-by-status (groups orders by status)
-     - GET /api/dashboard/revenue-evolution (last 7 days revenue)
-     - GET /api/dashboard/top-wilayas (top 5 wilayas by order count)
-  2. ✅ Frontend Data Integration - AdminDashboardModern.js updated to:
-     - Fetch real data from new APIs using Promise.all()
-     - Display 4 KPI cards with real statistics
-     - Render Recharts visualizations (Bar chart for status, Line chart for revenue, Horizontal bar for wilayas)
-     - Show real-time quick stats
-  3. ⏳ TESTING REQUIRED - Need to verify all endpoints work correctly with authentication
+  Current Task: Stores Module - Backend API Implementation
+  The task is to implement subscription and plan management APIs:
+  1. ✅ Backend Data Models - Plan, Subscription, PlanFeatures, PlanPricing models created
+  2. ✅ Seed Script - 4 plans seeded (BEYOND FREE, STARTER, PRO, BUSINESS)
+  3. ✅ Backend API Endpoints - Created 7 endpoints for subscription management:
+     - GET /api/subscriptions/plans (fetch all active plans - PUBLIC)
+     - GET /api/subscriptions/plans/{plan_type} (get specific plan - PUBLIC)
+     - POST /api/subscriptions/subscribe (subscribe to a plan - AUTHENTICATED)
+     - GET /api/subscriptions/my-subscription (get user's subscription - AUTHENTICATED)
+     - GET /api/subscriptions/check-limit/{feature} (check feature limits - AUTHENTICATED)
+     - POST /api/subscriptions/cancel (cancel subscription - AUTHENTICATED)
+     - POST /api/subscriptions/upgrade (upgrade/downgrade plan - AUTHENTICATED)
+  4. ⏳ TESTING REQUIRED - Need to verify all endpoints work correctly with authentication
   
-  User reported issue: Recharts graphs were not loading real data (were empty or using Math.random()).
-  Fix implemented: Replaced client-side calculations and Math.random() with server-side MongoDB aggregations.
+  Implementation Details:
+  - Mock payment system (no real payment integration - to be added later)
+  - Support for multiple billing periods (MONTHLY, QUARTERLY, BIANNUAL, ANNUAL)
+  - User model tracks current_plan, plan_expires_at, subscription_id
+  - Subscription router integrated into server.py with /api/subscriptions prefix
+  - Authentication enabled on protected endpoints using get_current_user dependency
 
 backend:
   - task: "AI Chat Endpoint for Risk Score"
