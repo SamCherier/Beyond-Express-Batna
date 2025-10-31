@@ -181,8 +181,8 @@ async def get_ai_usage(
         # Define limits
         plan_limits = {
             'free': 0,
-            'starter': 0,
-            'pro': 200,
+            'starter': 200,
+            'pro': 1000,
             'business': -1
         }
         
