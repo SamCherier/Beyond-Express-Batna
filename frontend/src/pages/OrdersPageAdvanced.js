@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
+import PlanLimitBanner from '@/components/PlanLimitBanner';
 import { 
   getOrders, createOrder, updateOrderStatus, generateBordereau,
   getTrackingEvents, addTrackingEvent, filterOrdersByDeliveryPartner,
