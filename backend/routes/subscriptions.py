@@ -344,11 +344,14 @@ async def cancel_subscription(
         logger.error(f"Error cancelling subscription: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to cancel subscription")
 
+class UpgradeRequest(BaseModel):
+    new_plan_type: str
+    new_billing_period: str = "monthly"
+
 @router.post("/upgrade")
 async def upgrade_subscription(
-    new_plan_type: str,
-    new_billing_period: str = "monthly",
-    current_user: User = Depends(get_current_user_dependency)
+    request: UpgradeRequest,
+    current_user: User = Depends(lambda: get_current_user_dependency)
 ):
     """
     Upgrade or downgrade to a different plan
