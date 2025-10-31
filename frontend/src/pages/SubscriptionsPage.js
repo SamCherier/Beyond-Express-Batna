@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 
 const SubscriptionsPage = () => {
   const { t, i18n } = useTranslation();
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const [plans, setPlans] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
