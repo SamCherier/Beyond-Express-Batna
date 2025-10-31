@@ -28,6 +28,24 @@ class Theme(str, Enum):
     LIGHT = "light"
     DARK = "dark"
 
+class PlanType(str, Enum):
+    FREE = "free"
+    STARTER = "starter"
+    PRO = "pro"
+    BUSINESS = "business"
+
+class SubscriptionStatus(str, Enum):
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    CANCELLED = "cancelled"
+    PENDING = "pending"
+
+class BillingPeriod(str, Enum):
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"  # 3 months
+    BIANNUAL = "biannual"    # 6 months
+    ANNUAL = "annual"        # 12 months
+
 # User Models
 class UserBase(BaseModel):
     email: EmailStr
