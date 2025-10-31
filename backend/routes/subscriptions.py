@@ -103,6 +103,8 @@ async def subscribe_to_plan(
     """
     try:
         user_id = current_user.id
+        plan_type = request.plan_type
+        billing_period = request.billing_period
         
         # Fetch the plan
         plans_collection = db["plans"]
