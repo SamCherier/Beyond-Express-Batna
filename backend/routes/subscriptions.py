@@ -181,7 +181,7 @@ async def subscribe_to_plan(
 
 @router.get("/my-subscription")
 async def get_my_subscription(
-    current_user: User = Depends(lambda: get_current_user_dependency)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Get current user's active subscription
