@@ -26,11 +26,13 @@ import AIAssistant from '@/components/AIAssistant';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
+  const { checkAccess, getUpgradeMessage } = useFeatureAccess();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [aiOpen, setAiOpen] = useState(false);
+  const [showLockModal, setShowLockModal] = useState(false);
 
   const handleLogout = async () => {
     await logout();
