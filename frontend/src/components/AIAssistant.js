@@ -30,6 +30,20 @@ const AIAssistant = ({ onClose }) => {
     scrollToBottom();
   }, [messages]);
 
+  // Fetch AI usage on mount
+  useEffect(() => {
+    fetchUsage();
+  }, []);
+
+  const fetchUsage = async () => {
+    try {
+      const response = await getAIUsage();
+      setUsage(response.data);
+    } catch (error) {
+      console.error('Error fetching AI usage:', error);
+    }
+  };
+
   const models = {
     openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-5'],
     anthropic: ['claude-3-7-sonnet-20250219', 'claude-4-sonnet-20250514'],
