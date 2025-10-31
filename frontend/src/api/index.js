@@ -55,12 +55,6 @@ export const createDeliveryPartner = (data) => api.post('/delivery-partners', da
 // Invoices
 export const getInvoices = () => api.get('/invoices');
 
-// AI Chat
-export const sendAIMessage = (message, model, provider, sessionId) => 
-  api.post('/ai-chat', { message, model, provider, session_id: sessionId });
-export const getChatHistory = (sessionId) => 
-  api.get('/ai-chat/history', { params: { session_id: sessionId } });
-
 // Organization
 export const getOrganization = () => api.get('/organization');
 export const updateOrganization = (data) => api.patch('/organization', data);
