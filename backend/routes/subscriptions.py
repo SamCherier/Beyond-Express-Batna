@@ -268,3 +268,181 @@ async def check_feature_limit(
     except Exception as e:
         logger.error(f"Error checking feature limit: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to check limit")
+
+@router.post("/cancel")
+async def cancel_subscription(
+    cancellation_reason: Optional[str] = None,
+    current_user: User = Depends(get_current_user_dependency)
+):
+    """
+    Cancel current user's active subscription
+    """
+    try:
+        user_id = current_user.id
+        
+        # Find active subscription
+        subscriptions_collection = db["subscriptions"]
+        subscription = await subscriptions_collection.find_one(
+            {"user_id": user_id, "status": "active"},
+            {"_id": 0}
+        )
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="No active subscription found")
+        
+        # Update subscription to cancelled
+        now = datetime.now(timezone.utc)
+        await subscriptions_collection.update_one(
+            {"id": subscription["id"]},
+            {
+                "$set": {
+                    "status": "cancelled",
+                    "cancelled_at": now,
+                    "cancellation_reason": cancellation_reason or "User requested",
+                    "updated_at": now
+                }
+            }
+        )
+        
+        # Revert user to FREE plan
+        users_collection = db["users"]
+        await users_collection.update_one(
+            {"id": user_id},
+            {
+                "$set": {
+                    "current_plan": "free",
+                    "plan_expires_at": None,
+                    "subscription_id": None
+                }
+            }
+        )
+        
+        logger.info(f"✅ User {user_id} cancelled subscription {subscription['id']}")
+        
+        return {
+            "success": True,
+            "message": "Subscription cancelled successfully. Reverted to FREE plan.",
+            "previous_plan": subscription["plan_type"]
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to cancel subscription")
+
+@router.post("/upgrade")
+async def upgrade_subscription(
+    new_plan_type: str,
+    new_billing_period: str = "monthly",
+    current_user: User = Depends(get_current_user_dependency)
+):
+    """
+    Upgrade or downgrade to a different plan
+    
+    This will:
+    1. Cancel the current subscription
+    2. Create a new subscription with the new plan
+    """
+    try:
+        user_id = current_user.id
+        
+        # Validate new plan exists
+        plans_collection = db["plans"]
+        new_plan = await plans_collection.find_one(
+            {"plan_type": new_plan_type, "is_active": True},
+            {"_id": 0}
+        )
+        
+        if not new_plan:
+            raise HTTPException(status_code=404, detail="Plan not found")
+        
+        # Find current active subscription
+        subscriptions_collection = db["subscriptions"]
+        current_subscription = await subscriptions_collection.find_one(
+            {"user_id": user_id, "status": "active"},
+            {"_id": 0}
+        )
+        
+        old_plan_type = current_subscription["plan_type"] if current_subscription else "free"
+        
+        # Cancel old subscription if exists
+        if current_subscription:
+            now = datetime.now(timezone.utc)
+            await subscriptions_collection.update_one(
+                {"id": current_subscription["id"]},
+                {
+                    "$set": {
+                        "status": "cancelled",
+                        "cancelled_at": now,
+                        "cancellation_reason": f"Upgraded to {new_plan_type}",
+                        "updated_at": now
+                    }
+                }
+            )
+        
+        # Create new subscription
+        now = datetime.now(timezone.utc)
+        
+        if new_billing_period == "monthly":
+            end_date = now + timedelta(days=30)
+            amount = new_plan["pricing"]["monthly_price"]
+        elif new_billing_period == "quarterly":
+            end_date = now + timedelta(days=90)
+            amount = new_plan["pricing"].get("quarterly_price", new_plan["pricing"]["monthly_price"] * 3)
+        elif new_billing_period == "biannual":
+            end_date = now + timedelta(days=180)
+            amount = new_plan["pricing"].get("biannual_price", new_plan["pricing"]["monthly_price"] * 6)
+        elif new_billing_period == "annual":
+            end_date = now + timedelta(days=365)
+            amount = new_plan["pricing"].get("annual_price", new_plan["pricing"]["monthly_price"] * 12)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid billing period")
+        
+        new_subscription = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "plan_id": new_plan.get("id", new_plan_type),
+            "plan_type": new_plan_type,
+            "billing_period": new_billing_period,
+            "status": "active",
+            "start_date": now,
+            "end_date": end_date,
+            "amount_paid": amount,
+            "payment_method": "simulation",
+            "auto_renew": False,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        await subscriptions_collection.insert_one(new_subscription.copy())
+        
+        # Update user's plan
+        users_collection = db["users"]
+        await users_collection.update_one(
+            {"id": user_id},
+            {
+                "$set": {
+                    "current_plan": new_plan_type,
+                    "plan_expires_at": end_date,
+                    "subscription_id": new_subscription["id"]
+                }
+            }
+        )
+        
+        logger.info(f"✅ User {user_id} upgraded from {old_plan_type} to {new_plan_type}")
+        
+        return {
+            "success": True,
+            "message": f"Successfully {'upgraded' if old_plan_type == 'free' else 'changed'} to {new_plan['name_fr']}",
+            "old_plan": old_plan_type,
+            "new_plan": new_plan_type,
+            "subscription": new_subscription,
+            "expires_at": end_date.isoformat()
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error upgrading subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to upgrade subscription")
