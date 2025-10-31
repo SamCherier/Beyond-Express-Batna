@@ -281,87 +281,108 @@ backend:
 
   - task: "Subscription Plans - Get All Plans API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/subscriptions/plans endpoint. PUBLIC endpoint (no auth required). Fetches all active plans from MongoDB, sorts by display_order, returns array with plan details including features and pricing for all billing periods."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscriptions/plans working correctly. Returns 4 active plans (FREE, STARTER, PRO, BUSINESS) with all required fields: plan_type, name_fr/ar/en, description_fr, features, pricing, is_active. STARTER plan verified with monthly_price and max_orders_per_month limit. Public endpoint accessible without authentication."
 
   - task: "Subscription Plans - Get Specific Plan API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/subscriptions/plans/{plan_type} endpoint. PUBLIC endpoint. Fetches specific plan by plan_type (free, starter, pro, business). Returns 404 if not found or inactive."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscriptions/plans/{plan_type} working correctly. Successfully retrieved STARTER, PRO, and FREE plans with correct plan_type matching. Returns 404 for invalid plan types as expected. Public endpoint accessible without authentication."
 
   - task: "Subscribe to Plan API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created POST /api/subscriptions/subscribe endpoint. AUTHENTICATED. Accepts plan_type and billing_period (monthly, quarterly, biannual, annual). Creates subscription record, updates user's current_plan, plan_expires_at, subscription_id. Mock payment (simulation mode). Calculates end_date based on billing period."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: POST /api/subscriptions/subscribe working correctly. Successfully tested all billing periods (monthly, quarterly, biannual, annual) for STARTER plan. Creates subscription with correct plan_type, billing_period, start_date, end_date, amount_paid. Cancels existing active subscriptions before creating new ones. Authentication working properly. Mock payment system functional."
 
   - task: "Get My Subscription API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/subscriptions/my-subscription endpoint. AUTHENTICATED. Returns current user's active subscription or 'free' if none. Includes subscription details (plan_type, billing_period, start_date, end_date, amount_paid)."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscriptions/my-subscription working correctly. Returns active subscription with status='active', correct plan_type and billing_period, proper start_date and end_date. When no subscription exists, correctly returns has_subscription=false with current_plan='free'. Authentication working properly."
 
   - task: "Check Feature Limit API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/subscriptions/check-limit/{feature} endpoint. AUTHENTICATED. Checks if user has access to features: orders (max_orders_per_month), delivery_companies, whatsapp, ai_generator, pro_dashboard. Returns has_access, limit, current_usage based on user's current_plan."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: GET /api/subscriptions/check-limit/{feature} working correctly. Tested all features: orders, delivery_companies, whatsapp, ai_generator, pro_dashboard. Returns proper response structure with plan_type, feature, has_access, and limit fields. STARTER plan correctly shows max_orders_per_month=500. Authentication working properly."
 
   - task: "Cancel Subscription API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created POST /api/subscriptions/cancel endpoint. AUTHENTICATED. Cancels user's active subscription, sets status to 'cancelled', records cancellation_reason and cancelled_at timestamp. Reverts user to FREE plan. Updates user's current_plan, plan_expires_at (null), subscription_id (null)."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: POST /api/subscriptions/cancel working correctly. Successfully cancels active subscription, sets status='cancelled', records cancellation_reason and cancelled_at timestamp. User correctly reverted to FREE plan with current_plan='free', plan_expires_at=null, subscription_id=null. Authentication working properly."
 
   - task: "Upgrade/Downgrade Subscription API"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/subscriptions.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created POST /api/subscriptions/upgrade endpoint. AUTHENTICATED. Accepts new_plan_type and new_billing_period. Cancels current subscription (if exists), creates new subscription with new plan. Updates user's plan information. Supports upgrade, downgrade, or switching billing periods."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: POST /api/subscriptions/upgrade working correctly. Successfully upgraded from STARTER to PRO quarterly plan. Cancels old subscription (status='cancelled'), creates new subscription with correct new_plan_type='pro' and new_billing_period='quarterly'. User plan correctly updated to PRO. Authentication working properly. Supports plan changes and billing period modifications."
 
   - task: "Orders Page Critical Bug Fix - KeyError updated_at"
     implemented: true
