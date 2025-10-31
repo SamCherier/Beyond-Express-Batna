@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import useFeatureAccess from '@/hooks/useFeatureAccess';
+import FeatureLock from '@/components/FeatureLock';
 import { 
   getDashboardStats, 
   getOrdersByStatus, 
