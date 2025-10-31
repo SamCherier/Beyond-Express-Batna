@@ -135,6 +135,27 @@ const AIAssistant = ({ onClose }) => {
 
         {/* Model Selector */}
         <div className="p-4 border-b border-gray-200 bg-gray-50">
+          {/* Usage Warning */}
+          {usage.limit !== -1 && usage.remaining <= 10 && usage.remaining > 0 && (
+            <div className="mb-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-orange-800">
+                ⚠️ Plus que {usage.remaining} message{usage.remaining > 1 ? 's' : ''} restant{usage.remaining > 1 ? 's' : ''} ce mois-ci.
+                {currentPlan === 'pro' && ' Passez au plan BUSINESS pour un accès illimité.'}
+              </p>
+            </div>
+          )}
+          
+          {usage.limit !== -1 && usage.remaining === 0 && (
+            <div className="mb-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">
+                ❌ Limite d'utilisation atteinte ({usage.limit} messages/mois).
+                {currentPlan === 'pro' && ' Passez au plan BUSINESS pour un accès illimité.'}
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-3">
             <div className="flex-1">
               <Select value={provider} onValueChange={setProvider}>
