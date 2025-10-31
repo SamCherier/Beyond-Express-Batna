@@ -34,7 +34,7 @@ const PlanLimitBanner = () => {
               <li>• {planLimits.max_delivery_companies} société de livraison uniquement</li>
               <li>• Confirmation WhatsApp automatique désactivée</li>
               <li>• Dashboard Analytics désactivé</li>
-              <li>• Générateur de contenu IA désactivé</li>
+              <li>• Assistant IA désactivé</li>
             </ul>
           </div>
         </div>
