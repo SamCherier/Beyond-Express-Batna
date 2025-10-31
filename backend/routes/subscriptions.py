@@ -84,10 +84,15 @@ async def get_plan_by_type(plan_type: str):
         logger.error(f"Error fetching plan: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch plan")
 
+from pydantic import BaseModel
+
+class SubscribeRequest(BaseModel):
+    plan_type: str
+    billing_period: str = "monthly"
+
 @router.post("/subscribe")
 async def subscribe_to_plan(
-    plan_type: str,
-    billing_period: str = "monthly",
+    request: SubscribeRequest,
     current_user: User = Depends(lambda: get_current_user_dependency)
 ):
     """
