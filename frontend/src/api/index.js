@@ -85,6 +85,11 @@ export const cancelSubscription = (reason = null) =>
 export const upgradeSubscription = (newPlanType, newBillingPeriod = 'monthly') => 
   api.post('/subscriptions/upgrade', { new_plan_type: newPlanType, new_billing_period: newBillingPeriod });
 
+// AI Assistant
+export const sendAIMessage = (message, model = 'gpt-4o', provider = 'openai', sessionId) =>
+  api.post('/ai/message', { message, model, provider, session_id: sessionId });
+export const getAIUsage = () => api.get('/ai/usage');
+
 // WhatsApp
 export const getWhatsAppConversations = (status = null, skip = 0, limit = 20) => 
   api.get('/whatsapp/conversations', { params: { status, skip, limit } });
