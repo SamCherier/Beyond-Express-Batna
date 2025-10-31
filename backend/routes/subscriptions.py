@@ -184,7 +184,7 @@ async def get_my_subscription(
         
         subscriptions_collection = db["subscriptions"]
         subscription = await subscriptions_collection.find_one(
-            {"user_id": test_user_id, "status": "active"},
+            {"user_id": user_id, "status": "active"},
             {"_id": 0}
         )
         
