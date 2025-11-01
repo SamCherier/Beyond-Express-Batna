@@ -46,10 +46,15 @@ const AIAssistant = ({ onClose }) => {
 
   const fetchUsage = async () => {
     try {
+      setUsageLoading(true);
       const response = await getAIUsage();
       setUsage(response.data);
     } catch (error) {
       console.error('Error fetching AI usage:', error);
+      // Set default if error
+      setUsage({ used: 0, limit: 0, remaining: 0, has_access: false });
+    } finally {
+      setUsageLoading(false);
     }
   };
 
