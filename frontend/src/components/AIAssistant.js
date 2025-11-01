@@ -149,6 +149,14 @@ const AIAssistant = ({ onClose }) => {
 
         {/* Model Selector */}
         <div className="p-4 border-b border-gray-200 bg-gray-50">
+          {/* Loading state */}
+          {usageLoading && (
+            <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+              <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+              <p className="text-sm text-blue-800">Chargement des limites d'utilisation...</p>
+            </div>
+          )}
+          
           {/* Usage Warning */}
           {!usageLoading && usage.limit !== -1 && usage.remaining <= 10 && usage.remaining > 0 && (
             <div className="mb-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-start gap-2">
