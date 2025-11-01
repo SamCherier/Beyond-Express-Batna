@@ -8,6 +8,7 @@ import { Toaster } from 'sonner';
 
 // Pages
 import LandingPageModern from '@/pages/LandingPageModern';
+import LandingPageFuturistic from '@/pages/LandingPageFuturistic';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardLayout from '@/components/DashboardLayout';
