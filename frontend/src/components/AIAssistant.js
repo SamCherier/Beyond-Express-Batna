@@ -150,7 +150,7 @@ const AIAssistant = ({ onClose }) => {
         {/* Model Selector */}
         <div className="p-4 border-b border-gray-200 bg-gray-50">
           {/* Usage Warning */}
-          {usage.limit !== -1 && usage.remaining <= 10 && usage.remaining > 0 && (
+          {!usageLoading && usage.limit !== -1 && usage.remaining <= 10 && usage.remaining > 0 && (
             <div className="mb-3 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-orange-800">
