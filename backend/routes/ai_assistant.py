@@ -188,6 +188,9 @@ async def get_ai_usage(
         else:
             current_plan = str(current_plan).lower() if current_plan else 'free'
         
+        # DEBUG LOGS
+        logger.info(f"🔍 AI Usage Check - User: {user_id}, Plan: {current_plan}, Type: {type(current_plan)}")
+        
         # Define limits
         plan_limits = {
             'free': 0,
@@ -197,6 +200,8 @@ async def get_ai_usage(
         }
         
         limit = plan_limits.get(current_plan, 0)
+        logger.info(f"🔍 Limit retrieved: {limit} for plan '{current_plan}'")
+        logger.info(f"🔍 Plan limits dict keys: {list(plan_limits.keys())}")
         
         # Get current month usage
         now = datetime.now(timezone.utc)
