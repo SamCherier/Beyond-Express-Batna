@@ -160,7 +160,7 @@ const AIAssistant = ({ onClose }) => {
             </div>
           )}
           
-          {usage.limit !== -1 && usage.remaining === 0 && (
+          {!usageLoading && usage.limit !== -1 && usage.remaining === 0 && (
             <div className="mb-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-800">
