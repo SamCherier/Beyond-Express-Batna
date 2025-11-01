@@ -19,7 +19,8 @@ const AIAssistant = ({ onClose }) => {
   const [model, setModel] = useState('gpt-4o');
   const [provider, setProvider] = useState('openai');
   const [sessionId] = useState(() => Math.random().toString(36).substring(7));
-  const [usage, setUsage] = useState({ used: 0, limit: 0, remaining: 0 });
+  const [usage, setUsage] = useState({ used: 0, limit: -2, remaining: -2 }); // -2 = loading state
+  const [usageLoading, setUsageLoading] = useState(true);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
