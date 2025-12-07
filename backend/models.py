@@ -28,6 +28,27 @@ class Theme(str, Enum):
     LIGHT = "light"
     DARK = "dark"
 
+class CarrierType(str, Enum):
+    YALIDINE = "yalidine"
+    DHD = "dhd"
+    ZR_EXPRESS = "zr_express"
+    MAYSTRO = "maystro"
+    NORD_OUEST = "nord_ouest"
+    GUEPEX = "guepex"
+    SONIC = "sonic"
+    PROCOLIS = "procolis"
+    SPEEDAF = "speedaf"
+    PICK_UP = "pick_up"
+    ECHO_FREIGHT = "echo_freight"
+    SHL = "shl"
+    COLIPOSTE = "coliposte"
+
+class CarrierStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    ERROR = "error"
+    TESTING = "testing"
+
 class PlanType(str, Enum):
     FREE = "free"
     STARTER = "starter"
