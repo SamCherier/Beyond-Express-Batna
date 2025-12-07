@@ -1050,6 +1050,10 @@ app.include_router(subscriptions_router.router, prefix="/api/subscriptions", tag
 ai_assistant_router.get_current_user_dependency = get_current_user
 app.include_router(ai_assistant_router.router, prefix="/api/ai", tags=["ai"])
 
+# Include Carriers routes
+carriers_router.get_current_user_dependency = get_current_user
+app.include_router(carriers_router.router, prefix="/api/carriers", tags=["carriers"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
