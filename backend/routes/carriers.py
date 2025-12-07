@@ -120,7 +120,7 @@ async def get_available_carriers(
         logger.error(f"Error getting carriers: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get carriers")
 
-@router.get("/carriers/{carrier_type}")
+@router.get("/{carrier_type}")
 async def get_carrier_config(
     carrier_type: str,
     current_user: User = Depends(get_current_user_dependency)
