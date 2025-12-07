@@ -319,7 +319,7 @@ async def test_carrier_connection(
         logger.error(f"Error testing carrier connection: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to test connection")
 
-@router.put("/carriers/{carrier_type}/toggle")
+@router.put("/{carrier_type}/toggle")
 async def toggle_carrier_status(
     carrier_type: str,
     current_user: User = Depends(get_current_user_dependency)
