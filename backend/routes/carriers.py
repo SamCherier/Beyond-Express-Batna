@@ -158,7 +158,7 @@ async def get_carrier_config(
         logger.error(f"Error getting carrier config: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get carrier config")
 
-@router.post("/carriers")
+@router.post("")
 async def create_carrier_config(
     config_data: CarrierConfigCreate,
     current_user: User = Depends(get_current_user_dependency)
