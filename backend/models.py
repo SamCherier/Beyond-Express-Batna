@@ -451,3 +451,54 @@ class AIContext(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
+# ===== CARRIER INTEGRATION MODELS =====
+
+class CarrierCredentials(BaseModel):
+    """Encrypted credentials for a carrier API"""
+    api_key: Optional[str] = None
+    api_token: Optional[str] = None
+    user_id: Optional[str] = None
+    api_secret: Optional[str] = None
+    center_id: Optional[str] = None
+    # Additional fields as needed per carrier
+
+class CarrierConfigBase(BaseModel):
+    """Carrier API configuration for a user"""
+    user_id: str
+    carrier_type: CarrierType
+    carrier_name: str
+    is_active: bool = False
+    credentials: CarrierCredentials
+    test_mode: bool = True  # Sandbox vs Production
+    last_test_status: Optional[CarrierStatus] = None
+    last_test_at: Optional[datetime] = None
+    last_test_message: Optional[str] = None
+
+class CarrierConfig(CarrierConfigBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CarrierConfigCreate(BaseModel):
+    carrier_type: CarrierType
+    credentials: CarrierCredentials
+    test_mode: bool = True
+
+class CarrierConfigUpdate(BaseModel):
+    credentials: Optional[CarrierCredentials] = None
+    is_active: Optional[bool] = None
+    test_mode: Optional[bool] = None
+
+class TestConnectionRequest(BaseModel):
+    carrier_type: CarrierType
+    credentials: CarrierCredentials
+    test_mode: bool = True
+
+class TestConnectionResponse(BaseModel):
+    success: bool
+    status: CarrierStatus
+    message: str
+    response_time_ms: Optional[float] = None
+    api_version: Optional[str] = None
+
