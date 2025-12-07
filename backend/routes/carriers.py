@@ -48,7 +48,7 @@ CARRIER_TEST_ENDPOINTS = {
     # Add more carriers as needed
 }
 
-@router.get("/carriers", response_model=List[dict])
+@router.get("", response_model=List[dict])
 async def get_available_carriers(
     current_user: User = Depends(get_current_user_dependency)
 ):
