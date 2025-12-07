@@ -19,6 +19,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 from routes import whatsapp as whatsapp_router
 from routes import subscriptions as subscriptions_router
 from routes import ai_assistant as ai_assistant_router
+from routes import carriers as carriers_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
