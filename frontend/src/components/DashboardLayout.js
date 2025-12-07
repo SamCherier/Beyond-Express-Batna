@@ -51,7 +51,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/customers', icon: <Users className="w-5 h-5" />, label: t('customers'), roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/subscriptions', icon: <CreditCard className="w-5 h-5" />, label: 'Abonnements', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/whatsapp', icon: <MessageCircle className="w-5 h-5" />, label: 'WhatsApp', roles: ['admin'] },
-    { path: '/dashboard/delivery-partners', icon: <Truck className="w-5 h-5" />, label: t('deliveryPartners'), roles: ['admin'] },
+    { path: '/dashboard/settings/integrations', icon: <Truck className="w-5 h-5" />, label: 'Intégrations', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/invoices', icon: <FileText className="w-5 h-5" />, label: t('invoices'), roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/support', icon: <MessageSquare className="w-5 h-5" />, label: t('support'), roles: ['admin', 'ecommerce', 'delivery'] },
     { path: '/dashboard/settings', icon: <Settings className="w-5 h-5" />, label: t('settings'), roles: ['admin', 'ecommerce', 'delivery'] },
