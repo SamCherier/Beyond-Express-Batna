@@ -360,7 +360,7 @@ async def toggle_carrier_status(
         logger.error(f"Error toggling carrier status: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to toggle carrier status")
 
-@router.delete("/carriers/{carrier_type}")
+@router.delete("/{carrier_type}")
 async def delete_carrier_config(
     carrier_type: str,
     current_user: User = Depends(get_current_user_dependency)
