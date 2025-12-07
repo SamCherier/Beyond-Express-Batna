@@ -79,6 +79,18 @@ export const cancelSubscription = (reason = null) =>
 export const upgradeSubscription = (newPlanType, newBillingPeriod = 'monthly') => 
   api.post('/subscriptions/upgrade', { new_plan_type: newPlanType, new_billing_period: newBillingPeriod });
 
+// Carriers Integration
+export const getCarriers = () => api.get('/carriers/carriers');
+export const getCarrierConfig = (carrierType) => api.get(`/carriers/carriers/${carrierType}`);
+export const createCarrierConfig = (carrierType, credentials, testMode = true) =>
+  api.post('/carriers/carriers', { carrier_type: carrierType, credentials, test_mode: testMode });
+export const testCarrierConnection = (carrierType, credentials, testMode = true) =>
+  api.post('/carriers/test-connection', { carrier_type: carrierType, credentials, test_mode: testMode });
+export const toggleCarrierStatus = (carrierType) =>
+  api.put(`/carriers/carriers/${carrierType}/toggle`);
+export const deleteCarrierConfig = (carrierType) =>
+  api.delete(`/carriers/carriers/${carrierType}`);
+
 // AI Assistant
 export const sendAIMessage = (message, model = 'gpt-4o', provider = 'openai', sessionId) =>
   api.post('/ai/message', { message, model, provider, session_id: sessionId });
