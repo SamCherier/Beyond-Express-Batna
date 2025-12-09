@@ -384,6 +384,24 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: POST /api/subscriptions/upgrade working correctly. Successfully upgraded from STARTER to PRO quarterly plan. Cancels old subscription (status='cancelled'), creates new subscription with correct new_plan_type='pro' and new_billing_period='quarterly'. User plan correctly updated to PRO. Authentication working properly. Supports plan changes and billing period modifications."
 
+  - task: "AI Assistant Usage Tracking API - Legacy Plan Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/ai_assistant.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "❌ CRITICAL BUG: Users with old 'business' plan getting 'Limite 0 messages' because plan doesn't exist in code. Test user testpro@beyond.com should have PRO plan with 1000 messages/month but getting 0 limit."
+      - working: true
+        agent: "main"
+        comment: "✅ BUG FIX IMPLEMENTED: 1) Database migration business→pro, 2) Backend fallback mapping (business→pro, basic→beginner), 3) Updated plan limits (free=0, beginner=0, starter=500, pro=1000), 4) Fixed auth dependency injection in AI routes by copying auth function from server.py, 5) Fixed LlmChat integration for AI message sending."
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL BUG FIXED: Comprehensive testing with testpro@beyond.com confirms complete resolution. 1) Login successful (fixed user role from 'user' to 'ecommerce'), 2) /api/auth/me returns current_plan='pro', 3) /api/ai/usage returns limit=1000 (NOT 0), has_access=true, 4) /api/ai/message successfully sends 'Bonjour' and receives AI response, 5) Usage counter increments correctly (1/1000, remaining=999). Legacy plan migration working perfectly - business users now have PRO access with 1000 messages/month. Auth dependency and LlmChat integration fully functional."
+
   - task: "Orders Page Critical Bug Fix - KeyError updated_at"
     implemented: true
     working: true
