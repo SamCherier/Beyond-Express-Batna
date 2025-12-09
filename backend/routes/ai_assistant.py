@@ -64,10 +64,10 @@ async def send_ai_message(
         
         # Define limits per plan
         plan_limits = {
-            'free': 0,  # No access
-            'starter': 200,  # 200 uses per month
-            'pro': 1000,  # 1000 uses per month  
-            'business': -1  # Unlimited
+            'free': 0,  # No AI access during trial
+            'beginner': 0,  # No AI for beginners
+            'starter': 2,  # 2 AI tools
+            'pro': -1  # Unlimited
         }
         
         limit = plan_limits.get(current_plan, 0)
