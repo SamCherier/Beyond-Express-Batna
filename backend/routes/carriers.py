@@ -53,21 +53,14 @@ CARRIER_TEST_ENDPOINTS = {
 }
 
 @router.get("", response_model=List[dict])
-async def get_available_carriers(
-    current_user: User = Depends(get_current_user)
-):
+async def get_available_carriers():
     """
     Get list of available carriers with configuration status
+    PUBLIC ENDPOINT - No auth required to see available carriers
     """
     try:
-        user_id = current_user.id
-        
-        # Get user's configured carriers
-        configs_collection = db["carrier_configs"]
-        user_configs = await configs_collection.find({"user_id": user_id}).to_list(length=None)
-        
-        # Map of carrier_type to config
-        config_map = {config["carrier_type"]: config for config in user_configs}
+        # For public view, return carriers without user-specific config
+        # If you want user-specific config, add authentication back
         
         # List of all available carriers
         carriers = [
@@ -76,17 +69,17 @@ async def get_available_carriers(
                 "name": "Yalidine",
                 "logo": "/carriers/yalidine.png",
                 "description": "Service de livraison rapide à domicile",
-                "is_configured": "yalidine" in config_map,
-                "is_active": config_map.get("yalidine", {}).get("is_active", False),
+                "is_configured": False,
+                "is_active": False,
                 "required_fields": ["api_key", "api_token"]
             },
             {
                 "carrier_type": "dhd",
-                "name": "DHD",
+                "name": "DHD",  
                 "logo": "/carriers/dhd.png",
                 "description": "Domicile & Home Delivery",
-                "is_configured": "dhd" in config_map,
-                "is_active": config_map.get("dhd", {}).get("is_active", False),
+                "is_configured": False,
+                "is_active": False,
                 "required_fields": ["api_key", "user_id"]
             },
             {
@@ -94,8 +87,8 @@ async def get_available_carriers(
                 "name": "ZR Express",
                 "logo": "/carriers/zr_express.png",
                 "description": "Express delivery service",
-                "is_configured": "zr_express" in config_map,
-                "is_active": config_map.get("zr_express", {}).get("is_active", False),
+                "is_configured": False,
+                "is_active": False,
                 "required_fields": ["api_key", "center_id"]
             },
             {
@@ -103,8 +96,8 @@ async def get_available_carriers(
                 "name": "Maystro Delivery",
                 "logo": "/carriers/maystro.png",
                 "description": "Service de livraison professionnel",
-                "is_configured": "maystro" in config_map,
-                "is_active": config_map.get("maystro", {}).get("is_active", False),
+                "is_configured": False,
+                "is_active": False,
                 "required_fields": ["api_key"]
             },
             {
@@ -112,9 +105,27 @@ async def get_available_carriers(
                 "name": "Guepex",
                 "logo": "/carriers/guepex.png",
                 "description": "Livraison nationale",
-                "is_configured": "guepex" in config_map,
-                "is_active": config_map.get("guepex", {}).get("is_active", False),
+                "is_configured": False,
+                "is_active": False,
                 "required_fields": ["api_key", "api_secret"]
+            },
+            {
+                "carrier_type": "nord_ouest",
+                "name": "Nord et Ouest",
+                "logo": "/carriers/nord_ouest.png",
+                "description": "Livraison régionale",
+                "is_configured": False,
+                "is_active": False,
+                "required_fields": ["api_key"]
+            },
+            {
+                "carrier_type": "pajo",
+                "name": "Pajo",
+                "logo": "/carriers/pajo.png",
+                "description": "Service de livraison moderne",
+                "is_configured": False,
+                "is_active": False,
+                "required_fields": ["api_key", "api_token"]
             },
         ]
         
