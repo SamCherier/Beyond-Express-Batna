@@ -174,9 +174,9 @@ export const useFeatureAccess = () => {
     };
 
     const planNames = {
+      beginner: 'BEGINNER',
       starter: 'STARTER',
-      pro: 'PRO',
-      business: 'BUSINESS'
+      pro: 'PRO'
     };
 
     const featureName = featureNames[feature] || 'cette fonctionnalité';
