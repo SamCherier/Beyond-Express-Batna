@@ -194,10 +194,8 @@ async def call_ai_api(message: str, model: str, provider: str, session_id: str) 
             session_id=session_id
         ).with_model(provider, model)
         
-        messages = [
-            {
-                "role": "system",
-                "content": """Vous êtes l'assistant IA de Beyond Express, une plateforme 3PL logistique en Algérie.
+        # Set system message
+        system_message = """Vous êtes l'assistant IA de Beyond Express, une plateforme 3PL logistique en Algérie.
 Vous aidez les utilisateurs avec:
 - Suivi et gestion des commandes
 - Questions sur les stocks
@@ -206,21 +204,14 @@ Vous aidez les utilisateurs avec:
 - Fonctionnalités de la plateforme
 
 Répondez toujours en français, de manière claire, concise et professionnelle."""
-            },
-            {
-                "role": "user",
-                "content": message
-            }
-        ]
         
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=0.7,
-            max_tokens=500
-        )
+        chat.system_message = system_message
         
-        return response.choices[0].message.content
+        # Send user message
+        user_message = UserMessage(text=message)
+        response = await chat.send_message(user_message)
+        
+        return response
     
     except Exception as e:
         logger.error(f"AI API error: {str(e)}")
