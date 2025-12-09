@@ -54,7 +54,7 @@ CARRIER_TEST_ENDPOINTS = {
 
 @router.get("", response_model=List[dict])
 async def get_available_carriers(
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get list of available carriers with configuration status
@@ -127,7 +127,7 @@ async def get_available_carriers(
 @router.get("/{carrier_type}")
 async def get_carrier_config(
     carrier_type: str,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get configuration for a specific carrier
@@ -165,7 +165,7 @@ async def get_carrier_config(
 @router.post("")
 async def create_carrier_config(
     config_data: CarrierConfigCreate,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Create or update carrier configuration
@@ -238,7 +238,7 @@ async def create_carrier_config(
 @router.post("/test-connection")
 async def test_carrier_connection(
     test_request: TestConnectionRequest,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Test connection to a carrier API
@@ -326,7 +326,7 @@ async def test_carrier_connection(
 @router.put("/{carrier_type}/toggle")
 async def toggle_carrier_status(
     carrier_type: str,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Toggle carrier active status
@@ -367,7 +367,7 @@ async def toggle_carrier_status(
 @router.delete("/{carrier_type}")
 async def delete_carrier_config(
     carrier_type: str,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Delete carrier configuration
