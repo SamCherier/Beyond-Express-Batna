@@ -62,12 +62,21 @@ async def send_ai_message(
         else:
             current_plan = str(current_plan).lower() if current_plan else 'free'
         
-        # Define limits per plan
+        # Fallback for legacy plans (business → pro)
+        plan_migration_map = {
+            'business': 'pro',
+            'basic': 'beginner'
+        }
+        if current_plan in plan_migration_map:
+            logger.info(f"🔄 Migrating legacy plan '{current_plan}' → '{plan_migration_map[current_plan]}'")
+            current_plan = plan_migration_map[current_plan]
+        
+        # Define limits per plan (NEW official plans)
         plan_limits = {
-            'free': 0,  # No AI access during trial
-            'beginner': 0,  # No AI for beginners
-            'starter': 2,  # 2 AI tools
-            'pro': -1  # Unlimited
+            'free': 0,        # No AI access during trial
+            'beginner': 0,    # No AI for beginners
+            'starter': 500,   # BEYOND STARTER: 500 messages/month
+            'pro': 1000       # BEYOND PRO: 1000 messages/month
         }
         
         limit = plan_limits.get(current_plan, 0)
@@ -188,15 +197,24 @@ async def get_ai_usage(
         else:
             current_plan = str(current_plan).lower() if current_plan else 'free'
         
+        # Fallback for legacy plans (business → pro)
+        plan_migration_map = {
+            'business': 'pro',
+            'basic': 'beginner'
+        }
+        if current_plan in plan_migration_map:
+            logger.info(f"🔄 Migrating legacy plan '{current_plan}' → '{plan_migration_map[current_plan]}'")
+            current_plan = plan_migration_map[current_plan]
+        
         # DEBUG LOGS
         logger.info(f"🔍 AI Usage Check - User: {user_id}, Plan: {current_plan}, Type: {type(current_plan)}")
         
-        # Define limits
+        # Define limits based on NEW official plans
         plan_limits = {
-            'free': 0,
-            'starter': 200,
-            'pro': 1000,
-            'business': -1
+            'free': 0,        # No AI access
+            'beginner': 0,    # No AI access
+            'starter': 500,   # BEYOND STARTER: 500 messages/month
+            'pro': 1000       # BEYOND PRO: 1000 messages/month (UNLIMITED = -1 if needed)
         }
         
         limit = plan_limits.get(current_plan, 0)
