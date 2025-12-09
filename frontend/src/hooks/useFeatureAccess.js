@@ -60,7 +60,7 @@ export const useFeatureAccess = () => {
       stock_management: true,
       whatsapp_auto_confirmation: true,
       ai_content_generator: true,
-      ai_generator_uses: 2,  // 2 AI tools only
+      ai_generator_uses: 500,  // BEYOND STARTER: 500 messages/month
       advanced_analytics: false,
       pro_dashboard: false,
       unlimited_delivery_companies: false,
@@ -79,7 +79,7 @@ export const useFeatureAccess = () => {
       stock_management: true,
       whatsapp_auto_confirmation: true,
       ai_content_generator: true,
-      ai_generator_uses: -1,  // Unlimited
+      ai_generator_uses: 1000,  // BEYOND PRO: 1000 messages/month
       advanced_analytics: true,
       pro_dashboard: true,
       unlimited_delivery_companies: true,
@@ -93,7 +93,16 @@ export const useFeatureAccess = () => {
     }
   };
 
-  const currentPlan = user?.current_plan || 'free';
+  // Fallback for legacy plans
+  const planMigrationMap = {
+    'business': 'pro',
+    'basic': 'beginner'
+  };
+
+  let currentPlan = user?.current_plan || 'free';
+  if (planMigrationMap[currentPlan]) {
+    currentPlan = planMigrationMap[currentPlan];
+  }
 
   /**
    * Vérifie si l'utilisateur a accès à une fonctionnalité
