@@ -25,6 +25,12 @@ emergent_api_key = os.environ.get('EMERGENT_LLM_KEY', '')
 # Auth dependency placeholder - will be replaced by server.py
 get_current_user_dependency = None
 
+def get_current_user():
+    """Dynamic dependency that uses the injected function"""
+    if get_current_user_dependency is None:
+        raise HTTPException(status_code=500, detail="Auth dependency not configured")
+    return get_current_user_dependency
+
 class AIMessageRequest(BaseModel):
     message: str
     model: str = "gpt-4o"
