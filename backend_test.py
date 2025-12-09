@@ -866,6 +866,215 @@ def test_dashboard_stats():
         )
         return False
 
+def test_ai_assistant_pro_user_bug_fix():
+    """Test AI Assistant API with PRO user - Bug Fix Verification"""
+    
+    print("🤖 Testing AI Assistant PRO User Bug Fix...")
+    
+    # Test user from review request
+    pro_user_credentials = {
+        "email": "testpro@beyond.com",
+        "password": "Test123!"
+    }
+    
+    # Step 1: Login with PRO user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=pro_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "AI Assistant - PRO User Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        pro_token = login_data.get('access_token')
+        pro_headers = {'Authorization': f'Bearer {pro_token}'}
+        
+        test_results.add_result(
+            "AI Assistant - PRO User Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'PRO User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "AI Assistant - PRO User Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Check /api/auth/me to verify current_plan
+    try:
+        me_response = requests.get(
+            f"{API_BASE}/auth/me",
+            headers=pro_headers,
+            timeout=30
+        )
+        
+        if me_response.status_code == 200:
+            me_data = me_response.json()
+            current_plan = me_data.get('current_plan', 'unknown')
+            
+            if current_plan == 'pro':
+                test_results.add_result(
+                    "AI Assistant - User Plan Verification",
+                    True,
+                    f"✅ User has correct plan: {current_plan}"
+                )
+            else:
+                test_results.add_result(
+                    "AI Assistant - User Plan Verification",
+                    False,
+                    f"Expected plan 'pro', got '{current_plan}'",
+                    f"Full user data: {me_data}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "AI Assistant - User Plan Verification",
+                False,
+                f"/auth/me failed with status {me_response.status_code}",
+                me_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "AI Assistant - User Plan Verification",
+            False,
+            f"/auth/me request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 3: Check /api/ai/usage to verify limit is 1000 (not 0)
+    try:
+        usage_response = requests.get(
+            f"{API_BASE}/ai/usage",
+            headers=pro_headers,
+            timeout=30
+        )
+        
+        if usage_response.status_code == 200:
+            usage_data = usage_response.json()
+            
+            expected_limit = 1000
+            actual_limit = usage_data.get('limit', 0)
+            plan = usage_data.get('plan', 'unknown')
+            has_access = usage_data.get('has_access', False)
+            used = usage_data.get('used', 0)
+            remaining = usage_data.get('remaining', 0)
+            
+            if actual_limit == expected_limit and has_access:
+                test_results.add_result(
+                    "AI Assistant - Usage Limit Check",
+                    True,
+                    f"✅ CRITICAL BUG FIXED: Limit is {actual_limit} (not 0), Plan: {plan}, Used: {used}, Remaining: {remaining}"
+                )
+            else:
+                test_results.add_result(
+                    "AI Assistant - Usage Limit Check",
+                    False,
+                    f"❌ BUG STILL EXISTS: Expected limit {expected_limit}, got {actual_limit}. Has access: {has_access}",
+                    f"Full response: {usage_data}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "AI Assistant - Usage Limit Check",
+                False,
+                f"/ai/usage failed with status {usage_response.status_code}",
+                usage_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "AI Assistant - Usage Limit Check",
+            False,
+            f"/ai/usage request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 4: Test sending AI message
+    try:
+        ai_message_data = {
+            "message": "Bonjour",
+            "model": "gpt-4o",
+            "provider": "openai",
+            "session_id": f"test-pro-{uuid.uuid4()}"
+        }
+        
+        ai_response = requests.post(
+            f"{API_BASE}/ai/message",
+            json=ai_message_data,
+            headers=pro_headers,
+            timeout=60
+        )
+        
+        if ai_response.status_code == 200:
+            ai_data = ai_response.json()
+            
+            if 'response' in ai_data and ai_data['response']:
+                usage_count = ai_data.get('usage_count', 0)
+                limit = ai_data.get('limit', 0)
+                remaining = ai_data.get('remaining', 0)
+                
+                test_results.add_result(
+                    "AI Assistant - Message Send Test",
+                    True,
+                    f"✅ AI message sent successfully. Usage: {usage_count}/{limit}, Remaining: {remaining}"
+                )
+                
+                # Verify usage counter incremented
+                if usage_count > 0:
+                    test_results.add_result(
+                        "AI Assistant - Usage Counter",
+                        True,
+                        f"✅ Usage counter incremented correctly: {usage_count}"
+                    )
+                else:
+                    test_results.add_result(
+                        "AI Assistant - Usage Counter",
+                        False,
+                        "Usage counter did not increment",
+                        f"Expected > 0, got {usage_count}"
+                    )
+                
+                return True
+            else:
+                test_results.add_result(
+                    "AI Assistant - Message Send Test",
+                    False,
+                    "AI response is empty or missing",
+                    str(ai_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "AI Assistant - Message Send Test",
+                False,
+                f"AI message failed with status {ai_response.status_code}",
+                ai_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "AI Assistant - Message Send Test",
+            False,
+            f"AI message request failed: {str(e)}"
+        )
+        return False
+
 def run_all_tests():
     """Run all backend tests"""
     
@@ -877,6 +1086,7 @@ def run_all_tests():
     # Test sequence - CRITICAL TESTS FIRST
     tests = [
         ("Authentication", test_authentication),
+        ("AI Assistant PRO User Bug Fix", test_ai_assistant_pro_user_bug_fix),
         ("Get Orders - CRITICAL BUG FIX", test_get_orders),
         ("Orders Count Verification", test_orders_count_verification),
         ("Order Creation", test_order_creation),
