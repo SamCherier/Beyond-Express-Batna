@@ -46,7 +46,7 @@ class AIMessageResponse(BaseModel):
 @router.post("/message", response_model=AIMessageResponse)
 async def send_ai_message(
     request: AIMessageRequest,
-    current_user: User = Depends(lambda: get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Send message to AI assistant with usage tracking
