@@ -18,7 +18,7 @@ export const useFeatureAccess = () => {
   // Définir les limites par défaut basées sur le plan
   const planLimits = {
     free: {
-      max_orders_per_month: 100,
+      max_orders_per_month: 50,  // Total during 7-day trial
       max_delivery_companies: 1,
       max_connected_pages: 1,
       stock_management: false,
@@ -34,14 +34,33 @@ export const useFeatureAccess = () => {
       preferred_partner_rates: false,
       daily_pickup: false
     },
+    beginner: {
+      max_orders_per_month: 100,
+      max_delivery_companies: 1,
+      max_connected_pages: 1,
+      stock_management: true,
+      whatsapp_auto_confirmation: false,
+      ai_content_generator: false,
+      ai_generator_uses: 0,
+      advanced_analytics: false,
+      pro_dashboard: false,  // Dashboard simplifié
+      unlimited_delivery_companies: false,
+      package_tracking: true,
+      detailed_reports: false,
+      dedicated_account_manager: false,
+      preferred_partner_rates: false,
+      daily_pickup: false,
+      preparations_included: 50,
+      pickups_per_week: 2
+    },
     starter: {
       max_orders_per_month: 500,
       max_delivery_companies: 3,
-      max_connected_pages: 1,
+      max_connected_pages: 2,
       stock_management: true,
       whatsapp_auto_confirmation: true,
       ai_content_generator: true,
-      ai_generator_uses: 200,
+      ai_generator_uses: 2,  // 2 AI tools only
       advanced_analytics: false,
       pro_dashboard: false,
       unlimited_delivery_companies: false,
@@ -50,36 +69,17 @@ export const useFeatureAccess = () => {
       dedicated_account_manager: false,
       preferred_partner_rates: false,
       daily_pickup: false,
-      preparations_included: 100,
-      pickups_per_week: 3
+      preparations_included: 200,
+      pickups_per_week: 4
     },
     pro: {
-      max_orders_per_month: 2000,
-      max_delivery_companies: 5,
-      max_connected_pages: 3,
-      stock_management: true,
-      whatsapp_auto_confirmation: true,
-      ai_content_generator: true,
-      ai_generator_uses: 1000,
-      advanced_analytics: true,
-      pro_dashboard: true,
-      unlimited_delivery_companies: false,
-      package_tracking: true,
-      detailed_reports: true,
-      dedicated_account_manager: false,
-      preferred_partner_rates: true,
-      daily_pickup: false,
-      preparations_included: 500,
-      pickups_per_week: 6
-    },
-    business: {
-      max_orders_per_month: -1, // Illimité
-      max_delivery_companies: -1,
+      max_orders_per_month: -1,  // Unlimited
+      max_delivery_companies: -1,  // Unlimited
       max_connected_pages: -1,
       stock_management: true,
       whatsapp_auto_confirmation: true,
       ai_content_generator: true,
-      ai_generator_uses: -1,
+      ai_generator_uses: -1,  // Unlimited
       advanced_analytics: true,
       pro_dashboard: true,
       unlimited_delivery_companies: true,
