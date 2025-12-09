@@ -22,10 +22,8 @@ db = client[db_name]
 # Get Emergent LLM Key
 emergent_api_key = os.environ.get('EMERGENT_LLM_KEY', '')
 
-# Auth dependency placeholder
-async def get_current_user_dependency():
-    """Placeholder - will be replaced by actual dependency from server.py"""
-    raise HTTPException(status_code=500, detail="Auth dependency not configured")
+# Auth dependency placeholder - will be replaced by server.py
+get_current_user_dependency = None
 
 class AIMessageRequest(BaseModel):
     message: str
