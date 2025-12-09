@@ -144,13 +144,13 @@ export const useFeatureAccess = () => {
   /**
    * Obtient le nom du plan requis pour une fonctionnalité
    * @param {string} feature - Nom de la fonctionnalité
-   * @returns {string} - Nom du plan requis (starter, pro, business)
+   * @returns {string} - Nom du plan requis (beginner, starter, pro)
    */
   const getRequiredPlan = (feature) => {
-    // Vérifier dans l'ordre: starter -> pro -> business
+    // Vérifier dans l'ordre: beginner -> starter -> pro
+    if (planLimits.beginner[feature]) return 'beginner';
     if (planLimits.starter[feature]) return 'starter';
     if (planLimits.pro[feature]) return 'pro';
-    if (planLimits.business[feature]) return 'business';
     return 'pro'; // Par défaut
   };
 
