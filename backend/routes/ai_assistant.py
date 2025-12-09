@@ -188,12 +188,6 @@ async def call_ai_api(message: str, model: str, provider: str, session_id: str) 
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        # Use LlmChat instead of get_universal_client
-        chat = LlmChat(
-            api_key=emergent_api_key,
-            session_id=session_id
-        ).with_model(provider, model)
-        
         # Set system message
         system_message = """Vous êtes l'assistant IA de Beyond Express, une plateforme 3PL logistique en Algérie.
 Vous aidez les utilisateurs avec:
@@ -205,7 +199,12 @@ Vous aidez les utilisateurs avec:
 
 Répondez toujours en français, de manière claire, concise et professionnelle."""
         
-        chat.system_message = system_message
+        # Use LlmChat with system message
+        chat = LlmChat(
+            api_key=emergent_api_key,
+            session_id=session_id,
+            system_message=system_message
+        ).with_model(provider, model)
         
         # Send user message
         user_message = UserMessage(text=message)
