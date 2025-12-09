@@ -9,6 +9,9 @@ import os
 import logging
 
 from models import User
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
