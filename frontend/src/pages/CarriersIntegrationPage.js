@@ -44,10 +44,13 @@ const CarriersIntegrationPage = () => {
     try {
       setLoading(true);
       const response = await getCarriers();
+      console.log('✅ Carriers loaded:', response.data);
       setCarriers(response.data);
     } catch (error) {
-      console.error('Error fetching carriers:', error);
-      toast.error('Erreur lors du chargement des transporteurs');
+      console.error('❌ Error fetching carriers:', error);
+      console.error('Error response:', error.response?.data);
+      const errorMsg = error.response?.data?.detail || 'Erreur lors du chargement des transporteurs';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
