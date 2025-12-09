@@ -26,10 +26,14 @@ db_name = os.environ.get('DB_NAME', 'beyond_express_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-# Auth dependency placeholder
-async def get_current_user_dependency():
-    """Placeholder - will be replaced by actual dependency from server.py"""
-    raise HTTPException(status_code=500, detail="Auth dependency not configured")
+# Auth dependency - will be injected from server.py
+get_current_user_dependency = None
+
+def get_current_user():
+    """Get dependency - will be replaced by server.py"""
+    if get_current_user_dependency is None:
+        raise HTTPException(status_code=500, detail="Auth not configured")
+    return get_current_user_dependency
 
 # Carrier API endpoints (test endpoints)
 CARRIER_TEST_ENDPOINTS = {
