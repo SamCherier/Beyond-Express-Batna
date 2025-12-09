@@ -187,7 +187,7 @@ Répondez toujours en français, de manière claire, concise et professionnelle.
 
 @router.get("/usage")
 async def get_ai_usage(
-    current_user: User = Depends(lambda: get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get current AI usage for the user
