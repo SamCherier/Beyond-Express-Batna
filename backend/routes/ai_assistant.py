@@ -186,9 +186,13 @@ async def call_ai_api(message: str, model: str, provider: str, session_id: str) 
     Supports: OpenAI (GPT-4o, GPT-5), Anthropic (Claude), Gemini
     """
     try:
-        from emergentintegrations import get_universal_client
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        client = get_universal_client(provider=provider, api_key=emergent_api_key)
+        # Use LlmChat instead of get_universal_client
+        chat = LlmChat(
+            api_key=emergent_api_key,
+            session_id=session_id
+        ).with_model(provider, model)
         
         messages = [
             {
