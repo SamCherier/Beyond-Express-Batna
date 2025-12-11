@@ -103,7 +103,7 @@ const FinancialCODPage = () => {
     }
 
     try {
-      await api.post('/api/financial/batch-update-payment', {
+      await api.post('/financial/batch-update-payment', {
         order_ids: selectedOrders,
         new_status: newStatus
       });
