@@ -622,6 +622,18 @@ frontend:
         agent: "testing"
         comment: "❌ ISSUE: Pricing page shows '0 Wilayas configurées' and 'Aucune wilaya trouvée' despite 114 pricing entries in database. API endpoint /api/pricing returns 307 Temporary Redirect. Backend function works correctly (tested directly), but HTTP routing has issues. Fixed frontend API calls (removed double /api prefix) but backend route still not accessible via HTTP."
 
+  - task: "RED Logout Button Nuclear Functionality"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/DashboardLayout.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: RED logout button (🚪 Déconnexion) is visually perfect but functionally broken. VISUAL: ✅ Button visible at bottom of sidebar, ✅ Correct red styling (bg-red-500), ✅ Door emoji (🚪) present. FUNCTIONAL: ❌ onClick handler shows 'function noop$1() {}' instead of nuclear logout code, ❌ Button click does NOT clear localStorage/sessionStorage, ❌ No redirection to /login occurs, ❌ Session remains active after click. DIAGNOSIS: React event handler not properly bound to nuclear logout function. Manual execution of nuclear logout code works perfectly (clears storage, redirects). The issue is with the button's click event binding, not the logout logic itself."
+
   - task: "Tracking Modal Implementation"
     implemented: true
     working: "NA"
