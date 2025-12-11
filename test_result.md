@@ -583,6 +583,18 @@ frontend:
         agent: "main"
         comment: "Risk Score column added to orders table. calculateRiskScore function uses sendAIMessage API with prompt analyzing COD amount, wilaya, and description. Risk levels: Faible/Moyen/Élevé with color coding (green/yellow/red) and alert icon for high risk."
 
+  - task: "Bulk Import Page - Frontend UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/BulkImportPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created BulkImportPage with complete UI: 1) Template download button, 2) Drag & drop file upload zone with file validation (.xlsx, .xls, .csv), 3) Instructions card with step-by-step guide, 4) Results display with 3 summary cards (Total, Importées, Erreurs), 5) Success table showing tracking IDs, COD, shipping, NET amounts, 6) Error list with line numbers and messages. Route configured at /dashboard/orders/import."
+
   - task: "Communes Data File"
     implemented: true
     working: "NA"
