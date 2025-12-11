@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
-import { 
+import api, { 
   getOrders, createOrder, updateOrderStatus, generateBordereau,
   getTrackingEvents, addTrackingEvent, filterOrdersByDeliveryPartner,
   filterOrdersByUser, getEcommerceUsers, sendAIMessage, sendOrderConfirmation
