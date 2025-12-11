@@ -31,6 +31,7 @@ const CarriersIntegrationPage = lazy(() => import('@/pages/CarriersIntegrationPa
 const FinancialCODPage = lazy(() => import('@/pages/FinancialCODPage'));
 const PricingManagementPage = lazy(() => import('@/pages/PricingManagementPage'));
 const BulkImportPage = lazy(() => import('@/pages/BulkImportPage'));
+const DriversManagementPage = lazy(() => import('@/pages/DriversManagementPage'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
