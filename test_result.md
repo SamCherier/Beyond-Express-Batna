@@ -401,15 +401,18 @@ backend:
 
   - task: "Bulk Import Orders - File Upload & Processing"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/bulk_import.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created POST /api/orders/bulk-import endpoint. Supports Excel (.xlsx, .xls) and CSV files. Auto-calculates shipping_cost from pricing table (114 entries available), computes net_to_merchant = cod_amount - shipping_cost, generates tracking_id (BEX-XXXXXX) and pin_code. Returns detailed results with success[], errors[], created, failed counts."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Bulk import processing working perfectly. Fixed API endpoint (moved to /api/bulk/bulk-import). Successfully tested with 3-order CSV file containing valid Algerian wilayas (Alger, Batna, Constantine). Auto-pricing working correctly: Alger=400 DZD shipping cost, proper net calculation (25000-400=24600). Tracking IDs generated in BEX-XXXXXX format. Results display shows Total=3, Imported=3, Errors=0. Error handling tested with invalid wilaya - properly shows error messages. Backend verification confirms orders created in database with correct fields."
 
   - task: "AI Assistant Usage Tracking API - Legacy Plan Bug Fix"
     implemented: true
