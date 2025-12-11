@@ -1122,6 +1122,10 @@ app.include_router(bulk_import_router.router, prefix="/api/bulk", tags=["bulk_im
 from routes import labels as labels_router
 app.include_router(labels_router.router, prefix="/api/orders", tags=["labels"])
 
+# Include Driver API routes
+from routes import driver as driver_router
+app.include_router(driver_router.router, prefix="/api/driver", tags=["driver"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
