@@ -36,7 +36,7 @@ const FinancialCODPage = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/orders');
+      const response = await api.get('/orders');
       setOrders(response.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -48,7 +48,7 @@ const FinancialCODPage = () => {
 
   const fetchSummary = async () => {
     try {
-      const response = await api.get('/api/financial/financial-summary');
+      const response = await api.get('/financial/financial-summary');
       setSummary(response.data);
     } catch (error) {
       console.error('Error fetching summary:', error);
