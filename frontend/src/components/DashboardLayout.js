@@ -21,7 +21,8 @@ import {
   X,
   Bot,
   CreditCard,
-  DollarSign
+  DollarSign,
+  Upload
 } from 'lucide-react';
 import AIAssistant from '@/components/AIAssistant';
 
