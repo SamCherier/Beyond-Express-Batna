@@ -20,7 +20,8 @@ import {
   Menu,
   X,
   Bot,
-  CreditCard
+  CreditCard,
+  DollarSign
 } from 'lucide-react';
 import AIAssistant from '@/components/AIAssistant';
 
