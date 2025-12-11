@@ -543,7 +543,3 @@ class BatchPaymentUpdate(BaseModel):
     new_status: PaymentStatus
     notes: Optional[str] = None
 
-    message: str
-    response_time_ms: Optional[float] = None
-    api_version: Optional[str] = None
-
