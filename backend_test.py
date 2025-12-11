@@ -1508,9 +1508,11 @@ def run_all_tests():
     print(f"API Base: {API_BASE}")
     print(f"{'='*60}")
     
-    # Test sequence - CRITICAL TESTS FIRST
+    # Test sequence - CRITICAL BUG FIXES FIRST
     tests = [
         ("Authentication", test_authentication),
+        ("BUG 1 FIX - Carriers Integration Page", test_carriers_integration_page),
+        ("BUG 2 FIX - Batch Transfer Payment", test_batch_transfer_payment),
         ("AI Assistant PRO User Bug Fix", test_ai_assistant_pro_user_bug_fix),
         ("Get Orders - CRITICAL BUG FIX", test_get_orders),
         ("Orders Count Verification", test_orders_count_verification),
