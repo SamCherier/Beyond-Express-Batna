@@ -570,6 +570,10 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "FINANCIAL PAGES PHASE 2+3 COMPLETE: Created 2 new financial management pages: 1) Finance COD page (/dashboard/finance/cod) with 4 summary cards, filter tabs, orders table, batch actions, 2) Pricing Management page (/dashboard/settings/pricing) with wilayas table, edit modal, search. Both pages integrated into sidebar navigation for admin users. Backend APIs created: /api/financial/* and /api/pricing/* endpoints."
+  - agent: "testing"
+    message: "✅ FINANCE COD PAGE WORKING: Successfully tested Finance COD page - displays 26 orders with real data, filter tabs functional, batch selection working, all UI components operational. Fixed API endpoint calls (removed double /api prefix). ❌ PRICING PAGE ISSUE: Shows '0 Wilayas configurées' despite 114 entries in database. Backend function works but HTTP route returns 307 redirect. Requires main agent to fix pricing API routing issue."
+  - agent: "main"
     message: "All Phase 2 features have been implemented in OrdersPageAdvanced.js. File was cleaned up (removed duplicate code). Features ready for testing: 1) Tracking Modal with timeline, 2) Linked Wilaya/Commune dropdowns, 3) Bulk selection with checkboxes, 4) Bulk bordereau generation, 5) Bulk status update dialog, 6) AI Risk Score using Emergent LLM key. Backend endpoints already exist. Ready for backend and frontend testing."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All backend APIs for Phase 2 Orders Page Advanced Features are working correctly. Tested: 1) Authentication system, 2) Order creation with wilaya/commune, 3) Order retrieval, 4) Tracking events (POST/GET), 5) Bulk status update, 6) Bulk bordereau PDF generation, 7) AI chat for risk score analysis. All endpoints return proper responses and handle Algerian location data correctly. Backend is ready for production use."
