@@ -2453,9 +2453,17 @@ def run_all_tests():
     print(f"API Base: {API_BASE}")
     print(f"{'='*60}")
     
-    # Test sequence - THERMAL LABELS PRINTING SYSTEM FIRST (NEW FEATURE)
+    # Test sequence - DRIVER API TESTS FIRST (NEW FEATURE)
     tests = [
         ("Authentication", test_authentication),
+        ("🚗 DRIVER API - Authentication", test_driver_authentication),
+        ("🔒 DRIVER API - Authorization", test_driver_authorization),
+        ("📋 DRIVER API - Tasks", test_driver_tasks),
+        ("✅ DRIVER API - Update Status DELIVERED", test_driver_update_status_delivered),
+        ("❌ DRIVER API - Update Status FAILED (No Reason)", test_driver_update_status_failed_no_reason),
+        ("❌ DRIVER API - Update Status FAILED (With Reason)", test_driver_update_status_failed_with_reason),
+        ("📊 DRIVER API - Stats", test_driver_stats),
+        ("🔒 DRIVER API - Cross-Driver Access Security", test_cross_driver_access),
         ("🏷️ NEW FEATURE - Thermal Labels Printing System", test_thermal_labels_printing_system),
         ("🚫 NEW FEATURE - Thermal Labels Error Handling", test_thermal_labels_error_handling),
         ("BUG 1 FIX - Carriers Integration Page", test_carriers_integration_page),
