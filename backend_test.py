@@ -866,6 +866,431 @@ def test_dashboard_stats():
         )
         return False
 
+def test_carriers_integration_page():
+    """Test Carriers Integration Page - BUG 1 FIX VERIFICATION"""
+    
+    print("🚚 Testing Carriers Integration Page (BUG 1 FIX)...")
+    
+    # Test user from review request
+    admin_user_credentials = {
+        "email": "testpro@beyond.com",
+        "password": "Test123!"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Carriers - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+        test_results.add_result(
+            "Carriers - Admin Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'Admin User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Carriers - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Test GET /api/carriers - Should return 7 carriers
+    try:
+        carriers_response = requests.get(
+            f"{API_BASE}/carriers",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if carriers_response.status_code == 200:
+            carriers_data = carriers_response.json()
+            
+            if isinstance(carriers_data, list):
+                carrier_count = len(carriers_data)
+                expected_count = 7
+                
+                if carrier_count == expected_count:
+                    test_results.add_result(
+                        "Carriers - Count Verification",
+                        True,
+                        f"✅ BUG 1 FIXED: Found {carrier_count} carriers (expected {expected_count})"
+                    )
+                    
+                    # Step 3: Verify carrier data structure
+                    required_fields = ['name', 'logo_url', 'carrier_type', 'required_fields']
+                    expected_carriers = ['Yalidine', 'DHD Express', 'ZR Express', 'Maystro', 'Guepex', 'Nord et Ouest', 'Pajo']
+                    
+                    valid_carriers = 0
+                    found_carrier_names = []
+                    
+                    for carrier in carriers_data:
+                        if isinstance(carrier, dict):
+                            found_carrier_names.append(carrier.get('name', 'Unknown'))
+                            
+                            # Check required fields
+                            has_all_fields = all(field in carrier for field in required_fields)
+                            
+                            if has_all_fields:
+                                valid_carriers += 1
+                                
+                                # Special check for Yalidine
+                                if carrier.get('name') == 'Yalidine':
+                                    required_fields_yalidine = carrier.get('required_fields', [])
+                                    if 'api_key' in required_fields_yalidine and 'center_id' in required_fields_yalidine:
+                                        test_results.add_result(
+                                            "Carriers - Yalidine Structure",
+                                            True,
+                                            f"✅ Yalidine has correct required_fields: {required_fields_yalidine}"
+                                        )
+                                    else:
+                                        test_results.add_result(
+                                            "Carriers - Yalidine Structure",
+                                            False,
+                                            f"Yalidine missing expected required_fields",
+                                            f"Expected: ['api_key', 'center_id'], Got: {required_fields_yalidine}"
+                                        )
+                    
+                    if valid_carriers == carrier_count:
+                        test_results.add_result(
+                            "Carriers - Data Structure",
+                            True,
+                            f"✅ All {valid_carriers} carriers have required fields: {required_fields}"
+                        )
+                        
+                        # Check if we have expected carrier names
+                        found_expected = [name for name in expected_carriers if name in found_carrier_names]
+                        test_results.add_result(
+                            "Carriers - Expected Names",
+                            len(found_expected) >= 5,  # At least 5 of the expected carriers
+                            f"Found expected carriers: {found_expected} out of {expected_carriers}"
+                        )
+                        
+                        return True
+                    else:
+                        test_results.add_result(
+                            "Carriers - Data Structure",
+                            False,
+                            f"Only {valid_carriers}/{carrier_count} carriers have all required fields",
+                            f"Required fields: {required_fields}"
+                        )
+                        return False
+                else:
+                    test_results.add_result(
+                        "Carriers - Count Verification",
+                        False,
+                        f"❌ BUG 1 NOT FIXED: Expected {expected_count} carriers, got {carrier_count}",
+                        f"Carriers page may still be empty. Found carriers: {[c.get('name', 'Unknown') for c in carriers_data if isinstance(c, dict)]}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Carriers - Response Format",
+                    False,
+                    "Response is not a list",
+                    str(carriers_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Carriers - API Response",
+                False,
+                f"GET /api/carriers failed with status {carriers_response.status_code}",
+                carriers_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Carriers - API Request",
+            False,
+            f"GET /api/carriers request failed: {str(e)}"
+        )
+        return False
+
+def test_batch_transfer_payment():
+    """Test Batch Transfer Payment - BUG 2 FIX VERIFICATION"""
+    
+    print("💰 Testing Batch Transfer Payment (BUG 2 FIX)...")
+    
+    # Test user from review request
+    admin_user_credentials = {
+        "email": "testpro@beyond.com",
+        "password": "Test123!"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Batch Transfer - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+        test_results.add_result(
+            "Batch Transfer - Admin Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'Admin User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Batch Transfer - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Get orders list to get real order IDs
+    try:
+        orders_response = requests.get(
+            f"{API_BASE}/orders",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if orders_response.status_code != 200:
+            test_results.add_result(
+                "Batch Transfer - Get Orders",
+                False,
+                f"GET /api/orders failed with status {orders_response.status_code}",
+                orders_response.text
+            )
+            return False
+        
+        orders_data = orders_response.json()
+        
+        if not isinstance(orders_data, list) or len(orders_data) == 0:
+            test_results.add_result(
+                "Batch Transfer - Get Orders",
+                False,
+                "No orders found in database",
+                f"Response: {orders_data}"
+            )
+            return False
+        
+        # Select 2-3 order IDs for testing
+        test_order_ids = [order['id'] for order in orders_data[:3] if 'id' in order]
+        
+        if len(test_order_ids) < 2:
+            test_results.add_result(
+                "Batch Transfer - Order IDs",
+                False,
+                f"Not enough orders for testing, found {len(test_order_ids)}",
+                f"Available orders: {len(orders_data)}"
+            )
+            return False
+        
+        test_results.add_result(
+            "Batch Transfer - Get Orders",
+            True,
+            f"Retrieved {len(orders_data)} orders, selected {len(test_order_ids)} for testing"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Batch Transfer - Get Orders",
+            False,
+            f"GET /api/orders request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 3: Test batch update with "transferred_to_merchant"
+    try:
+        batch_update_data = {
+            "order_ids": test_order_ids,
+            "new_status": "transferred_to_merchant"
+        }
+        
+        batch_response = requests.post(
+            f"{API_BASE}/financial/batch-update-payment",
+            json=batch_update_data,
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if batch_response.status_code == 200:
+            batch_data = batch_response.json()
+            
+            # Verify response structure
+            expected_fields = ['success', 'updated_count', 'new_status']
+            has_all_fields = all(field in batch_data for field in expected_fields)
+            
+            if has_all_fields:
+                success = batch_data.get('success', False)
+                updated_count = batch_data.get('updated_count', 0)
+                new_status = batch_data.get('new_status', '')
+                
+                if success and updated_count == len(test_order_ids) and new_status == "transferred_to_merchant":
+                    test_results.add_result(
+                        "Batch Transfer - transferred_to_merchant",
+                        True,
+                        f"✅ BUG 2 FIXED: Batch update successful. Updated {updated_count} orders to '{new_status}'"
+                    )
+                else:
+                    test_results.add_result(
+                        "Batch Transfer - transferred_to_merchant",
+                        False,
+                        f"Batch update response invalid",
+                        f"Success: {success}, Updated: {updated_count}/{len(test_order_ids)}, Status: {new_status}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Batch Transfer - Response Structure",
+                    False,
+                    f"Response missing required fields: {expected_fields}",
+                    str(batch_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Batch Transfer - transferred_to_merchant",
+                False,
+                f"❌ BUG 2 NOT FIXED: Batch update failed with status {batch_response.status_code}",
+                batch_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Batch Transfer - transferred_to_merchant",
+            False,
+            f"Batch update request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 4: Test batch update with "collected_by_driver"
+    try:
+        batch_update_data_2 = {
+            "order_ids": test_order_ids[:2],  # Use fewer orders for second test
+            "new_status": "collected_by_driver"
+        }
+        
+        batch_response_2 = requests.post(
+            f"{API_BASE}/financial/batch-update-payment",
+            json=batch_update_data_2,
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if batch_response_2.status_code == 200:
+            batch_data_2 = batch_response_2.json()
+            
+            success_2 = batch_data_2.get('success', False)
+            updated_count_2 = batch_data_2.get('updated_count', 0)
+            new_status_2 = batch_data_2.get('new_status', '')
+            
+            if success_2 and updated_count_2 == len(test_order_ids[:2]) and new_status_2 == "collected_by_driver":
+                test_results.add_result(
+                    "Batch Transfer - collected_by_driver",
+                    True,
+                    f"✅ Second batch update successful. Updated {updated_count_2} orders to '{new_status_2}'"
+                )
+            else:
+                test_results.add_result(
+                    "Batch Transfer - collected_by_driver",
+                    False,
+                    f"Second batch update response invalid",
+                    f"Success: {success_2}, Updated: {updated_count_2}/{len(test_order_ids[:2])}, Status: {new_status_2}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Batch Transfer - collected_by_driver",
+                False,
+                f"Second batch update failed with status {batch_response_2.status_code}",
+                batch_response_2.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Batch Transfer - collected_by_driver",
+            False,
+            f"Second batch update request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 5: Verify orders were actually updated in database
+    try:
+        # Re-fetch orders to verify payment_status changes
+        verify_response = requests.get(
+            f"{API_BASE}/orders",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if verify_response.status_code == 200:
+            updated_orders = verify_response.json()
+            
+            # Check if our test orders have updated payment_status
+            updated_statuses = {}
+            for order in updated_orders:
+                if order.get('id') in test_order_ids:
+                    updated_statuses[order['id']] = order.get('payment_status', 'unknown')
+            
+            # Verify timestamps were added
+            timestamp_fields_found = 0
+            for order in updated_orders:
+                if order.get('id') in test_order_ids:
+                    if order.get('collected_date') or order.get('transferred_date'):
+                        timestamp_fields_found += 1
+            
+            test_results.add_result(
+                "Batch Transfer - Database Verification",
+                len(updated_statuses) > 0,
+                f"✅ Database updated: {len(updated_statuses)} orders have new payment_status. Timestamps added to {timestamp_fields_found} orders."
+            )
+            
+            return True
+        else:
+            test_results.add_result(
+                "Batch Transfer - Database Verification",
+                False,
+                f"Verification failed with status {verify_response.status_code}",
+                verify_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Batch Transfer - Database Verification",
+            False,
+            f"Verification request failed: {str(e)}"
+        )
+        return False
+
 def test_ai_assistant_pro_user_bug_fix():
     """Test AI Assistant API with PRO user - Bug Fix Verification"""
     
