@@ -184,6 +184,14 @@ class Order(OrderBase):
     sender: AddressInfo
     qr_code: Optional[str] = None
     pin_code: str = ""  # New field for unique PIN
+    
+    # Financial fields for COD Reconciliation
+    shipping_cost: float = 0.0  # Frais de livraison (auto-filled from PricingTable)
+    net_to_merchant: float = 0.0  # Net à payer au vendeur (cod_amount - shipping_cost)
+    payment_status: PaymentStatus = PaymentStatus.UNPAID  # Statut financier
+    collected_date: Optional[datetime] = None  # Date d'encaissement
+    transferred_date: Optional[datetime] = None  # Date de virement au marchand
+    
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
