@@ -254,9 +254,9 @@ async def print_shipping_labels(
         # Create PDF
         buffer = BytesIO()
         
-        # Thermal label size: 10x15cm (100x150mm)
-        label_width = 100 * mm_unit
-        label_height = 150 * mm_unit
+        # A6 label size: 105mm x 148mm (standard thermal size)
+        label_width = 105 * mm_unit
+        label_height = 148 * mm_unit
         
         c = canvas.Canvas(buffer, pagesize=(label_width, label_height))
         
