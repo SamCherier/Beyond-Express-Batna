@@ -420,6 +420,42 @@ backend:
         agent: "testing"
         comment: "✅ CRITICAL BUG FIX VERIFIED: Orders page recovery successful! GET /api/orders returns 200 OK with 21 orders, all have updated_at field, no KeyError occurs, admin authentication working, no 500 errors during testing, complete data structure verified. Multiple consistency tests passed (3/3). The KeyError: 'updated_at' bug has been completely resolved. Orders page should now load without errors."
 
+  - task: "Carriers Integration Page - Empty Page Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/carriers.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "❌ CRITICAL BUG 1: Page Intégrations vide - carriers page showing empty despite seed_carriers.py execution. Expected 7 transporteurs (Yalidine, DHD Express, ZR Express, Maystro, Guepex, Nord et Ouest, Pajo) with proper data structure."
+      - working: true
+        agent: "main"
+        comment: "✅ BUG 1 FIXED: Executed seed_carriers.py to insert 7 carriers into carrier_definitions collection. Updated carriers.py endpoint to return proper data structure with logo_url field and correct required_fields for each carrier."
+      - working: true
+        agent: "testing"
+        comment: "✅ BUG 1 COMPLETELY FIXED: GET /api/carriers returns exactly 7 carriers with all required fields (name, logo_url, carrier_type, required_fields). Yalidine verified with correct required_fields: ['api_key', 'center_id']. All expected carrier names found: Yalidine, DHD Express, ZR Express, Maystro, Guepex, Nord et Ouest, Pajo. Integration page now fully functional."
+
+  - task: "Batch Transfer Payment - String PaymentStatus Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/financial.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "❌ CRITICAL BUG 2: Batch Transfer échoue - POST /api/financial/batch-update-payment failing when trying to update payment status for multiple orders. Expected to accept string PaymentStatus values like 'transferred_to_merchant' and 'collected_by_driver'."
+      - working: true
+        agent: "main"
+        comment: "✅ BUG 2 FIXED: Modified /app/backend/routes/financial.py to accept string PaymentStatus with automatic Enum→string conversion in batch-update-payment endpoint. Fixed auth dependency injection and BatchPaymentUpdate model validation."
+      - working: true
+        agent: "testing"
+        comment: "✅ BUG 2 COMPLETELY FIXED: POST /api/financial/batch-update-payment working perfectly for both 'transferred_to_merchant' and 'collected_by_driver' statuses. Batch updates successful with proper response structure (success=true, updated_count matches, new_status correct). Database verification confirms payment_status changes and timestamp additions (collected_date, transferred_date). Batch transfer functionality fully operational."
+
 frontend:
   - task: "Finance COD Page Implementation"
     implemented: true
