@@ -94,16 +94,19 @@ async def batch_update_payment_status(
         if not batch_update.order_ids:
             raise HTTPException(status_code=400, detail="No order IDs provided")
         
+        # Convert PaymentStatus enum to string value
+        new_status_value = batch_update.new_status.value if isinstance(batch_update.new_status, PaymentStatus) else batch_update.new_status
+        
         # Prepare update
         update_data = {
-            "payment_status": batch_update.new_status.value,
+            "payment_status": new_status_value,
             "updated_at": datetime.now(timezone.utc)
         }
         
         # Add timestamp based on status
-        if batch_update.new_status == PaymentStatus.COLLECTED_BY_DRIVER:
+        if new_status_value == "collected_by_driver":
             update_data["collected_date"] = datetime.now(timezone.utc)
-        elif batch_update.new_status == PaymentStatus.TRANSFERRED_TO_MERCHANT:
+        elif new_status_value == "transferred_to_merchant":
             update_data["transferred_date"] = datetime.now(timezone.utc)
         
         # Batch update
@@ -112,13 +115,13 @@ async def batch_update_payment_status(
             {"$set": update_data}
         )
         
-        logger.info(f"✅ Batch payment status update: {result.modified_count} orders updated to {batch_update.new_status.value}")
+        logger.info(f"✅ Batch payment status update: {result.modified_count} orders updated to {new_status_value}")
         
         return {
             "success": True,
             "updated_count": result.modified_count,
-            "new_status": batch_update.new_status.value,
-            "message": f"{result.modified_count} orders updated to {batch_update.new_status.value}"
+            "new_status": new_status_value,
+            "message": f"{result.modified_count} orders updated to {new_status_value}"
         }
     
     except HTTPException:
