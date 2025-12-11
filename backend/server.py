@@ -1086,10 +1086,12 @@ app.include_router(carriers_router.router, prefix="/api/carriers", tags=["carrie
 
 # Include Financial Management routes (COD Reconciliation)
 from routes import financial as financial_router
+financial_router.get_current_user_dependency = get_current_user
 app.include_router(financial_router.router, prefix="/api/financial", tags=["financial"])
 
 # Include Pricing Table routes
 from routes import pricing as pricing_router
+pricing_router.get_current_user_dependency = get_current_user
 app.include_router(pricing_router.router, prefix="/api/pricing", tags=["pricing"])
 
 app.add_middleware(
