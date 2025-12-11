@@ -591,15 +591,18 @@ frontend:
 
   - task: "Bulk Import Page - Frontend UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/BulkImportPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created BulkImportPage with complete UI: 1) Template download button, 2) Drag & drop file upload zone with file validation (.xlsx, .xls, .csv), 3) Instructions card with step-by-step guide, 4) Results display with 3 summary cards (Total, Importées, Erreurs), 5) Success table showing tracking IDs, COD, shipping, NET amounts, 6) Error list with line numbers and messages. Route configured at /dashboard/orders/import."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Frontend UI working perfectly. All page elements present and functional: page title, download button, instructions card, drag & drop upload zone. File upload working via JavaScript file selection. Import button functional with proper loading states. Results display working: 3 summary cards show correct numbers (Total=3, Imported=3, Errors=0), success table displays tracking IDs, client names, COD amounts, shipping costs, and NET calculations. Error handling UI working - shows error section with proper error messages for invalid wilayas. Navigation and authentication working correctly."
 
   - task: "Communes Data File"
     implemented: true
