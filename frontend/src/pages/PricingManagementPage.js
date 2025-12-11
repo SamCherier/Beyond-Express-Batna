@@ -31,7 +31,7 @@ const PricingManagementPage = () => {
   const fetchPricing = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/pricing');
+      const response = await api.get('/pricing');
       
       // Group by wilaya
       const grouped = {};
