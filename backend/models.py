@@ -67,6 +67,18 @@ class BillingPeriod(str, Enum):
     BIANNUAL = "biannual"    # 6 months
     ANNUAL = "annual"        # 12 months
 
+class PaymentStatus(str, Enum):
+    """Financial status for COD reconciliation"""
+    UNPAID = "unpaid"  # Order created, payment not collected
+    COLLECTED_BY_DRIVER = "collected_by_driver"  # Driver collected cash from customer
+    TRANSFERRED_TO_MERCHANT = "transferred_to_merchant"  # Money transferred to merchant
+    RETURNED = "returned"  # Order returned, no payment
+
+class DeliveryType(str, Enum):
+    """Type de livraison pour pricing"""
+    HOME = "home"  # Livraison à domicile
+    DESK = "desk"  # Livraison en bureau (stop desk)
+
 # User Models
 class UserBase(BaseModel):
     email: EmailStr
