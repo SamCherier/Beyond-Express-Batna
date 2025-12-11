@@ -34,7 +34,7 @@ async def update_payment_status(
     order_id: str,
     new_status: PaymentStatus,
     notes: str = None,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Update payment status for a single order (Admin only)
@@ -85,7 +85,7 @@ async def update_payment_status(
 @router.post("/batch-update-payment")
 async def batch_update_payment_status(
     batch_update: BatchPaymentUpdate,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Batch update payment status for multiple orders (CRITICAL for weekly transfers)
@@ -137,7 +137,7 @@ async def batch_update_payment_status(
 
 @router.get("/financial-summary")
 async def get_financial_summary(
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Financial summary dashboard (Admin only)
@@ -203,7 +203,7 @@ async def get_financial_summary(
 async def get_reconciliation_list(
     payment_status: str = None,
     limit: int = 100,
-    current_user: User = Depends(get_current_user_dependency)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get list of orders by payment status for reconciliation
