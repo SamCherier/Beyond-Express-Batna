@@ -1085,12 +1085,17 @@ const OrdersPageAdvanced = () => {
                 className="w-full p-2 border rounded-md"
               >
                 <option value="">-- Choisir un chauffeur --</option>
-                {drivers.map(driver => (
+                {(drivers || []).map(driver => (
                   <option key={driver.id} value={driver.id}>
                     {driver.name} ({driver.email})
                   </option>
                 ))}
               </select>
+              {drivers.length === 0 && (
+                <p className="text-sm text-amber-600 mt-2">
+                  ⚠️ Aucun chauffeur disponible. Créez d'abord un compte chauffeur.
+                </p>
+              )}
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
