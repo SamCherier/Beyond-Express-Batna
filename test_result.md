@@ -386,15 +386,18 @@ backend:
 
   - task: "Bulk Import Orders - Template Download"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/routes/bulk_import.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/orders/template endpoint. Generates Excel template with styled headers (red background, white font), example row, and proper column widths. Returns downloadable .xlsx file with columns: Nom Client, Téléphone, Wilaya, Commune, Adresse, Produit, Prix COD, Remarque."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Template download working perfectly. Fixed API endpoint routing issue (moved from /api/orders/template to /api/bulk/template to avoid conflicts). Template downloads successfully as 'template_import_commandes.xlsx' with proper Excel format, styled headers (red background, white font), example data row, and correct column structure. File size and format verified."
 
   - task: "Bulk Import Orders - File Upload & Processing"
     implemented: true
