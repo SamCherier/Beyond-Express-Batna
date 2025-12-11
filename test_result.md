@@ -660,8 +660,8 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.5"
-  test_sequence: 5
+  version: "1.6"
+  test_sequence: 6
   run_ui: false
   backend_tested: true
   backend_test_date: "2025-01-27"
@@ -669,6 +669,9 @@ metadata:
   orders_page_recovery_confirmed: true
   carriers_integration_bug_fixed: true
   batch_transfer_bug_fixed: true
+  thermal_labels_backend_tested: true
+  thermal_labels_test_date: "2025-01-27"
+  new_feature_success_rate: "100%"
   bug_fix_success_rate: "100%"
 
 test_plan:
