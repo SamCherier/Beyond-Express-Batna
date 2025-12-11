@@ -636,6 +636,16 @@ const OrdersPageAdvanced = () => {
               <FileDown className="w-4 h-4 mr-2" />
               Générer Bordereau ({selectedOrders.length})
             </Button>
+            <Button
+              onClick={handlePrintLabels}
+              variant="default"
+              className="bg-red-600 hover:bg-red-700"
+              disabled={selectedOrders.length === 0}
+              data-testid="print-labels-button"
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Imprimer Étiquettes ({selectedOrders.length})
+            </Button>
             <Dialog open={bulkStatusDialogOpen} onOpenChange={setBulkStatusDialogOpen}>
               <DialogTrigger asChild>
                 <Button
