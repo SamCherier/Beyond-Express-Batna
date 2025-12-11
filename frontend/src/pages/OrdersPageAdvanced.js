@@ -59,6 +59,9 @@ const OrdersPageAdvanced = () => {
     location: '',
     notes: ''
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
 
   const [formData, setFormData] = useState({
     recipient_name: '',
@@ -94,15 +97,20 @@ const OrdersPageAdvanced = () => {
     }
   }, [formData.recipient_wilaya]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1) => {
     try {
-      const response = await getOrders();
-      // Calculate risk score for each order using AI
-      const ordersWithRisk = await Promise.all(response.data.map(async (order) => {
-        const riskScore = await calculateRiskScore(order);
-        return { ...order, risk_score: riskScore };
-      }));
-      setOrders(ordersWithRisk);
+      setLoading(true);
+      const response = await api.get(`/orders?page=${page}&limit=20`);
+      
+      // Response now has: {orders: [], total: int, page: int, limit: int, pages: int}
+      const { orders: fetchedOrders, total, pages } = response.data;
+      
+      // No longer calculate risk score for all orders (too slow)
+      // Risk score can be calculated on-demand when viewing order details
+      setOrders(fetchedOrders);
+      setTotalOrders(total);
+      setTotalPages(pages);
+      setCurrentPage(page);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Erreur lors du chargement des commandes');
