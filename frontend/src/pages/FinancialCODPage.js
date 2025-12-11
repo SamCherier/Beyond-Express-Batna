@@ -156,10 +156,11 @@ const FinancialCODPage = () => {
     );
   };
 
-  // Tab counts
+  // Tab counts (DEFENSIVE)
   const getTabCount = (status) => {
-    if (status === 'all') return orders.length;
-    return orders.filter(o => o.payment_status === status).length;
+    const safeOrders = Array.isArray(orders) ? orders : [];
+    if (status === 'all') return safeOrders.length;
+    return safeOrders.filter(o => o.payment_status === status).length;
   };
 
   if (loading && orders.length === 0) {
