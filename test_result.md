@@ -750,8 +750,8 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.6"
-  test_sequence: 6
+  version: "1.7"
+  test_sequence: 7
   run_ui: false
   backend_tested: true
   backend_test_date: "2025-01-27"
@@ -761,6 +761,9 @@ metadata:
   batch_transfer_bug_fixed: true
   thermal_labels_backend_tested: true
   thermal_labels_test_date: "2025-01-27"
+  driver_api_backend_tested: true
+  driver_api_test_date: "2025-01-27"
+  driver_api_success_rate: "100%"
   new_feature_success_rate: "100%"
   bug_fix_success_rate: "100%"
 
