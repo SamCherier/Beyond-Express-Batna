@@ -637,11 +637,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Carriers Integration Page - Empty Page Bug Fix"
-    - "Batch Transfer Payment - String PaymentStatus Bug Fix"
+    - "Bulk Import Orders - Template Download"
+    - "Bulk Import Orders - File Upload & Processing"
+    - "Bulk Import Page - Frontend UI"
   stuck_tasks: []
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
