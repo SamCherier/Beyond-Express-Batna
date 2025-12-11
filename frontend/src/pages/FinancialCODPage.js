@@ -365,6 +365,47 @@ const FinancialCODPage = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {!loading && !error && totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t">
+            <div className="text-sm text-gray-600">
+              Page {currentPage} sur {totalPages} ({totalOrders} commande(s) au total)
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchOrders(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Précédent
+              </Button>
+              {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => fetchOrders(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+              {totalPages > 5 && <span className="px-2">...</span>}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchOrders(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Suivant
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
