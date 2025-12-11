@@ -67,16 +67,16 @@ async def get_available_carriers():
             {
                 "carrier_type": "yalidine",
                 "name": "Yalidine",
-                "logo": "/carriers/yalidine.png",
+                "logo_url": "/carriers/yalidine.png",
                 "description": "Service de livraison rapide à domicile",
                 "is_configured": False,
                 "is_active": False,
-                "required_fields": ["api_key", "api_token"]
+                "required_fields": ["api_key", "center_id"]
             },
             {
                 "carrier_type": "dhd",
-                "name": "DHD",  
-                "logo": "/carriers/dhd.png",
+                "name": "DHD Express",  
+                "logo_url": "/carriers/dhd.png",
                 "description": "Domicile & Home Delivery",
                 "is_configured": False,
                 "is_active": False,
@@ -85,7 +85,7 @@ async def get_available_carriers():
             {
                 "carrier_type": "zr_express",
                 "name": "ZR Express",
-                "logo": "/carriers/zr_express.png",
+                "logo_url": "/carriers/zr_express.png",
                 "description": "Express delivery service",
                 "is_configured": False,
                 "is_active": False,
@@ -93,8 +93,8 @@ async def get_available_carriers():
             },
             {
                 "carrier_type": "maystro",
-                "name": "Maystro Delivery",
-                "logo": "/carriers/maystro.png",
+                "name": "Maystro",
+                "logo_url": "/carriers/maystro.png",
                 "description": "Service de livraison professionnel",
                 "is_configured": False,
                 "is_active": False,
@@ -103,7 +103,7 @@ async def get_available_carriers():
             {
                 "carrier_type": "guepex",
                 "name": "Guepex",
-                "logo": "/carriers/guepex.png",
+                "logo_url": "/carriers/guepex.png",
                 "description": "Livraison nationale",
                 "is_configured": False,
                 "is_active": False,
@@ -112,7 +112,7 @@ async def get_available_carriers():
             {
                 "carrier_type": "nord_ouest",
                 "name": "Nord et Ouest",
-                "logo": "/carriers/nord_ouest.png",
+                "logo_url": "/carriers/nord_ouest.png",
                 "description": "Livraison régionale",
                 "is_configured": False,
                 "is_active": False,
@@ -121,7 +121,7 @@ async def get_available_carriers():
             {
                 "carrier_type": "pajo",
                 "name": "Pajo",
-                "logo": "/carriers/pajo.png",
+                "logo_url": "/carriers/pajo.png",
                 "description": "Service de livraison moderne",
                 "is_configured": False,
                 "is_active": False,
