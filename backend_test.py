@@ -1807,9 +1807,11 @@ def run_all_tests():
     print(f"API Base: {API_BASE}")
     print(f"{'='*60}")
     
-    # Test sequence - CRITICAL BUG FIXES FIRST
+    # Test sequence - THERMAL LABELS PRINTING SYSTEM FIRST (NEW FEATURE)
     tests = [
         ("Authentication", test_authentication),
+        ("🏷️ NEW FEATURE - Thermal Labels Printing System", test_thermal_labels_printing_system),
+        ("🚫 NEW FEATURE - Thermal Labels Error Handling", test_thermal_labels_error_handling),
         ("BUG 1 FIX - Carriers Integration Page", test_carriers_integration_page),
         ("BUG 2 FIX - Batch Transfer Payment", test_batch_transfer_payment),
         ("AI Assistant PRO User Bug Fix", test_ai_assistant_pro_user_bug_fix),
