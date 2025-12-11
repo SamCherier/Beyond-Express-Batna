@@ -588,21 +588,24 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.4"
-  test_sequence: 4
+  version: "1.5"
+  test_sequence: 5
   run_ui: false
   backend_tested: true
-  backend_test_date: "2025-10-25"
+  backend_test_date: "2025-01-27"
   critical_bug_fix_verified: true
   orders_page_recovery_confirmed: true
+  carriers_integration_bug_fixed: true
+  batch_transfer_bug_fixed: true
+  bug_fix_success_rate: "100%"
 
 test_plan:
   current_focus:
-    - "Pricing Management Page Implementation"
-  stuck_tasks:
-    - "Pricing Management Page Implementation"
+    - "Carriers Integration Page - Empty Page Bug Fix"
+    - "Batch Transfer Payment - String PaymentStatus Bug Fix"
+  stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "critical_first"
 
 agent_communication:
   - agent: "main"
