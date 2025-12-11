@@ -162,10 +162,24 @@ const FinancialCODPage = () => {
     return orders.filter(o => o.payment_status === status).length;
   };
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+        <p className="text-gray-600">Chargement des données financières...</p>
+      </div>
+    );
+  }
+
+  if (error && orders.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <XCircle className="w-16 h-16 text-red-500" />
+        <p className="text-gray-900 font-semibold">Erreur de chargement</p>
+        <p className="text-gray-600">{error}</p>
+        <Button onClick={() => fetchOrders(1)}>
+          Réessayer
+        </Button>
       </div>
     );
   }
