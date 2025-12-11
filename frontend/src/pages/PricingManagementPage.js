@@ -65,14 +65,14 @@ const PricingManagementPage = () => {
   const handleSavePricing = async () => {
     try {
       // Update home pricing
-      await api.post('/api/pricing', {
+      await api.post('/pricing', {
         wilaya: editingWilaya,
         delivery_type: 'home',
         price: parseFloat(editedPrices.home)
       });
 
       // Update desk pricing
-      await api.post('/api/pricing', {
+      await api.post('/pricing', {
         wilaya: editingWilaya,
         delivery_type: 'desk',
         price: parseFloat(editedPrices.desk)
