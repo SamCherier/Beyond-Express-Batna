@@ -697,6 +697,12 @@ async def get_ecommerce_users(current_user: User = Depends(get_current_admin)):
     users = await db.users.find({"role": "ecommerce"}, {"_id": 0, "password": 0}).to_list(1000)
     return users
 
+@api_router.get("/users")
+async def get_all_users(current_user: User = Depends(get_current_admin)):
+    """Get all users (admin only) - used for driver management"""
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    return {"users": users}
+
 
 # ===== PRODUCT ROUTES =====
 @api_router.post("/products", response_model=Product)
