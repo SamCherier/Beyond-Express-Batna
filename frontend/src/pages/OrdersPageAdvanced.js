@@ -144,6 +144,7 @@ const OrdersPageAdvanced = () => {
       console.error('Error calculating risk:', error);
       return 'low';
     }
+    */
   };
 
   const fetchEcommerceUsers = async () => {
