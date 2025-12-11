@@ -52,6 +52,7 @@ TEST_TRACKING_EVENT = {
 session_token = None
 test_order_id = None
 headers = {}
+driver_headers = {}
 
 class TestResults:
     def __init__(self):
