@@ -421,6 +421,36 @@ backend:
         comment: "✅ CRITICAL BUG FIX VERIFIED: Orders page recovery successful! GET /api/orders returns 200 OK with 21 orders, all have updated_at field, no KeyError occurs, admin authentication working, no 500 errors during testing, complete data structure verified. Multiple consistency tests passed (3/3). The KeyError: 'updated_at' bug has been completely resolved. Orders page should now load without errors."
 
 frontend:
+  - task: "Finance COD Page Implementation"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/FinancialCODPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Finance COD page created with 4 summary cards, filter tabs (Tout/Non Payé/Encaissé/Transféré), orders table with checkboxes, batch actions, and search functionality."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Finance COD page working perfectly. Shows 26 orders with real data, filter tabs showing correct counts, orders table displaying COD amounts, clients, and payment status. Fixed API endpoint calls (removed double /api prefix). Navigation links visible for admin users. All interactive features functional."
+
+  - task: "Pricing Management Page Implementation"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/pages/PricingManagementPage.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Pricing management page created with wilayas table (58 wilayas), home/desk pricing columns, edit modal with 2 input fields, search functionality."
+      - working: false
+        agent: "testing"
+        comment: "❌ ISSUE: Pricing page shows '0 Wilayas configurées' and 'Aucune wilaya trouvée' despite 114 pricing entries in database. API endpoint /api/pricing returns 307 Temporary Redirect. Backend function works correctly (tested directly), but HTTP routing has issues. Fixed frontend API calls (removed double /api prefix) but backend route still not accessible via HTTP."
+
   - task: "Tracking Modal Implementation"
     implemented: true
     working: "NA"
