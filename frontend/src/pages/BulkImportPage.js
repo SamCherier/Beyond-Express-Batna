@@ -104,7 +104,7 @@ const BulkImportPage = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await api.post('/orders/bulk-import', formData, {
+      const response = await api.post('/bulk/bulk-import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
