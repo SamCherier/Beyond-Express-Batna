@@ -91,10 +91,12 @@ const OrdersPageAdvanced = () => {
     try {
       const response = await api.get('/auth/users');
       const allUsers = response.data.users || response.data || [];
-      const driverUsers = allUsers.filter(u => u.role === 'delivery');
+      const driverUsers = Array.isArray(allUsers) ? allUsers.filter(u => u.role === 'delivery') : [];
       setDrivers(driverUsers);
     } catch (error) {
       console.error('Error fetching drivers:', error);
+      // Set empty array on error so page doesn't crash
+      setDrivers([]);
     }
   };
 
