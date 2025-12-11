@@ -72,9 +72,10 @@ const FinancialCODPage = () => {
     }
   };
 
-  // Filter orders by tab
+  // Filter orders by tab (DEFENSIVE PROGRAMMING)
   const getFilteredOrders = () => {
-    let filtered = orders;
+    // Always ensure orders is an array
+    let filtered = Array.isArray(orders) ? orders : [];
 
     // Filter by payment status
     if (activeTab !== 'all') {
