@@ -499,11 +499,17 @@ async def create_order(
     
     return order_obj
 
-@api_router.get("/orders", response_model=List[Order])
+@api_router.get("/orders")
 async def get_orders(
     status: Optional[OrderStatus] = None,
+    page: int = 1,
+    limit: int = 20,
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Get orders with server-side pagination
+    Returns: {orders: [], total: int, page: int, limit: int, pages: int}
+    """
     query = {}
     
     if current_user.role == UserRole.ECOMMERCE:
@@ -514,7 +520,15 @@ async def get_orders(
     if status:
         query["status"] = status
     
-    orders = await db.orders.find(query, {"_id": 0}).to_list(1000)
+    # Get total count
+    total = await db.orders.count_documents(query)
+    
+    # Calculate pagination
+    skip = (page - 1) * limit
+    pages = (total + limit - 1) // limit  # Ceiling division
+    
+    # Get paginated orders
+    orders = await db.orders.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     for order in orders:
         if isinstance(order.get('created_at'), str):
@@ -525,7 +539,13 @@ async def get_orders(
             # Set updated_at to created_at if missing
             order['updated_at'] = order.get('created_at', datetime.now(timezone.utc))
     
-    return orders
+    return {
+        "orders": orders,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "pages": pages
+    }
 
 @api_router.get("/orders/{order_id}", response_model=Order)
 async def get_order(order_id: str, current_user: User = Depends(get_current_user)):
