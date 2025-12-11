@@ -48,6 +48,7 @@ const DashboardLayout = () => {
   const menuItems = [
     { path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: t('dashboard'), roles: ['admin', 'ecommerce', 'delivery'] },
     { path: '/dashboard/orders', icon: <Package className="w-5 h-5" />, label: t('orders'), roles: ['admin', 'ecommerce', 'delivery'] },
+    { path: '/dashboard/orders/import', icon: <Upload className="w-5 h-5" />, label: 'Import Masse', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/products', icon: <ShoppingCart className="w-5 h-5" />, label: t('products'), roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/customers', icon: <Users className="w-5 h-5" />, label: t('customers'), roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/finance/cod', icon: <DollarSign className="w-5 h-5" />, label: 'Finance COD', roles: ['admin'] },
