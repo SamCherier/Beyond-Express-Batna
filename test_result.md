@@ -561,8 +561,10 @@ metadata:
   orders_page_recovery_confirmed: true
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "Pricing Management Page Implementation"
+  stuck_tasks:
+    - "Pricing Management Page Implementation"
   test_all: false
   test_priority: "high_first"
 
