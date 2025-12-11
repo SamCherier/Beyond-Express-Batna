@@ -1098,6 +1098,10 @@ app.include_router(pricing_router.router, prefix="/api/pricing", tags=["pricing"
 from routes import bulk_import as bulk_import_router
 app.include_router(bulk_import_router.router, prefix="/api/bulk", tags=["bulk_import"])
 
+# Include Labels routes
+from routes import labels as labels_router
+app.include_router(labels_router.router, prefix="/api/orders", tags=["labels"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
