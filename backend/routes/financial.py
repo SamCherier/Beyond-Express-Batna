@@ -10,10 +10,13 @@ import os
 import logging
 
 from models import Order, User, PaymentStatus, BatchPaymentUpdate
-from auth_utils import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Auth dependency placeholder - will be injected from server.py
+async def get_current_user_dependency():
+    raise HTTPException(status_code=500, detail="Auth dependency not configured")
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
@@ -26,7 +29,7 @@ async def update_payment_status(
     order_id: str,
     new_status: PaymentStatus,
     notes: str = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Update payment status for a single order (Admin only)
@@ -77,7 +80,7 @@ async def update_payment_status(
 @router.post("/batch-update-payment")
 async def batch_update_payment_status(
     batch_update: BatchPaymentUpdate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Batch update payment status for multiple orders (CRITICAL for weekly transfers)
@@ -126,7 +129,7 @@ async def batch_update_payment_status(
 
 @router.get("/financial-summary")
 async def get_financial_summary(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Financial summary dashboard (Admin only)
@@ -192,7 +195,7 @@ async def get_financial_summary(
 async def get_reconciliation_list(
     payment_status: str = None,
     limit: int = 100,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Get list of orders by payment status for reconciliation
