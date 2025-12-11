@@ -164,12 +164,19 @@ const DashboardLayout = () => {
           })}
 
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 w-full transition-all"
+            onClick={() => {
+              localStorage.clear();
+              sessionStorage.clear();
+              document.cookie.split(";").forEach((c) => {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+              });
+              window.location.href = '/login';
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 w-full transition-all shadow-md mt-4"
             data-testid="logout-button"
           >
             <LogOut className="w-5 h-5" />
-            <span className="font-medium">{t('logout')}</span>
+            <span className="font-medium">🚪 {t('logout')}</span>
           </button>
         </nav>
       </aside>
