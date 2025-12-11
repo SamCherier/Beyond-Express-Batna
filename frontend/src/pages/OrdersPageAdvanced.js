@@ -1062,6 +1062,51 @@ const OrdersPageAdvanced = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Assign Driver Dialog */}
+      <Dialog open={assignDriverDialogOpen} onOpenChange={setAssignDriverDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assigner un Chauffeur</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-gray-600">
+              {selectedOrders.length} commande(s) sélectionnée(s)
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sélectionner un chauffeur
+              </label>
+              <select
+                value={selectedDriverId}
+                onChange={(e) => setSelectedDriverId(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">-- Choisir un chauffeur --</option>
+                {drivers.map(driver => (
+                  <option key={driver.id} value={driver.id}>
+                    {driver.name} ({driver.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                💡 Les commandes seront marquées comme "EN TRANSIT" et assignées au chauffeur sélectionné.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssignDriverDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleAssignDriver}>
+              <Truck className="w-4 h-4 mr-2" />
+              Assigner
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
