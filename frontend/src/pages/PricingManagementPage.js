@@ -31,7 +31,7 @@ const PricingManagementPage = () => {
   const fetchPricing = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/pricing');
+      const response = await api.get('/pricing/');
       
       // Group by wilaya
       const grouped = {};
@@ -65,14 +65,14 @@ const PricingManagementPage = () => {
   const handleSavePricing = async () => {
     try {
       // Update home pricing
-      await api.post('/pricing', {
+      await api.post('/pricing/', {
         wilaya: editingWilaya,
         delivery_type: 'home',
         price: parseFloat(editedPrices.home)
       });
 
       // Update desk pricing
-      await api.post('/pricing', {
+      await api.post('/pricing/', {
         wilaya: editingWilaya,
         delivery_type: 'desk',
         price: parseFloat(editedPrices.desk)
