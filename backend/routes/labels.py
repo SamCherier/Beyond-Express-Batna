@@ -89,74 +89,28 @@ def generate_qr_code(data: str) -> BytesIO:
 
 def draw_label(c, order: dict, y_offset: float = 0):
     """
-    Draw a single thermal label (10x15cm)
-    Style: Yalidine-inspired with large COD amount and QR code
+    Draw a single thermal label A6 (105mm x 148mm)
+    Professional Yalidine-inspired design with proper spacing and word wrap
     """
-    # Label dimensions (10x15cm = 100x150mm)
-    label_width = 100 * mm_unit
-    label_height = 150 * mm_unit
+    # A6 dimensions (105mm x 148mm) with 5mm safety margins
+    label_width = 105 * mm_unit
+    label_height = 148 * mm_unit
+    margin = 5 * mm_unit
     
-    # Start position
-    x_start = 5 * mm_unit
-    y_start = y_offset
+    # Working area
+    x_start = margin
+    x_end = label_width - margin
+    y_start = margin
+    y_end = label_height - margin
+    working_width = x_end - x_start
     
-    # === HEADER: Beyond Express Logo ===
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(label_width / 2, y_start + label_height - 15 * mm_unit, "BEYOND EXPRESS")
+    # Current Y position (top to bottom)
+    y_pos = y_end
     
-    # Horizontal line
-    c.setStrokeColorRGB(0.8, 0.1, 0.1)  # Red
-    c.setLineWidth(2)
-    c.line(x_start, y_start + label_height - 20 * mm_unit, 
-           label_width - x_start, y_start + label_height - 20 * mm_unit)
-    
-    # === CENTER: COD AMOUNT (VERY LARGE) ===
-    cod_amount = order.get('cod_amount', 0)
-    c.setFont("Helvetica-Bold", 40)
-    c.drawCentredString(label_width / 2, y_start + label_height - 50 * mm_unit, 
-                        f"{int(cod_amount)} DZD")
-    
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(label_width / 2, y_start + label_height - 60 * mm_unit, 
-                        "Montant à Encaisser")
-    
-    # === MIDDLE: Recipient Info ===
-    recipient = order.get('recipient', {})
-    y_pos = y_start + label_height - 75 * mm_unit
-    
+    # === HEADER: Logo (Left) | Date (Right) ===
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(x_start, y_pos, f"Client: {recipient.get('name', 'N/A')}")
-    y_pos -= 8 * mm_unit
+    c.drawString(x_start, y_pos, "BEYOND EXPRESS")
     
-    c.setFont("Helvetica", 12)
-    c.drawString(x_start, y_pos, f"Tél: {recipient.get('phone', 'N/A')}")
-    y_pos -= 8 * mm_unit
-    
-    c.drawString(x_start, y_pos, f"Adresse: {recipient.get('address', 'N/A')[:35]}...")
-    y_pos -= 8 * mm_unit
-    
-    # === BOTTOM: Wilaya/Commune (LARGE) ===
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(label_width / 2, y_start + 60 * mm_unit, 
-                        f"{recipient.get('wilaya', 'N/A')} - {recipient.get('commune', 'N/A')}")
-    
-    # === QR CODE ===
-    tracking_id = order.get('tracking_id', 'N/A')
-    qr_data = f"BEX-{tracking_id}"
-    qr_buffer = generate_qr_code(qr_data)
-    qr_img = ImageReader(qr_buffer)
-    
-    # Draw QR code (centered at bottom)
-    qr_size = 35 * mm_unit
-    qr_x = (label_width - qr_size) / 2
-    qr_y = y_start + 15 * mm_unit
-    c.drawImage(qr_img, qr_x, qr_y, width=qr_size, height=qr_size)
-    
-    # Tracking ID below QR
-    c.setFont("Helvetica-Bold", 10)
-    c.drawCentredString(label_width / 2, y_start + 10 * mm_unit, tracking_id)
-    
-    # Date
     created_at = order.get('created_at', '')
     if isinstance(created_at, str):
         date_str = created_at.split('T')[0]
@@ -164,12 +118,116 @@ def draw_label(c, order: dict, y_offset: float = 0):
         date_str = datetime.now().strftime('%Y-%m-%d')
     
     c.setFont("Helvetica", 8)
-    c.drawCentredString(label_width / 2, y_start + 5 * mm_unit, f"Date: {date_str}")
+    c.drawRightString(x_end, y_pos, f"Date: {date_str}")
+    y_pos -= 6 * mm_unit
     
-    # Border around label
+    # Red line separator
+    c.setStrokeColorRGB(0.8, 0.1, 0.1)
+    c.setLineWidth(1.5)
+    c.line(x_start, y_pos, x_end, y_pos)
+    y_pos -= 5 * mm_unit
+    
+    # === ZONE EXPÉDITEUR (Small Box) ===
+    sender_box_height = 12 * mm_unit
     c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(0.5)
+    c.rect(x_start, y_pos - sender_box_height, working_width, sender_box_height)
+    
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(x_start + 2 * mm_unit, y_pos - 4 * mm_unit, "EXPÉDITEUR")
+    c.setFont("Helvetica", 7)
+    c.drawString(x_start + 2 * mm_unit, y_pos - 8 * mm_unit, "BEYOND EXPRESS - Batna")
+    c.drawString(x_start + 2 * mm_unit, y_pos - 11 * mm_unit, "Tél: 0550000000")
+    
+    y_pos -= sender_box_height + 4 * mm_unit
+    
+    # === ZONE DESTINATAIRE (Large Box) ===
+    recipient = order.get('recipient', {})
+    dest_box_height = 35 * mm_unit
     c.setLineWidth(1)
-    c.rect(x_start / 2, y_start, label_width - x_start / 2, label_height)
+    c.rect(x_start, y_pos - dest_box_height, working_width, dest_box_height)
+    
+    # Recipient header
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(x_start + 2 * mm_unit, y_pos - 5 * mm_unit, "DESTINATAIRE")
+    
+    # Name
+    c.setFont("Helvetica-Bold", 10)
+    recipient_name = recipient.get('name', 'N/A')
+    c.drawString(x_start + 2 * mm_unit, y_pos - 10 * mm_unit, recipient_name[:30])
+    
+    # Phone
+    c.setFont("Helvetica", 9)
+    c.drawString(x_start + 2 * mm_unit, y_pos - 14 * mm_unit, f"Tél: {recipient.get('phone', 'N/A')}")
+    
+    # Wilaya/Commune
+    c.setFont("Helvetica-Bold", 10)
+    wilaya_commune = f"{recipient.get('wilaya', 'N/A')} - {recipient.get('commune', 'N/A')}"
+    c.drawString(x_start + 2 * mm_unit, y_pos - 19 * mm_unit, wilaya_commune[:35])
+    
+    # Address with word wrap
+    c.setFont("Helvetica", 8)
+    address = recipient.get('address', 'N/A')
+    max_chars_per_line = 45
+    
+    # Split address into lines
+    words = address.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        if len(current_line + " " + word) <= max_chars_per_line:
+            current_line += (" " if current_line else "") + word
+        else:
+            lines.append(current_line)
+            current_line = word
+    if current_line:
+        lines.append(current_line)
+    
+    # Draw address lines (max 3 lines)
+    address_y = y_pos - 24 * mm_unit
+    for i, line in enumerate(lines[:3]):
+        c.drawString(x_start + 2 * mm_unit, address_y - (i * 3.5 * mm_unit), line)
+    
+    y_pos -= dest_box_height + 4 * mm_unit
+    
+    # === ZONE COD (HUGE and BOLD) ===
+    cod_amount = order.get('cod_amount', 0)
+    cod_box_height = 20 * mm_unit
+    
+    # COD Box with thick border
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(2)
+    c.rect(x_start, y_pos - cod_box_height, working_width, cod_box_height)
+    
+    # COD Label
+    c.setFont("Helvetica-Bold", 8)
+    c.drawCentredString(x_start + working_width / 2, y_pos - 5 * mm_unit, "MONTANT À ENCAISSER")
+    
+    # COD Amount (HUGE)
+    c.setFont("Helvetica-Bold", 28)
+    c.drawCentredString(x_start + working_width / 2, y_pos - 16 * mm_unit, f"{int(cod_amount)} DA")
+    
+    y_pos -= cod_box_height + 4 * mm_unit
+    
+    # === FOOTER: QR Code + Tracking ID ===
+    tracking_id = order.get('tracking_id', 'N/A')
+    qr_data = f"BEX-{tracking_id}"
+    qr_buffer = generate_qr_code(qr_data)
+    qr_img = ImageReader(qr_buffer)
+    
+    # QR Code (centered)
+    qr_size = 25 * mm_unit
+    qr_x = x_start + (working_width - qr_size) / 2
+    c.drawImage(qr_img, qr_x, y_pos - qr_size, width=qr_size, height=qr_size)
+    
+    # Tracking ID below QR
+    c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(x_start + working_width / 2, y_pos - qr_size - 4 * mm_unit, tracking_id)
+    
+    # Outer border for entire label
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(2)
+    c.rect(0, 0, label_width, label_height)
 
 @router.post("/print-labels")
 async def print_shipping_labels(
