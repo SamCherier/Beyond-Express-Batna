@@ -14,14 +14,47 @@ from models import Order, User, PaymentStatus, BatchPaymentUpdate
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Auth dependency placeholder - will be injected from server.py
-get_current_user_dependency = None
+# Auth dependency - copied from server.py to avoid circular imports
+from fastapi import Request, Cookie
+from typing import Optional
+from auth_utils import verify_token
+import uuid
 
-def get_current_user():
-    """Get dependency - will be replaced by server.py"""
-    if get_current_user_dependency is None:
-        raise HTTPException(status_code=500, detail="Auth dependency not configured")
-    return get_current_user_dependency
+async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)) -> User:
+    """Auth dependency for financial routes"""
+    token = session_token
+    
+    # Fallback to Authorization header if cookie not present
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Try session token first
+    session_doc = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+    if session_doc:
+        if datetime.fromisoformat(session_doc['expires_at']) > datetime.now(timezone.utc):
+            user_doc = await db.users.find_one({"id": session_doc['user_id']}, {"_id": 0})
+            if user_doc:
+                return User(**user_doc)
+    
+    # Try JWT token
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_doc = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return User(**user_doc)
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
