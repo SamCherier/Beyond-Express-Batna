@@ -414,6 +414,21 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Bulk import processing working perfectly. Fixed API endpoint (moved to /api/bulk/bulk-import). Successfully tested with 3-order CSV file containing valid Algerian wilayas (Alger, Batna, Constantine). Auto-pricing working correctly: Alger=400 DZD shipping cost, proper net calculation (25000-400=24600). Tracking IDs generated in BEX-XXXXXX format. Results display shows Total=3, Imported=3, Errors=0. Error handling tested with invalid wilaya - properly shows error messages. Backend verification confirms orders created in database with correct fields."
 
+  - task: "Thermal Labels Printing System - Backend API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/labels.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Created POST /api/orders/print-labels endpoint for thermal shipping labels (10x15cm format). Yalidine-inspired design with: Header (BEYOND EXPRESS logo), Center (COD amount in 40pt font), Middle (client info), Bottom (QR code 35mm + Wilaya/Commune in 16pt), Footer (tracking ID + date). One page per order, professional border design."
+      - working: true
+        agent: "testing"
+        comment: "✅ NEW FEATURE TESTED: Thermal Labels Printing System working perfectly! Comprehensive testing with testpro@beyond.com confirms: 1) POST /api/orders/print-labels generates PDF successfully (37KB for 3 labels), 2) Correct Content-Type: application/pdf, 3) Proper Content-Disposition header: attachment; filename='etiquettes_commandes_*.pdf', 4) Error handling working: 400 for empty list ('No order IDs provided'), 404 for invalid IDs ('No orders found'), 5) PDF size validation passed (>10KB for multiple labels), 6) Authentication working correctly. All 8 thermal labels tests passed (100% success rate). Ready for frontend integration testing."
+
   - task: "AI Assistant Usage Tracking API - Legacy Plan Bug Fix"
     implemented: true
     working: true
