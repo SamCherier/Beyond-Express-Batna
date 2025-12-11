@@ -174,14 +174,7 @@ const DashboardLayout = () => {
           })}
 
           <button
-            onClick={() => {
-              localStorage.clear();
-              sessionStorage.clear();
-              document.cookie.split(";").forEach((c) => {
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-              });
-              window.location.href = '/login';
-            }}
+            onClick={handleNuclearLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 w-full transition-all shadow-md mt-4"
             data-testid="logout-button"
           >
