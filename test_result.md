@@ -645,10 +645,7 @@ metadata:
   bug_fix_success_rate: "100%"
 
 test_plan:
-  current_focus:
-    - "Bulk Import Orders - Template Download"
-    - "Bulk Import Orders - File Upload & Processing"
-    - "Bulk Import Page - Frontend UI"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
