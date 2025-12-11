@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Configuration
-BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://beyond-limits-7.preview.emergentagent.com')
+BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://logistic-ops-plan.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
 # Test user from review request
