@@ -20,6 +20,7 @@ import SubscriptionsPage from '@/pages/SubscriptionsPage';
 import CarriersIntegrationPage from '@/pages/CarriersIntegrationPage';
 import FinancialCODPage from '@/pages/FinancialCODPage';
 import PricingManagementPage from '@/pages/PricingManagementPage';
+import BulkImportPage from '@/pages/BulkImportPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -99,6 +100,7 @@ function AppRoutes() {
         <Route path="settings/integrations" element={<CarriersIntegrationPage />} />
         <Route path="settings/pricing" element={<PricingManagementPage />} />
         <Route path="finance/cod" element={<FinancialCODPage />} />
+        <Route path="orders/import" element={<BulkImportPage />} />
         <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
         <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
         <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
