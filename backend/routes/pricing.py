@@ -10,10 +10,13 @@ import os
 import logging
 
 from models import PricingTable, PricingTableCreate, User, DeliveryType
-from auth_utils import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Auth dependency placeholder - will be injected from server.py
+async def get_current_user_dependency():
+    raise HTTPException(status_code=500, detail="Auth dependency not configured")
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
@@ -83,7 +86,7 @@ async def calculate_shipping_cost(
 @router.post("/")
 async def create_or_update_pricing(
     pricing_data: PricingTableCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Create or update pricing entry (Admin only)
@@ -151,7 +154,7 @@ async def create_or_update_pricing(
 @router.delete("/{pricing_id}")
 async def delete_pricing(
     pricing_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Delete a pricing entry (Admin only)
@@ -181,7 +184,7 @@ async def delete_pricing(
 @router.post("/bulk-create")
 async def bulk_create_pricing(
     pricing_list: List[PricingTableCreate],
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_dependency)
 ):
     """
     Bulk create pricing entries (Admin only)
