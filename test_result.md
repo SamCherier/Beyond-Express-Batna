@@ -429,6 +429,96 @@ backend:
         agent: "testing"
         comment: "✅ NEW FEATURE TESTED: Thermal Labels Printing System working perfectly! Comprehensive testing with testpro@beyond.com confirms: 1) POST /api/orders/print-labels generates PDF successfully (37KB for 3 labels), 2) Correct Content-Type: application/pdf, 3) Proper Content-Disposition header: attachment; filename='etiquettes_commandes_*.pdf', 4) Error handling working: 400 for empty list ('No order IDs provided'), 404 for invalid IDs ('No orders found'), 5) PDF size validation passed (>10KB for multiple labels), 6) Authentication working correctly. All 8 thermal labels tests passed (100% success rate). Ready for frontend integration testing."
 
+  - task: "Driver API - Authentication & Authorization"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/driver.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Driver API endpoints implemented for mobile Flutter app: 1) GET /api/driver/tasks (get assigned orders), 2) POST /api/driver/update-status (update order status with financial logic), 3) GET /api/driver/stats (daily statistics). Authentication restricted to delivery role only."
+      - working: true
+        agent: "testing"
+        comment: "✅ DRIVER API AUTHENTICATION TESTED: Successfully logged in with driver@beyond.com (Driver123!). User role verified as 'delivery'. Authorization working correctly - non-driver users (admin/ecommerce) properly denied access with 403 'Access denied. Drivers only.' All authentication and authorization tests passed."
+
+  - task: "Driver API - GET /api/driver/tasks"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/driver.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "GET /api/driver/tasks endpoint returns orders assigned to driver with status IN_TRANSIT, PICKED_UP, OUT_FOR_DELIVERY. Response includes client details (name, phone, address, wilaya, commune), COD amount, shipping cost, net_to_merchant, tracking ID, PIN code."
+      - working: true
+        agent: "testing"
+        comment: "✅ DRIVER TASKS API TESTED: GET /api/driver/tasks working perfectly. Returns proper response structure with tasks array, count, driver_id, driver_name. Task structure validated with all required fields: order_id, tracking_id, status, client info (name, phone, address, wilaya, commune), cod_amount, shipping_cost. Found orders assigned to driver with delivery_partner='344d3176-f4a2-4ca8-b841-b1ed1fc8c15a'. All task structure tests passed."
+
+  - task: "Driver API - POST /api/driver/update-status (DELIVERED)"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/driver.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "POST /api/driver/update-status with DELIVERED status implements CRITICAL FINANCIAL LOGIC: Automatically sets payment_status to 'collected_by_driver' and records collected_date timestamp. This is essential for COD cash flow tracking."
+      - working: true
+        agent: "testing"
+        comment: "✅ CRITICAL FINANCIAL LOGIC VERIFIED: POST /api/driver/update-status with DELIVERED status working perfectly. When status updated to DELIVERED, payment_status automatically updated to 'collected_by_driver' as required. Response structure correct with success=true, new_status='DELIVERED', payment_status='collected_by_driver'. Critical business logic for COD collection tracking is functional."
+
+  - task: "Driver API - POST /api/driver/update-status (FAILED Validation)"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/driver.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "POST /api/driver/update-status with FAILED status requires failure_reason parameter. Returns 400 error if failure_reason missing. When provided, stores failure_reason and failed_date timestamp."
+      - working: true
+        agent: "testing"
+        comment: "✅ FAILED STATUS VALIDATION TESTED: 1) FAILED without reason correctly rejected with 400 'Failure reason is required when marking order as FAILED', 2) FAILED with reason ('Client absent') successfully processed and stored. Validation logic working correctly for both scenarios."
+
+  - task: "Driver API - GET /api/driver/stats"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/driver.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "GET /api/driver/stats returns daily statistics: today (deliveries count, failed count, total_cash_collected), pending (pending_deliveries count, total_cash_to_transfer), message with amount to transfer in French."
+      - working: true
+        agent: "testing"
+        comment: "✅ DRIVER STATS API TESTED: GET /api/driver/stats working perfectly. Response structure validated with all required fields: driver_id, driver_name, today stats (deliveries, failed, total_cash_collected), pending stats (pending_deliveries, total_cash_to_transfer). Message format correct: 'Vous devez verser X DZD aujourd'hui'. All statistics calculations functional."
+
+  - task: "Driver API - Security (Cross-Driver Access)"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/driver.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Security implemented: Driver can only update orders assigned to them (delivery_partner field matches driver ID). Attempting to update non-assigned orders returns 404 'Order not found or not assigned to this driver'."
+      - working: true
+        agent: "testing"
+        comment: "✅ CROSS-DRIVER SECURITY TESTED: Security working correctly. Driver cannot access orders not assigned to them. Attempting to update non-existent or non-assigned order returns 404 'Order not found or not assigned to this driver'. Cross-driver access properly blocked."
+
   - task: "AI Assistant Usage Tracking API - Legacy Plan Bug Fix"
     implemented: true
     working: true
