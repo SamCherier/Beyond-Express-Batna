@@ -119,7 +119,13 @@ const OrdersPageAdvanced = () => {
     }
   };
 
+  // DISABLED: Risk score calculation is too slow for large order lists
+  // Risk score can be calculated on-demand when viewing order details
   const calculateRiskScore = async (order) => {
+    // Return default value to avoid errors
+    return 'Moyen';
+    
+    /* ORIGINAL CODE (DISABLED FOR PERFORMANCE)
     try {
       const prompt = `Analyse cette commande et détermine le niveau de risque de fraude (Faible/Moyen/Élevé):
       - Montant COD: ${order.cod_amount} DA
