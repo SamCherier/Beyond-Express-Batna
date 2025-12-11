@@ -41,6 +41,16 @@ const DashboardLayout = () => {
     navigate('/login');
   };
 
+  const handleNuclearLogout = () => {
+    // NUCLEAR OPTION: Clear everything
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    window.location.href = '/login';
+  };
+
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
