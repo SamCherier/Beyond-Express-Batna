@@ -783,10 +783,8 @@ metadata:
   bug_fix_success_rate: "100%"
 
 test_plan:
-  current_focus:
-    - "RED Logout Button Nuclear Functionality"
-  stuck_tasks: 
-    - "RED Logout Button Nuclear Functionality"
+  current_focus: []
+  stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
 
