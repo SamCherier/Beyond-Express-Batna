@@ -1800,6 +1800,651 @@ def test_thermal_labels_error_handling():
     
     return True
 
+def test_driver_authentication():
+    """Test driver authentication with driver@beyond.com"""
+    global driver_headers
+    
+    print("🚗 Testing Driver Authentication...")
+    
+    driver_credentials = {
+        "email": "driver@beyond.com",
+        "password": "Driver123!"
+    }
+    
+    try:
+        # Test login with driver credentials
+        response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=driver_credentials,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            driver_token = data.get('access_token')
+            driver_headers = {'Authorization': f'Bearer {driver_token}'}
+            
+            # Verify user role is delivery
+            user_data = data.get('user', {})
+            user_role = user_data.get('role', '')
+            
+            if user_role == 'delivery':
+                test_results.add_result(
+                    "Driver Authentication - Login",
+                    True,
+                    f"Successfully logged in as driver: {user_data.get('name', 'Driver User')}"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Driver Authentication - Login",
+                    False,
+                    f"User role is '{user_role}', expected 'delivery'",
+                    f"User data: {user_data}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Authentication - Login",
+                False,
+                f"Driver login failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Authentication - Login",
+            False,
+            f"Driver login request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_authorization():
+    """Test that non-driver users cannot access driver endpoints"""
+    
+    print("🔒 Testing Driver Authorization...")
+    
+    # Test with admin user (should be denied)
+    try:
+        response = requests.get(
+            f"{API_BASE}/driver/tasks",
+            headers=headers,  # Admin headers
+            timeout=30
+        )
+        
+        if response.status_code == 403:
+            error_data = response.json()
+            if "Access denied. Drivers only." in error_data.get('detail', ''):
+                test_results.add_result(
+                    "Driver Authorization - Non-Driver Access",
+                    True,
+                    f"✅ Correctly denied access to non-driver user: {error_data.get('detail')}"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Driver Authorization - Non-Driver Access",
+                    False,
+                    f"Unexpected error message",
+                    f"Expected: 'Access denied. Drivers only.', Got: {error_data.get('detail')}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Authorization - Non-Driver Access",
+                False,
+                f"Expected 403 Forbidden, got {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Authorization - Non-Driver Access",
+            False,
+            f"Authorization test request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_tasks():
+    """Test GET /api/driver/tasks endpoint"""
+    
+    print("📋 Testing Driver Tasks Endpoint...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/driver/tasks",
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            required_fields = ['tasks', 'count', 'driver_id', 'driver_name']
+            has_all_fields = all(field in data for field in required_fields)
+            
+            if has_all_fields:
+                tasks = data.get('tasks', [])
+                task_count = data.get('count', 0)
+                
+                test_results.add_result(
+                    "Driver Tasks - Response Structure",
+                    True,
+                    f"✅ Retrieved {task_count} tasks for driver {data.get('driver_name')}"
+                )
+                
+                # Verify task structure if tasks exist
+                if tasks and len(tasks) > 0:
+                    first_task = tasks[0]
+                    task_required_fields = ['order_id', 'tracking_id', 'status', 'client', 'cod_amount', 'shipping_cost']
+                    
+                    task_valid = all(field in first_task for field in task_required_fields)
+                    
+                    if task_valid:
+                        client = first_task.get('client', {})
+                        client_fields = ['name', 'phone', 'address', 'wilaya', 'commune']
+                        client_valid = all(field in client for field in client_fields)
+                        
+                        if client_valid:
+                            test_results.add_result(
+                                "Driver Tasks - Task Structure",
+                                True,
+                                f"✅ Task structure valid. Sample: Order {first_task.get('tracking_id')}, Client: {client.get('name')}, COD: {first_task.get('cod_amount')} DZD"
+                            )
+                        else:
+                            test_results.add_result(
+                                "Driver Tasks - Task Structure",
+                                False,
+                                f"Client structure missing fields: {client_fields}",
+                                f"Client data: {client}"
+                            )
+                    else:
+                        test_results.add_result(
+                            "Driver Tasks - Task Structure",
+                            False,
+                            f"Task structure missing fields: {task_required_fields}",
+                            f"Task data: {first_task}"
+                        )
+                else:
+                    test_results.add_result(
+                        "Driver Tasks - Task Count",
+                        True,
+                        f"✅ No tasks assigned to driver (expected if no orders are IN_TRANSIT/PICKED_UP/OUT_FOR_DELIVERY)"
+                    )
+                
+                return True
+            else:
+                test_results.add_result(
+                    "Driver Tasks - Response Structure",
+                    False,
+                    f"Response missing required fields: {required_fields}",
+                    f"Response data: {data}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Tasks - API Response",
+                False,
+                f"GET /api/driver/tasks failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Tasks - API Request",
+            False,
+            f"Driver tasks request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_update_status_delivered():
+    """Test POST /api/driver/update-status with DELIVERED status"""
+    
+    print("✅ Testing Driver Update Status - DELIVERED...")
+    
+    # First, get a task to update
+    try:
+        tasks_response = requests.get(
+            f"{API_BASE}/driver/tasks",
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if tasks_response.status_code != 200:
+            test_results.add_result(
+                "Driver Update Status - Get Tasks",
+                False,
+                f"Failed to get tasks: {tasks_response.status_code}",
+                tasks_response.text
+            )
+            return False
+        
+        tasks_data = tasks_response.json()
+        tasks = tasks_data.get('tasks', [])
+        
+        if not tasks:
+            # No tasks available for testing
+            test_results.add_result(
+                "Driver Update Status - No Tasks",
+                True,
+                "No tasks available for testing (expected if no orders assigned to driver)"
+            )
+            return True
+        
+        # Use first task
+        test_order_id = tasks[0].get('order_id')
+        
+        if not test_order_id:
+            test_results.add_result(
+                "Driver Update Status - Order ID",
+                False,
+                "No valid order ID found in tasks"
+            )
+            return False
+        
+        # Test DELIVERED status update
+        update_data = {
+            "order_id": test_order_id,
+            "new_status": "DELIVERED",
+            "location": "Livré à domicile",
+            "notes": "Client satisfait"
+        }
+        
+        response = requests.post(
+            f"{API_BASE}/driver/update-status",
+            json=update_data,
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            required_fields = ['success', 'new_status', 'payment_status']
+            has_all_fields = all(field in data for field in required_fields)
+            
+            if has_all_fields:
+                success = data.get('success', False)
+                new_status = data.get('new_status', '')
+                payment_status = data.get('payment_status', '')
+                
+                # CRITICAL: Verify payment_status was auto-updated to collected_by_driver
+                if success and new_status == "DELIVERED" and payment_status == "collected_by_driver":
+                    test_results.add_result(
+                        "Driver Update Status - DELIVERED",
+                        True,
+                        f"✅ CRITICAL LOGIC WORKING: Status updated to DELIVERED, payment_status auto-updated to 'collected_by_driver'"
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Driver Update Status - DELIVERED",
+                        False,
+                        f"❌ CRITICAL LOGIC FAILED: Expected payment_status='collected_by_driver', got '{payment_status}'",
+                        f"Success: {success}, Status: {new_status}, Payment: {payment_status}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Driver Update Status - Response Structure",
+                    False,
+                    f"Response missing required fields: {required_fields}",
+                    f"Response: {data}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Update Status - DELIVERED",
+                False,
+                f"Status update failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Update Status - DELIVERED",
+            False,
+            f"Status update request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_update_status_failed_no_reason():
+    """Test POST /api/driver/update-status with FAILED status but no reason (should fail)"""
+    
+    print("❌ Testing Driver Update Status - FAILED without reason...")
+    
+    # Get a task to update
+    try:
+        tasks_response = requests.get(
+            f"{API_BASE}/driver/tasks",
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if tasks_response.status_code != 200:
+            test_results.add_result(
+                "Driver Update Status - Get Tasks for FAILED",
+                False,
+                f"Failed to get tasks: {tasks_response.status_code}",
+                tasks_response.text
+            )
+            return False
+        
+        tasks_data = tasks_response.json()
+        tasks = tasks_data.get('tasks', [])
+        
+        if not tasks:
+            test_results.add_result(
+                "Driver Update Status - FAILED No Reason",
+                True,
+                "No tasks available for testing (expected if no orders assigned to driver)"
+            )
+            return True
+        
+        # Use first task
+        test_order_id = tasks[0].get('order_id')
+        
+        # Test FAILED status update WITHOUT failure_reason
+        update_data = {
+            "order_id": test_order_id,
+            "new_status": "FAILED",
+            "notes": "Appelé 3 fois, pas de réponse"
+            # Missing failure_reason intentionally
+        }
+        
+        response = requests.post(
+            f"{API_BASE}/driver/update-status",
+            json=update_data,
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        # Should return 400 Bad Request
+        if response.status_code == 400:
+            error_data = response.json()
+            error_message = error_data.get('detail', '')
+            
+            if "Failure reason is required when marking order as FAILED" in error_message:
+                test_results.add_result(
+                    "Driver Update Status - FAILED No Reason",
+                    True,
+                    f"✅ Correctly rejected FAILED status without reason: {error_message}"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Driver Update Status - FAILED No Reason",
+                    False,
+                    f"Unexpected error message",
+                    f"Expected: 'Failure reason is required...', Got: {error_message}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Update Status - FAILED No Reason",
+                False,
+                f"Expected 400 Bad Request, got {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Update Status - FAILED No Reason",
+            False,
+            f"Status update request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_update_status_failed_with_reason():
+    """Test POST /api/driver/update-status with FAILED status and reason (should succeed)"""
+    
+    print("❌ Testing Driver Update Status - FAILED with reason...")
+    
+    # Get a task to update
+    try:
+        tasks_response = requests.get(
+            f"{API_BASE}/driver/tasks",
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if tasks_response.status_code != 200:
+            test_results.add_result(
+                "Driver Update Status - Get Tasks for FAILED with Reason",
+                False,
+                f"Failed to get tasks: {tasks_response.status_code}",
+                tasks_response.text
+            )
+            return False
+        
+        tasks_data = tasks_response.json()
+        tasks = tasks_data.get('tasks', [])
+        
+        if not tasks:
+            test_results.add_result(
+                "Driver Update Status - FAILED with Reason",
+                True,
+                "No tasks available for testing (expected if no orders assigned to driver)"
+            )
+            return True
+        
+        # Use first task
+        test_order_id = tasks[0].get('order_id')
+        
+        # Test FAILED status update WITH failure_reason
+        update_data = {
+            "order_id": test_order_id,
+            "new_status": "FAILED",
+            "failure_reason": "Client absent",
+            "notes": "Appelé 3 fois, pas de réponse"
+        }
+        
+        response = requests.post(
+            f"{API_BASE}/driver/update-status",
+            json=update_data,
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            success = data.get('success', False)
+            new_status = data.get('new_status', '')
+            
+            if success and new_status == "FAILED":
+                test_results.add_result(
+                    "Driver Update Status - FAILED with Reason",
+                    True,
+                    f"✅ FAILED status update successful with reason: 'Client absent'"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Driver Update Status - FAILED with Reason",
+                    False,
+                    f"Update response invalid",
+                    f"Success: {success}, Status: {new_status}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Update Status - FAILED with Reason",
+                False,
+                f"Status update failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Update Status - FAILED with Reason",
+            False,
+            f"Status update request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_stats():
+    """Test GET /api/driver/stats endpoint"""
+    
+    print("📊 Testing Driver Stats Endpoint...")
+    
+    try:
+        response = requests.get(
+            f"{API_BASE}/driver/stats",
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            required_fields = ['driver_id', 'driver_name', 'today', 'pending', 'message']
+            has_all_fields = all(field in data for field in required_fields)
+            
+            if has_all_fields:
+                today_stats = data.get('today', {})
+                pending_stats = data.get('pending', {})
+                message = data.get('message', '')
+                
+                # Verify today stats structure
+                today_required = ['deliveries', 'failed', 'total_cash_collected']
+                today_valid = all(field in today_stats for field in today_required)
+                
+                # Verify pending stats structure
+                pending_required = ['pending_deliveries', 'total_cash_to_transfer']
+                pending_valid = all(field in pending_stats for field in pending_required)
+                
+                if today_valid and pending_valid:
+                    deliveries = today_stats.get('deliveries', 0)
+                    failed = today_stats.get('failed', 0)
+                    cash_collected = today_stats.get('total_cash_collected', 0)
+                    pending_deliveries = pending_stats.get('pending_deliveries', 0)
+                    cash_to_transfer = pending_stats.get('total_cash_to_transfer', 0)
+                    
+                    test_results.add_result(
+                        "Driver Stats - Response Structure",
+                        True,
+                        f"✅ Stats retrieved: Today: {deliveries} deliveries, {failed} failed, {cash_collected} DZD collected. Pending: {pending_deliveries} deliveries, {cash_to_transfer} DZD to transfer"
+                    )
+                    
+                    # Verify message format
+                    if "Vous devez verser" in message and "DZD aujourd'hui" in message:
+                        test_results.add_result(
+                            "Driver Stats - Message Format",
+                            True,
+                            f"✅ Message format correct: {message}"
+                        )
+                    else:
+                        test_results.add_result(
+                            "Driver Stats - Message Format",
+                            False,
+                            f"Message format incorrect",
+                            f"Expected: 'Vous devez verser X DZD aujourd'hui', Got: {message}"
+                        )
+                    
+                    return True
+                else:
+                    test_results.add_result(
+                        "Driver Stats - Stats Structure",
+                        False,
+                        f"Stats structure invalid",
+                        f"Today valid: {today_valid}, Pending valid: {pending_valid}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Driver Stats - Response Structure",
+                    False,
+                    f"Response missing required fields: {required_fields}",
+                    f"Response data: {data}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver Stats - API Response",
+                False,
+                f"GET /api/driver/stats failed with status {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver Stats - API Request",
+            False,
+            f"Driver stats request failed: {str(e)}"
+        )
+        return False
+
+def test_cross_driver_access():
+    """Test that driver cannot access orders not assigned to them"""
+    
+    print("🔒 Testing Cross-Driver Access Security...")
+    
+    # This test requires having orders assigned to different drivers
+    # For now, we'll test with a non-existent order ID
+    
+    try:
+        fake_order_id = "non-existent-order-id"
+        
+        update_data = {
+            "order_id": fake_order_id,
+            "new_status": "DELIVERED",
+            "notes": "Attempting to update non-assigned order"
+        }
+        
+        response = requests.post(
+            f"{API_BASE}/driver/update-status",
+            json=update_data,
+            headers=driver_headers,
+            timeout=30
+        )
+        
+        if response.status_code == 404:
+            error_data = response.json()
+            error_message = error_data.get('detail', '')
+            
+            if "Order not found or not assigned to this driver" in error_message:
+                test_results.add_result(
+                    "Cross-Driver Access Security",
+                    True,
+                    f"✅ Correctly denied access to non-assigned order: {error_message}"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Cross-Driver Access Security",
+                    False,
+                    f"Unexpected error message",
+                    f"Expected: 'Order not found or not assigned to this driver', Got: {error_message}"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Cross-Driver Access Security",
+                False,
+                f"Expected 404 Not Found, got {response.status_code}",
+                response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Cross-Driver Access Security",
+            False,
+            f"Cross-driver access test failed: {str(e)}"
+        )
+        return False
+
 def run_all_tests():
     """Run all backend tests"""
     
