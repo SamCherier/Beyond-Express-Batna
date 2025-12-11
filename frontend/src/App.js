@@ -101,16 +101,56 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<AdminDashboardModern />} />
-        <Route path="orders" element={<OrdersPageAdvanced />} />
-        <Route path="products" element={<ProductsPage />} />
-        <Route path="customers" element={<CustomersPageAdvanced />} />
-        <Route path="whatsapp" element={<WhatsAppDashboard />} />
-        <Route path="subscriptions" element={<SubscriptionsPage />} />
-        <Route path="settings/integrations" element={<CarriersIntegrationPage />} />
-        <Route path="settings/pricing" element={<PricingManagementPage />} />
-        <Route path="finance/cod" element={<FinancialCODPage />} />
-        <Route path="orders/import" element={<BulkImportPage />} />
+        <Route index element={
+          <Suspense fallback={<PageLoader />}>
+            <AdminDashboardModern />
+          </Suspense>
+        } />
+        <Route path="orders" element={
+          <Suspense fallback={<PageLoader />}>
+            <OrdersPageAdvanced />
+          </Suspense>
+        } />
+        <Route path="products" element={
+          <Suspense fallback={<PageLoader />}>
+            <ProductsPage />
+          </Suspense>
+        } />
+        <Route path="customers" element={
+          <Suspense fallback={<PageLoader />}>
+            <CustomersPageAdvanced />
+          </Suspense>
+        } />
+        <Route path="whatsapp" element={
+          <Suspense fallback={<PageLoader />}>
+            <WhatsAppDashboard />
+          </Suspense>
+        } />
+        <Route path="subscriptions" element={
+          <Suspense fallback={<PageLoader />}>
+            <SubscriptionsPage />
+          </Suspense>
+        } />
+        <Route path="settings/integrations" element={
+          <Suspense fallback={<PageLoader />}>
+            <CarriersIntegrationPage />
+          </Suspense>
+        } />
+        <Route path="settings/pricing" element={
+          <Suspense fallback={<PageLoader />}>
+            <PricingManagementPage />
+          </Suspense>
+        } />
+        <Route path="finance/cod" element={
+          <Suspense fallback={<PageLoader />}>
+            <FinancialCODPage />
+          </Suspense>
+        } />
+        <Route path="orders/import" element={
+          <Suspense fallback={<PageLoader />}>
+            <BulkImportPage />
+          </Suspense>
+        } />
         <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
         <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
         <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
