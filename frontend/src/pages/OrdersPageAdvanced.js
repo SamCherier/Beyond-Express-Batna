@@ -270,6 +270,29 @@ const OrdersPageAdvanced = () => {
     }
   };
 
+  const handlePrintLabels = async () => {
+    if (selectedOrders.length === 0) {
+      toast.error('Sélectionnez au moins une commande');
+      return;
+    }
+
+    try {
+      const response = await api.post('/orders/print-labels', selectedOrders, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `etiquettes_${selectedOrders.length}_commandes.pdf`;
+      link.click();
+      toast.success(`${selectedOrders.length} étiquette(s) générée(s) !`);
+    } catch (error) {
+      console.error('Error generating labels:', error);
+      toast.error('Erreur lors de la génération des étiquettes');
+    }
+  };
+
   const handleSendWhatsAppConfirmation = async (order) => {
     try {
       // Check if order has phone number
