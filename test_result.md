@@ -672,7 +672,8 @@ metadata:
   bug_fix_success_rate: "100%"
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Thermal Labels Printing - Frontend Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
