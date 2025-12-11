@@ -436,17 +436,47 @@ async def create_order(
         commune="Batna"
     )
     
+    # AUTO-CALCULATE SHIPPING COST from Pricing Table
+    shipping_cost = 0.0
+    try:
+        # Normalize delivery type
+        delivery_type_normalized = "home" if "domicile" in order_data.delivery_type.lower() else "desk"
+        
+        # Query pricing table
+        pricing = await db.pricing_table.find_one({
+            "wilaya": order_data.recipient.wilaya,
+            "delivery_type": delivery_type_normalized
+        }, {"_id": 0})
+        
+        if pricing:
+            shipping_cost = pricing.get("price", 0.0)
+            logger.info(f"✅ Shipping cost auto-calculated: {shipping_cost} DZD for {order_data.recipient.wilaya} - {delivery_type_normalized}")
+        else:
+            logger.warning(f"⚠️ No pricing found for {order_data.recipient.wilaya} - {delivery_type_normalized}, using 0.0")
+    except Exception as e:
+        logger.error(f"❌ Error calculating shipping cost: {str(e)}")
+    
+    # Calculate net to merchant
+    net_to_merchant = order_data.cod_amount - shipping_cost
+    
     order_obj = Order(
         **order_data.model_dump(),
         tracking_id=tracking_id,
         user_id=current_user.id,
         sender=sender_info,
-        pin_code=pin_code  # Store unique PIN
+        pin_code=pin_code,  # Store unique PIN
+        shipping_cost=shipping_cost,  # Auto-filled from pricing table
+        net_to_merchant=net_to_merchant,  # Auto-calculated
+        payment_status="unpaid"  # Default status
     )
     
     order_dict = order_obj.model_dump()
     order_dict['created_at'] = order_dict['created_at'].isoformat()
     order_dict['updated_at'] = order_dict['updated_at'].isoformat()
+    if order_dict.get('collected_date'):
+        order_dict['collected_date'] = order_dict['collected_date'].isoformat()
+    if order_dict.get('transferred_date'):
+        order_dict['transferred_date'] = order_dict['transferred_date'].isoformat()
     
     await db.orders.insert_one(order_dict)
     
