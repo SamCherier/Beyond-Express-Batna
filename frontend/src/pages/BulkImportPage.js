@@ -25,7 +25,7 @@ const BulkImportPage = () => {
 
   const handleDownloadTemplate = async () => {
     try {
-      const response = await api.get('/orders/template', {
+      const response = await api.get('/bulk/template', {
         responseType: 'blob'
       });
       
