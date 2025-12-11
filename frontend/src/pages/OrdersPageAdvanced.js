@@ -707,6 +707,16 @@ const OrdersPageAdvanced = () => {
               <Package className="w-4 h-4 mr-2" />
               Imprimer Étiquettes ({selectedOrders.length})
             </Button>
+            <Button
+              onClick={() => setAssignDriverDialogOpen(true)}
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={selectedOrders.length === 0}
+              data-testid="assign-driver-button"
+            >
+              <Truck className="w-4 h-4 mr-2" />
+              Assigner Chauffeur ({selectedOrders.length})
+            </Button>
             <Dialog open={bulkStatusDialogOpen} onOpenChange={setBulkStatusDialogOpen}>
               <DialogTrigger asChild>
                 <Button
