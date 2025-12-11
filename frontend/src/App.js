@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import '@/App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -7,21 +7,30 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n';
 import { Toaster } from 'sonner';
 
-// Pages
+// Loading Component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+  </div>
+);
+
+// Eager loading for public pages (fast initial load)
 import LandingPageModern from '@/pages/LandingPageModern';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import DashboardLayout from '@/components/DashboardLayout';
-import AdminDashboardModern from '@/pages/AdminDashboardModern';
-import OrdersPageAdvanced from '@/pages/OrdersPageAdvanced';
-import ProductsPage from '@/pages/ProductsPage';
-import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
-import WhatsAppDashboard from '@/pages/WhatsAppDashboard';
-import SubscriptionsPage from '@/pages/SubscriptionsPage';
-import CarriersIntegrationPage from '@/pages/CarriersIntegrationPage';
-import FinancialCODPage from '@/pages/FinancialCODPage';
-import PricingManagementPage from '@/pages/PricingManagementPage';
-import BulkImportPage from '@/pages/BulkImportPage';
+
+// Lazy loading for dashboard pages (code splitting)
+const AdminDashboardModern = lazy(() => import('@/pages/AdminDashboardModern'));
+const OrdersPageAdvanced = lazy(() => import('@/pages/OrdersPageAdvanced'));
+const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
+const CustomersPageAdvanced = lazy(() => import('@/pages/CustomersPageAdvanced'));
+const WhatsAppDashboard = lazy(() => import('@/pages/WhatsAppDashboard'));
+const SubscriptionsPage = lazy(() => import('@/pages/SubscriptionsPage'));
+const CarriersIntegrationPage = lazy(() => import('@/pages/CarriersIntegrationPage'));
+const FinancialCODPage = lazy(() => import('@/pages/FinancialCODPage'));
+const PricingManagementPage = lazy(() => import('@/pages/PricingManagementPage'));
+const BulkImportPage = lazy(() => import('@/pages/BulkImportPage'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
