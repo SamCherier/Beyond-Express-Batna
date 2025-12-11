@@ -80,11 +80,54 @@ const OrdersPageAdvanced = () => {
   });
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(1);
     if (user?.role === 'admin') {
       fetchEcommerceUsers();
+      fetchDrivers();
     }
-  }, []);
+  }, [user]);
+
+  const fetchDrivers = async () => {
+    try {
+      const response = await api.get('/auth/users');
+      const allUsers = response.data.users || response.data || [];
+      const driverUsers = allUsers.filter(u => u.role === 'delivery');
+      setDrivers(driverUsers);
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+    }
+  };
+
+  const handleAssignDriver = async () => {
+    if (selectedOrders.length === 0) {
+      toast.error('Sélectionnez au moins une commande');
+      return;
+    }
+
+    if (!selectedDriverId) {
+      toast.error('Sélectionnez un chauffeur');
+      return;
+    }
+
+    try {
+      // Assign driver to selected orders
+      for (const orderId of selectedOrders) {
+        await api.patch(`/orders/${orderId}`, {
+          delivery_partner: selectedDriverId,
+          status: 'IN_TRANSIT'
+        });
+      }
+
+      toast.success(`${selectedOrders.length} commande(s) assignée(s) au chauffeur`);
+      setAssignDriverDialogOpen(false);
+      setSelectedDriverId('');
+      setSelectedOrders([]);
+      fetchOrders(currentPage);
+    } catch (error) {
+      console.error('Error assigning driver:', error);
+      toast.error('Erreur lors de l\'assignation');
+    }
+  };
 
   useEffect(() => {
     filterOrders();
