@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Auth dependency placeholder - will be injected from server.py
-async def get_current_user_dependency():
-    raise HTTPException(status_code=500, detail="Auth dependency not configured")
+get_current_user_dependency = None
+
+def get_current_user():
+    """Get dependency - will be replaced by server.py"""
+    if get_current_user_dependency is None:
+        raise HTTPException(status_code=500, detail="Auth dependency not configured")
+    return get_current_user_dependency
 
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
