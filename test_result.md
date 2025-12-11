@@ -384,6 +384,30 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: POST /api/subscriptions/upgrade working correctly. Successfully upgraded from STARTER to PRO quarterly plan. Cancels old subscription (status='cancelled'), creates new subscription with correct new_plan_type='pro' and new_billing_period='quarterly'. User plan correctly updated to PRO. Authentication working properly. Supports plan changes and billing period modifications."
 
+  - task: "Bulk Import Orders - Template Download"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/bulk_import.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/orders/template endpoint. Generates Excel template with styled headers (red background, white font), example row, and proper column widths. Returns downloadable .xlsx file with columns: Nom Client, Téléphone, Wilaya, Commune, Adresse, Produit, Prix COD, Remarque."
+
+  - task: "Bulk Import Orders - File Upload & Processing"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/bulk_import.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/orders/bulk-import endpoint. Supports Excel (.xlsx, .xls) and CSV files. Auto-calculates shipping_cost from pricing table (114 entries available), computes net_to_merchant = cod_amount - shipping_cost, generates tracking_id (BEX-XXXXXX) and pin_code. Returns detailed results with success[], errors[], created, failed counts."
+
   - task: "AI Assistant Usage Tracking API - Legacy Plan Bug Fix"
     implemented: true
     working: true
