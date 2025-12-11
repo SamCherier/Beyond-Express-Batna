@@ -67,9 +67,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await axios.post(`${API}/auth/logout`, {}, { withCredentials: true });
-    setUser(null);
-    Cookies.remove('session_token');
+    try {
+      await axios.post(`${API}/auth/logout`, {}, { withCredentials: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Force clear all auth state
+      setUser(null);
+      Cookies.remove('session_token');
+      localStorage.clear(); // Clear any cached data
+      sessionStorage.clear();
+      
+      // Force redirect to login
+      window.location.href = '/login';
+    }
   };
 
   const updateProfile = async (data) => {
