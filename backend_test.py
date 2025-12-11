@@ -1500,6 +1500,305 @@ def test_ai_assistant_pro_user_bug_fix():
         )
         return False
 
+def test_thermal_labels_printing_system():
+    """Test Thermal Labels Printing System - NEW FEATURE"""
+    
+    print("🏷️ Testing Thermal Labels Printing System...")
+    
+    # Test user from review request
+    admin_user_credentials = {
+        "email": "testpro@beyond.com",
+        "password": "Test123!"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Thermal Labels - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+        test_results.add_result(
+            "Thermal Labels - Admin Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'Admin User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Thermal Labels - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Get orders list to get real order IDs
+    try:
+        orders_response = requests.get(
+            f"{API_BASE}/orders",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if orders_response.status_code != 200:
+            test_results.add_result(
+                "Thermal Labels - Get Orders",
+                False,
+                f"GET /api/orders failed with status {orders_response.status_code}",
+                orders_response.text
+            )
+            return False
+        
+        orders_data = orders_response.json()
+        
+        if not isinstance(orders_data, list) or len(orders_data) == 0:
+            test_results.add_result(
+                "Thermal Labels - Get Orders",
+                False,
+                "No orders found in database",
+                f"Response: {orders_data}"
+            )
+            return False
+        
+        # Select 2-3 order IDs for testing
+        test_order_ids = [order['id'] for order in orders_data[:3] if 'id' in order]
+        
+        if len(test_order_ids) < 2:
+            test_results.add_result(
+                "Thermal Labels - Order IDs",
+                False,
+                f"Not enough orders for testing, found {len(test_order_ids)}",
+                f"Available orders: {len(orders_data)}"
+            )
+            return False
+        
+        test_results.add_result(
+            "Thermal Labels - Get Orders",
+            True,
+            f"Retrieved {len(orders_data)} orders, selected {len(test_order_ids)} for testing"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Thermal Labels - Get Orders",
+            False,
+            f"GET /api/orders request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 3: Test POST /api/orders/print-labels with valid order IDs
+    try:
+        labels_response = requests.post(
+            f"{API_BASE}/orders/print-labels",
+            json=test_order_ids,
+            headers=admin_headers,
+            timeout=60  # PDF generation may take time
+        )
+        
+        if labels_response.status_code == 200:
+            # Verify response is PDF
+            content_type = labels_response.headers.get('content-type', '')
+            content_disposition = labels_response.headers.get('content-disposition', '')
+            
+            if 'application/pdf' in content_type:
+                test_results.add_result(
+                    "Thermal Labels - PDF Generation",
+                    True,
+                    f"✅ PDF generated successfully. Size: {len(labels_response.content)} bytes, Content-Type: {content_type}"
+                )
+                
+                # Verify Content-Disposition header
+                if 'attachment' in content_disposition and 'etiquettes_commandes_' in content_disposition:
+                    test_results.add_result(
+                        "Thermal Labels - Content Disposition",
+                        True,
+                        f"✅ Correct Content-Disposition header: {content_disposition}"
+                    )
+                else:
+                    test_results.add_result(
+                        "Thermal Labels - Content Disposition",
+                        False,
+                        f"Incorrect Content-Disposition header",
+                        f"Expected: attachment; filename=\"etiquettes_commandes_*.pdf\", Got: {content_disposition}"
+                    )
+                
+                # Verify PDF size is reasonable (should be > 10KB for multiple labels)
+                pdf_size = len(labels_response.content)
+                if pdf_size > 10000:  # 10KB minimum
+                    test_results.add_result(
+                        "Thermal Labels - PDF Size Validation",
+                        True,
+                        f"✅ PDF size is reasonable: {pdf_size} bytes for {len(test_order_ids)} labels"
+                    )
+                else:
+                    test_results.add_result(
+                        "Thermal Labels - PDF Size Validation",
+                        False,
+                        f"PDF size too small: {pdf_size} bytes",
+                        "PDF may be corrupted or empty"
+                    )
+                
+                return True
+            else:
+                test_results.add_result(
+                    "Thermal Labels - PDF Generation",
+                    False,
+                    f"Response is not PDF, content-type: {content_type}",
+                    f"Response size: {len(labels_response.content)} bytes"
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Thermal Labels - PDF Generation",
+                False,
+                f"❌ Labels generation failed with status {labels_response.status_code}",
+                labels_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Thermal Labels - PDF Generation",
+            False,
+            f"Labels generation request failed: {str(e)}"
+        )
+        return False
+
+def test_thermal_labels_error_handling():
+    """Test Thermal Labels Error Handling"""
+    
+    print("🚫 Testing Thermal Labels Error Handling...")
+    
+    # Test user from review request
+    admin_user_credentials = {
+        "email": "testpro@beyond.com",
+        "password": "Test123!"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Thermal Labels Error - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+    except Exception as e:
+        test_results.add_result(
+            "Thermal Labels Error - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Test with empty order IDs list
+    try:
+        empty_response = requests.post(
+            f"{API_BASE}/orders/print-labels",
+            json=[],
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if empty_response.status_code == 400:
+            error_data = empty_response.json()
+            if 'No order IDs provided' in error_data.get('detail', ''):
+                test_results.add_result(
+                    "Thermal Labels Error - Empty List",
+                    True,
+                    f"✅ Correct error handling for empty list: {error_data.get('detail')}"
+                )
+            else:
+                test_results.add_result(
+                    "Thermal Labels Error - Empty List",
+                    False,
+                    f"Unexpected error message",
+                    f"Expected: 'No order IDs provided', Got: {error_data.get('detail')}"
+                )
+        else:
+            test_results.add_result(
+                "Thermal Labels Error - Empty List",
+                False,
+                f"Expected 400 Bad Request, got {empty_response.status_code}",
+                empty_response.text
+            )
+            
+    except Exception as e:
+        test_results.add_result(
+            "Thermal Labels Error - Empty List",
+            False,
+            f"Empty list test request failed: {str(e)}"
+        )
+    
+    # Step 3: Test with invalid order IDs
+    try:
+        invalid_ids = ["invalid-id-1", "invalid-id-2"]
+        invalid_response = requests.post(
+            f"{API_BASE}/orders/print-labels",
+            json=invalid_ids,
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if invalid_response.status_code == 404:
+            error_data = invalid_response.json()
+            if 'No orders found' in error_data.get('detail', ''):
+                test_results.add_result(
+                    "Thermal Labels Error - Invalid IDs",
+                    True,
+                    f"✅ Correct error handling for invalid IDs: {error_data.get('detail')}"
+                )
+            else:
+                test_results.add_result(
+                    "Thermal Labels Error - Invalid IDs",
+                    False,
+                    f"Unexpected error message",
+                    f"Expected: 'No orders found', Got: {error_data.get('detail')}"
+                )
+        else:
+            test_results.add_result(
+                "Thermal Labels Error - Invalid IDs",
+                False,
+                f"Expected 404 Not Found, got {invalid_response.status_code}",
+                invalid_response.text
+            )
+            
+    except Exception as e:
+        test_results.add_result(
+            "Thermal Labels Error - Invalid IDs",
+            False,
+            f"Invalid IDs test request failed: {str(e)}"
+        )
+    
+    return True
+
 def run_all_tests():
     """Run all backend tests"""
     
