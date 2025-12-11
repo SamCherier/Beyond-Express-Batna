@@ -26,20 +26,37 @@ const FinancialCODPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [error, setError] = useState(null);
 
   // Fetch orders on mount
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(1);
     fetchSummary();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await api.get('/orders');
-      setOrders(response.data);
+      setError(null);
+      const response = await api.get(`/orders?page=${page}&limit=20`);
+      
+      // Handle new paginated response format
+      if (response.data && response.data.orders) {
+        setOrders(response.data.orders || []);
+        setTotalOrders(response.data.total || 0);
+        setTotalPages(response.data.pages || 1);
+        setCurrentPage(page);
+      } else {
+        // Fallback for old format (if response is direct array)
+        setOrders(Array.isArray(response.data) ? response.data : []);
+      }
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setError('Erreur lors du chargement des commandes');
+      setOrders([]); // Set to empty array on error
       toast.error('Erreur lors du chargement des commandes');
     } finally {
       setLoading(false);
