@@ -631,6 +631,18 @@ frontend:
         agent: "main"
         comment: "COMMUNES_BY_WILAYA data structure exists and is imported in OrdersPageAdvanced.js"
 
+  - task: "Thermal Labels Printing - Frontend Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Implemented handlePrintLabels() function in OrdersPageAdvanced.js. Red 'Imprimer Étiquettes' button next to 'Générer Bordereau'. Shows count of selected orders, calls POST /api/orders/print-labels, downloads PDF automatically as 'etiquettes_X_commandes.pdf', displays success toast 'X étiquette(s) générée(s) !'. Error handling for no selection: 'Sélectionnez au moins une commande'."
+
   - task: "Admin Dashboard Modern UI - Data Visualization"
     implemented: true
     working: true
