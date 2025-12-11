@@ -62,6 +62,9 @@ const OrdersPageAdvanced = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [drivers, setDrivers] = useState([]);
+  const [assignDriverDialogOpen, setAssignDriverDialogOpen] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState('');
 
   const [formData, setFormData] = useState({
     recipient_name: '',
