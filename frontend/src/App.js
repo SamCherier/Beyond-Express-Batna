@@ -18,6 +18,8 @@ import CustomersPageAdvanced from '@/pages/CustomersPageAdvanced';
 import WhatsAppDashboard from '@/pages/WhatsAppDashboard';
 import SubscriptionsPage from '@/pages/SubscriptionsPage';
 import CarriersIntegrationPage from '@/pages/CarriersIntegrationPage';
+import FinancialCODPage from '@/pages/FinancialCODPage';
+import PricingManagementPage from '@/pages/PricingManagementPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
