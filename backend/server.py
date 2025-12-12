@@ -1100,6 +1100,55 @@ async def get_support_tickets(current_user: User = Depends(get_current_user)):
     
     return tickets
 
+
+# ===== PUBLIC TRACKING ENDPOINT (NO AUTH REQUIRED) =====
+@api_router.get("/public/track/{tracking_id}")
+async def public_track_order(tracking_id: str):
+    """
+    Public tracking endpoint - NO AUTHENTICATION REQUIRED
+    Returns only non-sensitive tracking information for customers
+    """
+    try:
+        # Find order by tracking_id
+        order = await db.orders.find_one({"tracking_id": tracking_id}, {"_id": 0})
+        
+        if not order:
+            raise HTTPException(status_code=404, detail="Numéro de suivi introuvable")
+        
+        # Get tracking events history
+        events = await db.tracking_events.find(
+            {"order_id": order.get("id")}, 
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(100)  # Sort chronologically (oldest first)
+        
+        # Return ONLY non-sensitive information
+        public_data = {
+            "tracking_id": order.get("tracking_id"),
+            "status": order.get("status"),
+            "recipient_wilaya": order.get("recipient", {}).get("wilaya"),
+            "recipient_commune": order.get("recipient", {}).get("commune"),
+            "created_at": order.get("created_at"),
+            "delivery_partner": order.get("delivery_partner"),
+            "delivery_type": order.get("delivery_type"),
+            "events": [
+                {
+                    "status": event.get("status"),
+                    "timestamp": event.get("timestamp"),
+                    "location": event.get("location"),
+                    "notes": event.get("notes")
+                }
+                for event in events
+            ]
+        }
+        
+        return public_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in public tracking: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la récupération des données")
+
 # Include the router in the main app
 app.include_router(api_router)
 
