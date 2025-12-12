@@ -700,8 +700,16 @@ async def get_ecommerce_users(current_user: User = Depends(get_current_admin)):
 @api_router.get("/users")
 async def get_all_users(current_user: User = Depends(get_current_admin)):
     """Get all users (admin only) - used for driver management"""
-    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
-    return {"users": users}
+    try:
+        users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+        # ALWAYS return empty array if no users, NEVER error
+        if not users:
+            users = []
+        return {"users": users}
+    except Exception as e:
+        logger.error(f"Error fetching users: {e}")
+        # Return empty array instead of 500 error
+        return {"users": []}
 
 
 # ===== PRODUCT ROUTES =====
