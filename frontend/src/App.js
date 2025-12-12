@@ -15,7 +15,7 @@ const PageLoader = () => (
 );
 
 // Eager loading for public pages (fast initial load)
-import LandingPageModern from '@/pages/LandingPageModern';
+import LandingPageModern from '@/pages/LandingPageModernV2';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import TrackingPage from '@/pages/TrackingPage';
