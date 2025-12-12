@@ -180,22 +180,33 @@ const LandingPageModern = () => {
             {t('heroDescription')}
           </p>
           
-          <div className="flex gap-6 justify-center">
-            <Button
-              size="lg"
-              onClick={() => navigate('/register')}
-              className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-lg px-10 py-7 rounded-full shadow-2xl hover:shadow-red-500/50 transition-all border-0 transform hover:scale-105"
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex gap-6 justify-center">
+              <Button
+                size="lg"
+                onClick={() => navigate('/register')}
+                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-lg px-10 py-7 rounded-full shadow-2xl hover:shadow-red-500/50 transition-all border-0 transform hover:scale-105"
+              >
+                {t('getStarted')}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate('/login')}
+                className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-10 py-7 rounded-full backdrop-blur-sm"
+              >
+                {t('loginButton')}
+              </Button>
+            </div>
+            
+            {/* Tracking Link for existing customers */}
+            <button
+              onClick={() => navigate('/tracking')}
+              className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm group"
             >
-              {t('getStarted')}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/login')}
-              className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-10 py-7 rounded-full backdrop-blur-sm"
-            >
-              {t('loginButton')}
-            </Button>
+              <Package className="w-4 h-4 group-hover:text-red-400 transition-colors" />
+              <span>Déjà client ? <span className="underline">Suivre mon colis</span></span>
+            </button>
           </div>
         </div>
 
