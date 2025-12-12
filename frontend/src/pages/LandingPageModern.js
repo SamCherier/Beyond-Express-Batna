@@ -90,8 +90,18 @@ const LandingPageModern = () => {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Tracking Link */}
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/tracking')}
+              className="text-white hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2"
+            >
+              <Package className="w-4 h-4" />
+              Suivre un Colis
+            </Button>
+            
             {/* Language Switcher */}
-            <div className="flex gap-2">
+            <div className="hidden md:flex gap-2">
               <button
                 onClick={() => changeLanguage('fr')}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
