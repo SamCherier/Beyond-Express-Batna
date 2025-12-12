@@ -89,7 +89,7 @@ const OrdersPageAdvanced = () => {
 
   const fetchDrivers = async () => {
     try {
-      const response = await api.get('/auth/users');
+      const response = await api.get('/users');
       const allUsers = response.data.users || response.data || [];
       // HARDCORE DEFENSIVE: Triple check it's an array
       const safeUsers = Array.isArray(allUsers) ? allUsers : [];

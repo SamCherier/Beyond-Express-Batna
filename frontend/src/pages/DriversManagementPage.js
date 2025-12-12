@@ -35,7 +35,7 @@ const DriversManagementPage = () => {
     try {
       setLoading(true);
       // Get all users with role=delivery
-      const response = await api.get('/auth/users');
+      const response = await api.get('/users');
       const allUsers = response.data.users || response.data || [];
       // DEFENSIVE: Always ensure it's an array
       const safeUsers = Array.isArray(allUsers) ? allUsers : [];
