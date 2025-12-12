@@ -18,6 +18,7 @@ const PageLoader = () => (
 import LandingPageModern from '@/pages/LandingPageModern';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import TrackingPage from '@/pages/TrackingPage';
 import DashboardLayout from '@/components/DashboardLayout';
 
 // Lazy loading for dashboard pages (code splitting)
