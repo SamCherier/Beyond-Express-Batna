@@ -91,11 +91,13 @@ const OrdersPageAdvanced = () => {
     try {
       const response = await api.get('/auth/users');
       const allUsers = response.data.users || response.data || [];
-      const driverUsers = Array.isArray(allUsers) ? allUsers.filter(u => u.role === 'delivery') : [];
-      setDrivers(driverUsers);
+      // HARDCORE DEFENSIVE: Triple check it's an array
+      const safeUsers = Array.isArray(allUsers) ? allUsers : [];
+      const driverUsers = safeUsers.filter(u => u.role === 'delivery');
+      setDrivers(Array.isArray(driverUsers) ? driverUsers : []);
     } catch (error) {
       console.error('Error fetching drivers:', error);
-      // Set empty array on error so page doesn't crash
+      // ALWAYS set empty array on error so page doesn't crash
       setDrivers([]);
     }
   };
