@@ -22,7 +22,8 @@ import {
   Bot,
   CreditCard,
   DollarSign,
-  Upload
+  Upload,
+  ChevronDown
 } from 'lucide-react';
 import AIAssistant from '@/components/AIAssistant';
 
