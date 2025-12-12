@@ -130,19 +130,59 @@ const DashboardLayout = () => {
               </button>
             </div>
 
-            {/* User Info */}
-            <div className="flex items-center gap-3">
-              {user?.picture ? (
-                <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
-                  {user?.name?.[0]?.toUpperCase()}
+            {/* User Profile Menu */}
+            <div className="relative">
+              <button 
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)} 
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                {user?.picture ? (
+                  <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
+                    {user?.name?.[0]?.toUpperCase()}
+                  </div>
+                )}
+                <div className="hidden md:block text-left">
+                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                  <p className="text-xs text-gray-500">{t(user?.role)}</p>
                 </div>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {profileMenuOpen && (
+                <>
+                  {/* Backdrop to close menu when clicking outside */}
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setProfileMenuOpen(false)}
+                  />
+                  
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-bold text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-500">{user?.email}</p>
+                      <p className="text-xs text-gray-400 mt-1">{t(user?.role)}</p>
+                    </div>
+                    
+                    <button 
+                      onClick={() => {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        document.cookie.split(";").forEach((c) => {
+                          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                        });
+                        window.location.href = '/login';
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="font-medium">Déconnexion</span>
+                    </button>
+                  </div>
+                </>
               )}
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">{t(user?.role)}</p>
-              </div>
             </div>
           </div>
         </div>
