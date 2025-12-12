@@ -77,6 +77,11 @@ function AppRoutes() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPageModern />} />
+      
+      {/* Public Tracking Page - NO AUTH REQUIRED */}
+      <Route path="/tracking" element={<TrackingPage />} />
+      <Route path="/tracking/:tracking_id" element={<TrackingPage />} />
+      
       <Route
         path="/login"
         element={
