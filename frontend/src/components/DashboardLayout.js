@@ -25,6 +25,7 @@ import {
   Upload,
   ChevronDown
 } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 import AIAssistant from '@/components/AIAssistant';
 
 const DashboardLayout = () => {
