@@ -4,7 +4,6 @@ import { Search, Package, Truck, CheckCircle, MapPin, Calendar, AlertCircle } fr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BeyondExpressLogo from '@/components/BeyondExpressLogo';
-import Confetti from 'react-confetti';
 import api from '@/api';
 
 const TrackingPage = () => {
@@ -14,7 +13,6 @@ const TrackingPage = () => {
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     if (tracking_id) {
@@ -29,12 +27,6 @@ const TrackingPage = () => {
       
       const response = await api.get(`/public/track/${id}`);
       setTrackingData(response.data);
-      
-      // Show confetti if delivered
-      if (response.data.status === 'delivered') {
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 5000);
-      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Numéro de suivi introuvable');
       setTrackingData(null);
@@ -74,8 +66,6 @@ const TrackingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
-      
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6 flex items-center justify-center">
