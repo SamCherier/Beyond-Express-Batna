@@ -871,6 +871,17 @@ const OrdersPageAdvanced = () => {
                             Suivi
                           </Button>
                           
+                          {/* Public Tracking Page Link */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(`/tracking/${order.tracking_id}`, '_blank')}
+                            className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                            title="Voir la page publique de tracking"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                          
                           {order.recipient?.phone && (
                             <Button
                               size="sm"
