@@ -125,6 +125,13 @@ const TrackingPage = () => {
           <div className="space-y-6">
             {/* Status Card */}
             <div className="bg-white rounded-2xl shadow-lg p-8">
+              {/* Celebration Banner for Delivered */}
+              {trackingData.status === 'delivered' && (
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-lg mb-6 text-center animate-pulse">
+                  <p className="text-2xl font-bold">🎉 COLIS LIVRÉ AVEC SUCCÈS ! 🎉</p>
+                </div>
+              )}
+              
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Numéro de Suivi</p>
