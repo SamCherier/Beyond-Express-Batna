@@ -91,7 +91,8 @@ const DriversManagementPage = () => {
     }
   };
 
-  const filteredDrivers = drivers.filter(driver =>
+  // DEFENSIVE: Always ensure drivers is an array before filtering
+  const filteredDrivers = (Array.isArray(drivers) ? drivers : []).filter(driver =>
     driver.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     driver.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
