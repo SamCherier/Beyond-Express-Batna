@@ -164,6 +164,12 @@ function AppRoutes() {
             <DriversManagementPage />
           </Suspense>
         } />
+        <Route path="whatsapp" element={
+          <Suspense fallback={<PageLoader />}>
+            <WhatsAppDashboard />
+          </Suspense>
+        } />
+
         <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
         <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
         <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
