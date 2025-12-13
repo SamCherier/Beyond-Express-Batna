@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '@/api';
 import PhonePreview from '@/components/PhonePreview';
-import useFeatureAccess from '@/hooks/useFeatureAccess';
+import { useAuth } from '@/contexts/AuthContext';
 
 const WhatsAppDashboard = () => {
-  const { checkAccess } = useFeatureAccess();
+  const { user } = useAuth();
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [previewMessage, setPreviewMessage] = useState('');
@@ -18,7 +18,8 @@ const WhatsAppDashboard = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const hasAccess = checkAccess('whatsapp_notifications');
+  // Admin has access to everything, PRO and BUSINESS plans have access
+  const hasAccess = user?.role === 'admin' || ['pro', 'business', 'PRO', 'BUSINESS'].includes(user?.subscription_plan);
 
   useEffect(() => {
     fetchData();
