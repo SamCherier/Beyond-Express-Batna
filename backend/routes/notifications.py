@@ -1,9 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Cookie
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
 from models import User
 import logging
+
+# Import get_current_user from server
+import sys
+sys.path.append('/app/backend')
+from server import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +30,10 @@ class NotificationTemplateUpdate(BaseModel):
     templates: List[NotificationTemplate]
 
 @router.post("/send")
-async def send_notification(request: SendNotificationRequest, current_user: User):
+async def send_notification(
+    request: SendNotificationRequest,
+    current_user: User = Depends(get_current_user)
+):
     """
     Simulate sending a WhatsApp notification
     For MVP, this just logs the notification without actual WhatsApp API call
@@ -63,7 +71,7 @@ async def send_notification(request: SendNotificationRequest, current_user: User
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/templates")
-async def get_notification_templates(current_user: User):
+async def get_notification_templates(current_user: User = Depends(get_current_user)):
     """Get user's notification templates"""
     try:
         from server import db
@@ -114,7 +122,7 @@ async def get_notification_templates(current_user: User):
 @router.put("/templates")
 async def update_notification_templates(
     update: NotificationTemplateUpdate,
-    current_user: User
+    current_user: User = Depends(get_current_user)
 ):
     """Update user's notification templates"""
     try:
@@ -146,7 +154,7 @@ async def update_notification_templates(
 async def get_notification_history(
     order_id: Optional[str] = None,
     limit: int = 50,
-    current_user: User = None
+    current_user: User = Depends(get_current_user)
 ):
     """Get notification history for user or specific order"""
     try:
@@ -168,7 +176,7 @@ async def get_notification_history(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/stats")
-async def get_notification_stats(current_user: User):
+async def get_notification_stats(current_user: User = Depends(get_current_user)):
     """Get notification statistics for user"""
     try:
         from server import db

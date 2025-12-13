@@ -1189,13 +1189,12 @@ app.include_router(labels_router.router, prefix="/api/orders", tags=["labels"])
 from routes import driver as driver_router
 app.include_router(driver_router.router, prefix="/api/driver", tags=["driver"])
 
-# Include Notifications routes (with dependencies)
+# Include Notifications routes
 from routes import notifications as notifications_router
 app.include_router(
     notifications_router.router, 
     prefix="/api/notifications", 
-    tags=["notifications"],
-    dependencies=[Depends(get_current_user)]
+    tags=["notifications"]
 )
 
 
