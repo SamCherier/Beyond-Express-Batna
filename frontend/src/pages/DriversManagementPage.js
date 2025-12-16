@@ -164,8 +164,25 @@ const DriversManagementPage = () => {
             <tbody className="divide-y">
               {filteredDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="p-8 text-center text-gray-500">
-                    Aucun chauffeur trouvé
+                  <td colSpan="4" className="p-16">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                        <Truck className="w-12 h-12 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        Aucun chauffeur trouvé
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+                        Vous n'avez pas encore de chauffeurs enregistrés. Commencez par ajouter votre premier chauffeur pour gérer vos livraisons.
+                      </p>
+                      <Button
+                        onClick={() => setDialogOpen(true)}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Ajouter un Chauffeur
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ) : (
