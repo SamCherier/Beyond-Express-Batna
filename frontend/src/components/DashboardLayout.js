@@ -221,14 +221,14 @@ const DashboardLayout = () => {
         </nav>
 
         {/* LOGOUT BUTTON - ALWAYS VISIBLE AT BOTTOM */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <div className="p-4 mt-auto border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={handleNuclearLogout}
-            className="flex items-center justify-center gap-3 px-4 py-4 rounded-lg bg-red-600 text-white hover:bg-red-700 w-full transition-all shadow-lg font-bold text-base"
+            className="flex items-center w-full px-4 py-3 text-sm font-medium text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700 shadow-md group"
             data-testid="logout-button"
           >
-            <LogOut className="w-6 h-6" />
-            <span>🚪 DÉCONNEXION</span>
+            <LogOut className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform" />
+            Se déconnecter
           </button>
         </div>
       </aside>
