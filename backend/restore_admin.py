@@ -1,11 +1,12 @@
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import sys
 from datetime import datetime, timezone
-from passlib.context import CryptContext
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Add backend to path to import auth_utils
+sys.path.insert(0, '/app/backend')
+from auth_utils import hash_password
 
 async def restore_admin():
     """Restore admin account with specific credentials"""
@@ -23,16 +24,17 @@ async def restore_admin():
     admin_email = "cherier.sam@beyondexpress-batna.com"
     admin_password = "admin123456"
     
-    # Delete existing account if exists
-    existing = await db.users.find_one({"email": admin_email})
-    if existing:
-        await db.users.delete_one({"email": admin_email})
-        print(f"✅ Ancien compte supprimé: {admin_email}")
+    # Delete ALL existing accounts with this email (clean slate)
+    delete_result = await db.users.delete_many({"email": admin_email})
+    if delete_result.deleted_count > 0:
+        print(f"✅ {delete_result.deleted_count} ancien(s) compte(s) supprimé(s): {admin_email}")
     
-    # Hash password
-    hashed_password = pwd_context.hash(admin_password)
+    # Hash password using the SAME function as the backend
+    print(f"🔐 Hashing du mot de passe...")
+    hashed_password = hash_password(admin_password)
+    print(f"✅ Hash créé: {hashed_password[:50]}...")
     
-    # Create new admin account
+    # Create new admin account with ALL required fields
     admin_user = {
         "id": "admin_restored_" + datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"),
         "email": admin_email,
@@ -58,7 +60,9 @@ async def restore_admin():
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "is_active": True,
-        "email_verified": True
+        "email_verified": True,
+        "picture": None,
+        "phone": None
     }
     
     # Insert into database
@@ -72,8 +76,20 @@ async def restore_admin():
     print(f"👤 Role: admin")
     print(f"💎 Plan: BUSINESS")
     print(f"🆔 ID: {admin_user['id']}")
+    print(f"🗄️  MongoDB ID: {result.inserted_id}")
     print("="*70)
-    print("\n🎉 Vous pouvez maintenant vous connecter !")
+    
+    # Verify the account was created
+    verification = await db.users.find_one({"email": admin_email}, {"_id": 0, "password": 0})
+    if verification:
+        print("\n✅ VÉRIFICATION : Compte trouvé dans la base de données")
+        print(f"   Role: {verification.get('role')}")
+        print(f"   Plan: {verification.get('subscription_plan')}")
+        print(f"   Active: {verification.get('is_active')}")
+    else:
+        print("\n❌ ERREUR : Compte non trouvé après insertion!")
+    
+    print("\n🎉 Vous pouvez maintenant vous connecter avec ces identifiants !")
     
     client.close()
 
