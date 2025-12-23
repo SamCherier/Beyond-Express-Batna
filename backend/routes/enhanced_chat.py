@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 from models import User
 import logging
 import google.generativeai as genai
+import sys
+sys.path.append('/app/backend')
+from server import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +46,7 @@ Si l'utilisateur donne un numéro de suivi (format TRK...), essaie de l'aider.
 """
 
 @router.post("/send", response_model=ChatResponse)
-async def send_chat_message(chat: ChatMessage, current_user: User):
+async def send_chat_message(chat: ChatMessage, current_user: User = Depends(get_current_user)):
     """Send message to AI and get response"""
     try:
         from server import db
@@ -121,7 +124,7 @@ async def send_chat_message(chat: ChatMessage, current_user: User):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history")
-async def get_chat_history(limit: int = 20, current_user: User = None):
+async def get_chat_history(limit: int = 20, current_user: User = Depends(get_current_user)):
     """Get chat history for user"""
     try:
         from server import db

@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 from models import User
 import logging
 import google.generativeai as genai
+import sys
+sys.path.append('/app/backend')
+from server import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +22,7 @@ class TestAIRequest(BaseModel):
     message: str = "Bonjour"
 
 @router.post("/config")
-async def save_ai_config(config: AIConfig, current_user: User):
+async def save_ai_config(config: AIConfig, current_user: User = Depends(get_current_user)):
     """Save AI configuration for user"""
     try:
         from server import db
@@ -53,7 +56,7 @@ async def save_ai_config(config: AIConfig, current_user: User):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/config")
-async def get_ai_config(current_user: User):
+async def get_ai_config(current_user: User = Depends(get_current_user)):
     """Get AI configuration for user"""
     try:
         from server import db
@@ -88,7 +91,7 @@ async def get_ai_config(current_user: User):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/test")
-async def test_ai_connection(test_request: TestAIRequest, current_user: User):
+async def test_ai_connection(test_request: TestAIRequest, current_user: User = Depends(get_current_user)):
     """Test AI connection with saved config"""
     try:
         from server import db
