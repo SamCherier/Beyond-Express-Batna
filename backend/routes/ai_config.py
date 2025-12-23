@@ -82,7 +82,7 @@ async def get_ai_config(current_user: User = Depends(get_current_user)):
         # Return default config
         return {
             "provider": "gemini",
-            "model_name": "gemini-1.5-flash",
+            "model_name": "gemini-pro",
             "api_key_masked": "****"
         }
         
