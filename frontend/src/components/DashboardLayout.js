@@ -69,6 +69,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/finance/cod', icon: <DollarSign className="w-5 h-5" />, label: 'Finance COD', roles: ['admin'] },
     { path: '/dashboard/subscriptions', icon: <CreditCard className="w-5 h-5" />, label: 'Abonnements', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/whatsapp', icon: <MessageCircle className="w-5 h-5" />, label: 'WhatsApp', roles: ['admin'] },
+    { path: '/dashboard/settings/ai', icon: <Bot className="w-5 h-5" />, label: 'Configuration IA', roles: ['admin'] },
     { path: '/dashboard/settings/integrations', icon: <Truck className="w-5 h-5" />, label: 'Intégrations', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/settings/pricing', icon: <Settings className="w-5 h-5" />, label: 'Tarifs Livraison', roles: ['admin'] },
     { path: '/dashboard/invoices', icon: <FileText className="w-5 h-5" />, label: t('invoices'), roles: ['admin', 'ecommerce'] },
