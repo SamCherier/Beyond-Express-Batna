@@ -1192,6 +1192,15 @@ app.include_router(driver_router.router, prefix="/api/driver", tags=["driver"])
 # Include Notifications routes
 from routes import notifications as notifications_router
 app.include_router(
+
+# Include AI Config routes
+from routes import ai_config as ai_config_router
+app.include_router(ai_config_router.router, prefix="/api/ai-config", tags=["ai_config"])
+
+# Include Enhanced Chat routes
+from routes import enhanced_chat as enhanced_chat_router
+app.include_router(enhanced_chat_router.router, prefix="/api/chat", tags=["chat"])
+
     notifications_router.router, 
     prefix="/api/notifications", 
     tags=["notifications"]
