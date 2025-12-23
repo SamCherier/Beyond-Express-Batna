@@ -84,7 +84,15 @@ async def send_chat_message(chat: ChatMessage, current_user: User = Depends(get_
         # Generate response based on provider
         if provider == 'gemini':
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(model_name)
+            
+            # Try gemini-1.5-flash first, fallback to gemini-pro
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                model_name = 'gemini-1.5-flash'
+            except Exception as e:
+                logger.warning(f"gemini-1.5-flash not available, using gemini-pro: {e}")
+                model = genai.GenerativeModel('gemini-pro')
+                model_name = 'gemini-pro'
             
             # Create full prompt with context
             full_prompt = BEYOND_EXPRESS_CONTEXT + context_addition + "\n\nQuestion de l'utilisateur: " + chat.message

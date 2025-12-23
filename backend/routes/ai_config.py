@@ -109,16 +109,24 @@ async def test_ai_connection(test_request: TestAIRequest, current_user: User = D
         api_key = config.get('api_key')
         
         if provider == 'gemini':
-            # Test Gemini
+            # Test Gemini with fallback
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
             
-            response = model.generate_content(test_request.message)
+            # Try gemini-1.5-flash first, fallback to gemini-pro
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                response = model.generate_content(test_request.message)
+                model_name = 'gemini-1.5-flash'
+            except Exception as e:
+                logger.warning(f"gemini-1.5-flash failed, trying gemini-pro: {e}")
+                model = genai.GenerativeModel('gemini-pro')
+                response = model.generate_content(test_request.message)
+                model_name = 'gemini-pro'
             
             return {
                 "success": True,
                 "provider": "Google Gemini",
-                "model": "gemini-1.5-flash",
+                "model": model_name,
                 "response": response.text,
                 "message": "Connexion réussie !"
             }
