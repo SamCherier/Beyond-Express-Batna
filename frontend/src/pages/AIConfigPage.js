@@ -41,7 +41,7 @@ const AIConfigPage = () => {
       await api.post('/ai-config/config', {
         provider,
         api_key: apiKey,
-        model_name: provider === 'gemini' ? 'gemini-1.5-flash' : undefined
+        model_name: 'gemini-pro'  // Use stable model instead of flash
       });
 
       toast.success('Configuration sauvegardée avec succès !');
