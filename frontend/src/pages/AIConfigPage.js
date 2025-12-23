@@ -110,14 +110,14 @@ const AIConfigPage = () => {
   const selectedProvider = providers.find(p => p.value === provider);
 
   return (
-    <div className=\"space-y-6 max-w-4xl mx-auto\">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className=\"text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3\">
-          <Brain className=\"w-8 h-8 text-purple-500\" />
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <Brain className="w-8 h-8 text-purple-500" />
           Configuration de l'IA
         </h1>
-        <p className=\"text-gray-600 dark:text-gray-400 mt-1\">
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
           Configurez votre assistant IA avec votre propre clé API (BYOK)
         </p>
       </div>
@@ -125,18 +125,18 @@ const AIConfigPage = () => {
       {/* Main Config Card */}
       <Card>
         <CardHeader>
-          <CardTitle className=\"flex items-center gap-2\">
-            <Key className=\"w-5 h-5\" />
+          <CardTitle className="flex items-center gap-2">
+            <Key className="w-5 h-5" />
             Configuration du Fournisseur
           </CardTitle>
           <CardDescription>
             Choisissez votre fournisseur d'IA et entrez votre clé API
           </CardDescription>
         </CardHeader>
-        <CardContent className=\"space-y-6\">
+        <CardContent className="space-y-6">
           {/* Provider Selection */}
           <div>
-            <Label htmlFor=\"provider\" className=\"mb-2 block\">Fournisseur d'IA</Label>
+            <Label htmlFor="provider" className="mb-2 block">Fournisseur d'IA</Label>
             <Select value={provider} onValueChange={setProvider}>
               <SelectTrigger>
                 <SelectValue />
@@ -144,9 +144,9 @@ const AIConfigPage = () => {
               <SelectContent>
                 {providers.map((p) => (
                   <SelectItem key={p.value} value={p.value}>
-                    <div className=\"flex flex-col\">
-                      <span className=\"font-medium\">{p.label}</span>
-                      <span className=\"text-xs text-gray-500\">{p.description}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{p.label}</span>
+                      <span className="text-xs text-gray-500">{p.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -156,17 +156,17 @@ const AIConfigPage = () => {
 
           {/* Help Link */}
           {selectedProvider && (
-            <div className=\"bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4\">
-              <p className=\"text-sm text-blue-900 dark:text-blue-400 mb-2\">
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+              <p className="text-sm text-blue-900 dark:text-blue-400 mb-2">
                 Besoin d'une clé API ?
               </p>
               <a
                 href={selectedProvider.helpLink}
-                target=\"_blank\"
-                rel=\"noopener noreferrer\"
-                className=\"inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline\"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
-                <ExternalLink className=\"w-4 h-4\" />
+                <ExternalLink className="w-4 h-4" />
                 {selectedProvider.helpText}
               </a>
             </div>
@@ -174,19 +174,19 @@ const AIConfigPage = () => {
 
           {/* API Key Input */}
           <div>
-            <Label htmlFor=\"apiKey\" className=\"mb-2 block\">Clé API</Label>
-            <div className=\"space-y-2\">
+            <Label htmlFor="apiKey" className="mb-2 block">Clé API</Label>
+            <div className="space-y-2">
               <Input
-                id=\"apiKey\"
-                type=\"password\"
-                placeholder=\"Entrez votre clé API...\"
+                id="apiKey"
+                type="password"
+                placeholder="Entrez votre clé API..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className=\"font-mono\"
+                className="font-mono"
               />
               {maskedKey !== '****' && (
-                <p className=\"text-xs text-gray-500\">
-                  Clé actuelle : <code className=\"bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded\">{maskedKey}</code>
+                <p className="text-xs text-gray-500">
+                  Clé actuelle : <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{maskedKey}</code>
                 </p>
               )}
             </div>
@@ -196,16 +196,16 @@ const AIConfigPage = () => {
           <Button
             onClick={handleSaveConfig}
             disabled={loading || !apiKey}
-            className=\"w-full bg-purple-500 hover:bg-purple-600 text-white\"
+            className="w-full bg-purple-500 hover:bg-purple-600 text-white"
           >
             {loading ? (
               <>
-                <Loader2 className=\"w-4 h-4 mr-2 animate-spin\" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Sauvegarde...
               </>
             ) : (
               <>
-                <Key className=\"w-4 h-4 mr-2\" />
+                <Key className="w-4 h-4 mr-2" />
                 Sauvegarder la Configuration
               </>
             )}
@@ -221,21 +221,21 @@ const AIConfigPage = () => {
             Vérifiez que votre configuration fonctionne correctement
           </CardDescription>
         </CardHeader>
-        <CardContent className=\"space-y-4\">
+        <CardContent className="space-y-4">
           <Button
             onClick={handleTestAI}
             disabled={testing || maskedKey === '****'}
-            variant=\"outline\"
-            className=\"w-full\"
+            variant="outline"
+            className="w-full"
           >
             {testing ? (
               <>
-                <Loader2 className=\"w-4 h-4 mr-2 animate-spin\" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Test en cours...
               </>
             ) : (
               <>
-                <Brain className=\"w-4 h-4 mr-2\" />
+                <Brain className="w-4 h-4 mr-2" />
                 Tester l'IA
               </>
             )}
@@ -247,13 +247,13 @@ const AIConfigPage = () => {
                 ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900' 
                 : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900'
             }`}>
-              <div className=\"flex items-start gap-3\">
+              <div className="flex items-start gap-3">
                 {testResult.success ? (
-                  <CheckCircle className=\"w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5\" />
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                 ) : (
-                  <XCircle className=\"w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5\" />
+                  <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                 )}
-                <div className=\"flex-1\">
+                <div className="flex-1">
                   <p className={`font-medium mb-1 ${
                     testResult.success 
                       ? 'text-green-900 dark:text-green-400' 
@@ -262,17 +262,17 @@ const AIConfigPage = () => {
                     {testResult.success ? 'Test réussi !' : 'Test échoué'}
                   </p>
                   {testResult.response && (
-                    <p className=\"text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded mt-2\">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-3 rounded mt-2">
                       {testResult.response}
                     </p>
                   )}
                   {testResult.error && (
-                    <p className=\"text-sm text-red-700 dark:text-red-400\">
+                    <p className="text-sm text-red-700 dark:text-red-400">
                       {testResult.error}
                     </p>
                   )}
                   {testResult.provider && (
-                    <p className=\"text-xs text-gray-500 dark:text-gray-400 mt-2\">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       Fournisseur : {testResult.provider} | Modèle : {testResult.model}
                     </p>
                   )}
@@ -284,22 +284,22 @@ const AIConfigPage = () => {
       </Card>
 
       {/* Info Card */}
-      <Card className=\"bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-900\">
-        <CardContent className=\"pt-6\">
-          <h3 className=\"font-semibold text-purple-900 dark:text-purple-400 mb-2\">
+      <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-900">
+        <CardContent className="pt-6">
+          <h3 className="font-semibold text-purple-900 dark:text-purple-400 mb-2">
             Pourquoi BYOK (Bring Your Own Key) ?
           </h3>
-          <ul className=\"space-y-2 text-sm text-purple-800 dark:text-purple-300\">
-            <li className=\"flex items-start gap-2\">
-              <span className=\"text-purple-500\">•</span>
+          <ul className="space-y-2 text-sm text-purple-800 dark:text-purple-300">
+            <li className="flex items-start gap-2">
+              <span className="text-purple-500">•</span>
               <span><strong>Gratuit</strong> : Utilisez les quotas gratuits de Gemini (60 req/min)</span>
             </li>
-            <li className=\"flex items-start gap-2\">
-              <span className=\"text-purple-500\">•</span>
+            <li className="flex items-start gap-2">
+              <span className="text-purple-500">•</span>
               <span><strong>Contrôle</strong> : Vos données restent entre vous et le fournisseur</span>
             </li>
-            <li className=\"flex items-start gap-2\">
-              <span className=\"text-purple-500\">•</span>
+            <li className="flex items-start gap-2">
+              <span className="text-purple-500">•</span>
               <span><strong>Flexible</strong> : Changez de fournisseur à tout moment</span>
             </li>
           </ul>
