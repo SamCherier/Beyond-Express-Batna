@@ -171,6 +171,12 @@ function AppRoutes() {
             <WhatsAppDashboard />
           </Suspense>
         } />
+        <Route path="settings/ai" element={
+          <Suspense fallback={<PageLoader />}>
+            <AIConfigPage />
+          </Suspense>
+        } />
+
 
         <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
         <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
