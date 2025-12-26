@@ -188,6 +188,17 @@ function AppRoutes() {
         <Route path="settings" element={<div className="p-8 text-center">Settings Page - Coming Soon</div>} />
       </Route>
 
+
+      {/* Driver Routes (Mobile PWA) */}
+      <Route path="/driver/login" element={<DriverLogin />} />
+      <Route path="/driver" element={<DriverLayout />}>
+        <Route path="tasks" element={
+          <Suspense fallback={<PageLoader />}>
+            <DriverTasks />
+          </Suspense>
+        } />
+      </Route>
+
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
