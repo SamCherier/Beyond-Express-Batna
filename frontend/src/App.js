@@ -20,6 +20,8 @@ import LandingPageModern from '@/pages/LandingPageModernV2';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
 import TrackingPage from '@/pages/TrackingPage';
+import DriverLogin from '@/pages/DriverLogin';
+import DriverLayout from '@/components/DriverLayout';
 import DashboardLayout from '@/components/DashboardLayout';
 
 // Lazy loading for dashboard pages (code splitting)
@@ -33,6 +35,8 @@ const CarriersIntegrationPage = lazy(() => import('@/pages/CarriersIntegrationPa
 const FinancialCODPage = lazy(() => import('@/pages/FinancialCODPage'));
 const PricingManagementPage = lazy(() => import('@/pages/PricingManagementPage'));
 const BulkImportPage = lazy(() => import('@/pages/BulkImportPage'));
+const DriverTasks = lazy(() => import('@/pages/DriverTasks'));
+
 const DriversManagementPage = lazy(() => import('@/pages/DriversManagementPage'));
 const AIConfigPage = lazy(() => import('@/pages/AIConfigPage'));
 
