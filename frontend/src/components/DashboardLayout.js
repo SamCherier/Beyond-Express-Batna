@@ -213,15 +213,31 @@ const DashboardLayout = () => {
           })}
         </nav>
 
-        {/* LOGOUT BUTTON - ALWAYS VISIBLE AT BOTTOM */}
-        <div className="p-4 mt-auto border-t border-gray-200 dark:border-gray-700">
+        {/* LOGOUT BUTTON - HARDCODED INLINE */}
+        <div className="mt-auto border-t border-gray-200 dark:border-gray-700 p-4">
           <button
-            onClick={handleNuclearLogout}
-            className="flex items-center w-full px-4 py-3 text-sm font-medium text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700 shadow-md group"
+            onClick={(e) => {
+              e.preventDefault();
+              // 1. Nettoyage Brutal (Directement ici, pas d'import)
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // 2. Destruction Cookies
+              document.cookie.split(";").forEach((c) => {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+              });
+
+              // 3. Redirection Force (Pas de React Router)
+              window.location.href = '/login'; 
+            }}
+            className="flex w-full items-center rounded-lg bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-red-700 transition-colors"
             data-testid="logout-button"
           >
-            <LogOut className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform" />
-            Se déconnecter
+            {/* Icône SVG Hardcodée pour éviter les erreurs d'import d'icônes */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            DÉCONNEXION
           </button>
         </div>
       </aside>
