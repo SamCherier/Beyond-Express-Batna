@@ -44,14 +44,13 @@ const DashboardLayout = () => {
     navigate('/login');
   };
 
-  const handleNuclearLogout = () => {
-    // NUCLEAR OPTION: Clear everything
-    localStorage.clear();
-    sessionStorage.clear();
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    window.location.href = '/login';
+  const handleForceLogout = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      forceLogout();
+    }
   };
 
   const changeLanguage = (lng) => {
@@ -172,18 +171,11 @@ const DashboardLayout = () => {
                     </div>
                     
                     <button 
-                      onClick={() => {
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        document.cookie.split(";").forEach((c) => {
-                          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                        });
-                        window.location.href = '/login';
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                      onClick={handleForceLogout}
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span className="font-medium">Déconnexion</span>
+                      <span>Déconnexion</span>
                     </button>
                   </div>
                 </>
