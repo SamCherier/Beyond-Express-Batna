@@ -3191,6 +3191,9 @@ def run_all_tests():
     
     # Test sequence - CRITICAL DEMO FIXES FIRST
     tests = [
+        ("🚀 SMART ROUTING ENGINE - Shipping API", test_smart_routing_engine_shipping_api),
+        ("🔗 WEBHOOKS - Test Endpoints", test_webhooks_endpoints),
+        ("🚚 CARRIERS - Configuration API", test_carriers_configuration),
         ("🔥 P0 CRITICAL - Admin Dashboard", test_admin_dashboard_critical),
         ("🚛 P1 CRITICAL - Driver PWA", test_driver_pwa_critical),
         ("🔧 P1 CRITICAL - Driver API curl simulation", test_driver_api_curl_simulation),
