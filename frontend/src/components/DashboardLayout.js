@@ -44,15 +44,6 @@ const DashboardLayout = () => {
     navigate('/login');
   };
 
-  const handleForceLogout = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      forceLogout();
-    }
-  };
-
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
