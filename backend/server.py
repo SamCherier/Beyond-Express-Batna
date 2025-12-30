@@ -141,15 +141,16 @@ async def login(credentials: UserLogin, response: Response):
     }
     await db.sessions.insert_one(session_doc)
     
-    # Set cookie
+    # Set cookie - permissive settings for cross-origin
+    is_production = os.environ.get('ENVIRONMENT', 'development') == 'production'
     response.set_cookie(
         key="session_token",
         value=session_token,
         max_age=7 * 24 * 60 * 60,
         path="/",
         httponly=True,
-        samesite="lax",
-        secure=False
+        samesite="none",  # Allow cross-origin
+        secure=True  # Required for SameSite=None
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
@@ -207,15 +208,16 @@ async def process_google_session(request: Request, response: Response):
     }
     await db.sessions.insert_one(session_doc)
     
-    # Set cookie
+    # Set cookie - permissive settings for cross-origin
+    is_production = os.environ.get('ENVIRONMENT', 'development') == 'production'
     response.set_cookie(
         key="session_token",
         value=session_token,
         max_age=7 * 24 * 60 * 60,
         path="/",
         httponly=True,
-        samesite="lax",
-        secure=False
+        samesite="none",  # Allow cross-origin
+        secure=True  # Required for SameSite=None
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
