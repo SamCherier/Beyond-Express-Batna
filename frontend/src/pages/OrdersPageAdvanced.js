@@ -373,6 +373,91 @@ const OrdersPageAdvanced = () => {
     }
   };
 
+  // ===== SHIPPING FUNCTIONS (Smart Router) =====
+  const handleShipOrders = async () => {
+    if (selectedOrders.length === 0) {
+      toast.error('Sélectionnez des commandes à expédier');
+      return;
+    }
+
+    setShipLoading(true);
+    try {
+      const response = await bulkShipOrders(selectedOrders, selectedCarrierForShip);
+      const { success, failed, results } = response.data;
+      
+      if (success > 0) {
+        toast.success(`✅ ${success} commande(s) expédiée(s) via ${selectedCarrierForShip.toUpperCase()}!`);
+        
+        // Show tracking IDs
+        const successResults = results.filter(r => r.success);
+        successResults.forEach(r => {
+          if (r.carrier_tracking_id) {
+            toast.info(`🚚 ${r.order_id.slice(0,8)}... → ${r.carrier_tracking_id}`, { duration: 5000 });
+          }
+        });
+      }
+      
+      if (failed > 0) {
+        const failedResults = results.filter(r => !r.success);
+        failedResults.forEach(r => {
+          toast.error(`❌ Échec: ${r.error_message || 'Erreur inconnue'}`, { duration: 5000 });
+        });
+      }
+      
+      setShipDialogOpen(false);
+      setSelectedOrders([]);
+      fetchOrders(currentPage);
+    } catch (error) {
+      console.error('Error shipping orders:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'expédition');
+    } finally {
+      setShipLoading(false);
+    }
+  };
+
+  const handleShipSingleOrder = async (order, carrierType = 'yalidine') => {
+    try {
+      toast.loading(`Expédition via ${carrierType.toUpperCase()}...`, { id: 'ship-single' });
+      
+      const response = await shipOrder(order.id, carrierType);
+      
+      if (response.data.success) {
+        toast.success(
+          `✅ Commande expédiée!\n🚚 Tracking: ${response.data.carrier_tracking_id}`,
+          { id: 'ship-single', duration: 5000 }
+        );
+        fetchOrders(currentPage);
+      } else {
+        toast.error(`❌ ${response.data.error_message}`, { id: 'ship-single' });
+      }
+    } catch (error) {
+      console.error('Error shipping order:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'expédition', { id: 'ship-single' });
+    }
+  };
+
+  const handleDownloadCarrierLabel = async (order) => {
+    if (!order.carrier_tracking_id) {
+      toast.error('Cette commande n\'a pas encore été expédiée');
+      return;
+    }
+    
+    try {
+      toast.loading('Téléchargement de l\'étiquette...', { id: 'label-download' });
+      const response = await getShippingLabel(order.id);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `etiquette_${order.carrier_tracking_id}.pdf`;
+      link.click();
+      toast.success('Étiquette téléchargée!', { id: 'label-download' });
+    } catch (error) {
+      console.error('Error downloading label:', error);
+      toast.error('Étiquette non disponible', { id: 'label-download' });
+    }
+  };
+
   const handleSendWhatsAppConfirmation = async (order) => {
     try {
       // Check if order has phone number
