@@ -137,7 +137,6 @@ class SmartRouter:
                 return None
             
             recipient = order.get('recipient', {})
-            dest_wilaya = recipient.get('wilaya', '')
             
             scores: List[CarrierScore] = []
             
