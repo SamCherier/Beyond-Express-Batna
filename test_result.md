@@ -783,7 +783,10 @@ metadata:
   bug_fix_success_rate: "100%"
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Smart Routing Engine - Shipping API"
+    - "Webhooks - Test Endpoints"
+    - "Carriers - Configuration API"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
