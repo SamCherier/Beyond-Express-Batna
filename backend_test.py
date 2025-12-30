@@ -1800,6 +1800,410 @@ def test_thermal_labels_error_handling():
     
     return True
 
+def test_smart_routing_engine_shipping_api():
+    """Test Smart Routing Engine - Shipping API Endpoints"""
+    
+    print("🚀 Testing Smart Routing Engine - Shipping API...")
+    
+    # Test user credentials from review request
+    admin_user_credentials = {
+        "email": "cherier.sam@beyondexpress-batna.com",
+        "password": "admin123456"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Smart Routing - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+        test_results.add_result(
+            "Smart Routing - Admin Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'Admin User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Smart Routing - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Test GET /api/shipping/active-carriers (should be empty initially)
+    try:
+        carriers_response = requests.get(
+            f"{API_BASE}/shipping/active-carriers",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if carriers_response.status_code == 200:
+            carriers_data = carriers_response.json()
+            
+            if isinstance(carriers_data, dict) and 'carriers' in carriers_data:
+                carriers_list = carriers_data['carriers']
+                
+                if isinstance(carriers_list, list) and len(carriers_list) == 0:
+                    test_results.add_result(
+                        "Smart Routing - Active Carriers (Empty)",
+                        True,
+                        f"✅ GET /api/shipping/active-carriers returns empty list as expected: {carriers_data}"
+                    )
+                else:
+                    test_results.add_result(
+                        "Smart Routing - Active Carriers (Empty)",
+                        True,
+                        f"✅ GET /api/shipping/active-carriers returns carriers list: {len(carriers_list)} carriers found"
+                    )
+            else:
+                test_results.add_result(
+                    "Smart Routing - Active Carriers (Empty)",
+                    False,
+                    "Response structure invalid - missing 'carriers' field",
+                    str(carriers_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Smart Routing - Active Carriers (Empty)",
+                False,
+                f"GET /api/shipping/active-carriers failed with status {carriers_response.status_code}",
+                carriers_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Smart Routing - Active Carriers (Empty)",
+            False,
+            f"Active carriers request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 3: Test GET /api/shipping/tracking/{order_id} with a real order
+    try:
+        # First get orders to find a real order ID
+        orders_response = requests.get(
+            f"{API_BASE}/orders",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if orders_response.status_code == 200:
+            orders_data = orders_response.json()
+            
+            if isinstance(orders_data, list) and len(orders_data) > 0:
+                test_order_id = orders_data[0].get('id')
+                
+                if test_order_id:
+                    tracking_response = requests.get(
+                        f"{API_BASE}/shipping/tracking/{test_order_id}",
+                        headers=admin_headers,
+                        timeout=30
+                    )
+                    
+                    if tracking_response.status_code == 200:
+                        tracking_data = tracking_response.json()
+                        
+                        # Check response structure
+                        expected_fields = ['order_id', 'carrier_synced']
+                        has_required_fields = all(field in tracking_data for field in expected_fields)
+                        
+                        if has_required_fields:
+                            test_results.add_result(
+                                "Smart Routing - Tracking API",
+                                True,
+                                f"✅ GET /api/shipping/tracking/{test_order_id} returns valid response: carrier_synced={tracking_data.get('carrier_synced')}"
+                            )
+                        else:
+                            test_results.add_result(
+                                "Smart Routing - Tracking API",
+                                False,
+                                f"Response missing required fields: {expected_fields}",
+                                str(tracking_data)
+                            )
+                    else:
+                        test_results.add_result(
+                            "Smart Routing - Tracking API",
+                            False,
+                            f"GET /api/shipping/tracking/{test_order_id} failed with status {tracking_response.status_code}",
+                            tracking_response.text
+                        )
+                else:
+                    test_results.add_result(
+                        "Smart Routing - Tracking API",
+                        False,
+                        "No valid order ID found for tracking test",
+                        "Cannot test tracking without order ID"
+                    )
+            else:
+                test_results.add_result(
+                    "Smart Routing - Tracking API",
+                    False,
+                    "No orders found for tracking test",
+                    f"Orders response: {orders_data}"
+                )
+        else:
+            test_results.add_result(
+                "Smart Routing - Tracking API",
+                False,
+                f"Failed to get orders for tracking test: {orders_response.status_code}",
+                orders_response.text
+            )
+            
+    except Exception as e:
+        test_results.add_result(
+            "Smart Routing - Tracking API",
+            False,
+            f"Tracking API test failed: {str(e)}"
+        )
+    
+    return True
+
+def test_webhooks_endpoints():
+    """Test Webhooks Endpoints"""
+    
+    print("🔗 Testing Webhooks Endpoints...")
+    
+    # Step 1: Test GET /api/webhooks/test (should return status "ok")
+    try:
+        test_response = requests.get(
+            f"{API_BASE}/webhooks/test",
+            timeout=30
+        )
+        
+        if test_response.status_code == 200:
+            test_data = test_response.json()
+            
+            if isinstance(test_data, dict) and test_data.get('status') == 'ok':
+                test_results.add_result(
+                    "Webhooks - Test Endpoint",
+                    True,
+                    f"✅ GET /api/webhooks/test returns status 'ok': {test_data}"
+                )
+            else:
+                test_results.add_result(
+                    "Webhooks - Test Endpoint",
+                    False,
+                    f"Expected status 'ok', got: {test_data.get('status')}",
+                    str(test_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Webhooks - Test Endpoint",
+                False,
+                f"GET /api/webhooks/test failed with status {test_response.status_code}",
+                test_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Webhooks - Test Endpoint",
+            False,
+            f"Webhooks test request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Test POST /api/webhooks/yalidine (simulated webhook)
+    try:
+        yalidine_webhook_payload = {
+            "tracking": "YAL-TEST123",
+            "order_id": "BEX-TEST",
+            "status": "Livré",
+            "center": "Alger"
+        }
+        
+        yalidine_response = requests.post(
+            f"{API_BASE}/webhooks/yalidine",
+            json=yalidine_webhook_payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        if yalidine_response.status_code == 200:
+            yalidine_data = yalidine_response.json()
+            
+            if isinstance(yalidine_data, dict) and yalidine_data.get('status') == 'received':
+                test_results.add_result(
+                    "Webhooks - Yalidine Webhook",
+                    True,
+                    f"✅ POST /api/webhooks/yalidine accepts payload and returns 'received': {yalidine_data}"
+                )
+            else:
+                test_results.add_result(
+                    "Webhooks - Yalidine Webhook",
+                    False,
+                    f"Expected status 'received', got: {yalidine_data.get('status')}",
+                    str(yalidine_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Webhooks - Yalidine Webhook",
+                False,
+                f"POST /api/webhooks/yalidine failed with status {yalidine_response.status_code}",
+                yalidine_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Webhooks - Yalidine Webhook",
+            False,
+            f"Yalidine webhook request failed: {str(e)}"
+        )
+        return False
+    
+    return True
+
+def test_carriers_configuration():
+    """Test Carrier Configuration API"""
+    
+    print("🚚 Testing Carrier Configuration API...")
+    
+    # Test user credentials from review request
+    admin_user_credentials = {
+        "email": "cherier.sam@beyondexpress-batna.com",
+        "password": "admin123456"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Carriers Config - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+        test_results.add_result(
+            "Carriers Config - Admin Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'Admin User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Carriers Config - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Test GET /api/carriers (get carriers list)
+    try:
+        carriers_response = requests.get(
+            f"{API_BASE}/carriers",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if carriers_response.status_code == 200:
+            carriers_data = carriers_response.json()
+            
+            if isinstance(carriers_data, list):
+                carrier_count = len(carriers_data)
+                expected_carriers = ['Yalidine', 'DHD Express', 'ZR Express', 'Maystro', 'Guepex', 'Nord et Ouest', 'Pajo']
+                
+                # Check if we have the expected carriers
+                found_carrier_names = [carrier.get('name', 'Unknown') for carrier in carriers_data if isinstance(carrier, dict)]
+                
+                if carrier_count >= 5:  # At least 5 carriers expected
+                    test_results.add_result(
+                        "Carriers Config - List Carriers",
+                        True,
+                        f"✅ GET /api/carriers returns {carrier_count} carriers: {found_carrier_names}"
+                    )
+                    
+                    # Verify carrier structure
+                    required_fields = ['name', 'carrier_type']
+                    valid_carriers = 0
+                    
+                    for carrier in carriers_data:
+                        if isinstance(carrier, dict):
+                            has_required_fields = all(field in carrier for field in required_fields)
+                            if has_required_fields:
+                                valid_carriers += 1
+                    
+                    if valid_carriers == carrier_count:
+                        test_results.add_result(
+                            "Carriers Config - Carrier Structure",
+                            True,
+                            f"✅ All {valid_carriers} carriers have required fields: {required_fields}"
+                        )
+                    else:
+                        test_results.add_result(
+                            "Carriers Config - Carrier Structure",
+                            False,
+                            f"Only {valid_carriers}/{carrier_count} carriers have required fields",
+                            f"Required: {required_fields}"
+                        )
+                    
+                    return True
+                else:
+                    test_results.add_result(
+                        "Carriers Config - List Carriers",
+                        False,
+                        f"Expected at least 5 carriers, got {carrier_count}",
+                        f"Found carriers: {found_carrier_names}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Carriers Config - List Carriers",
+                    False,
+                    "Response is not a list",
+                    str(carriers_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Carriers Config - List Carriers",
+                False,
+                f"GET /api/carriers failed with status {carriers_response.status_code}",
+                carriers_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Carriers Config - List Carriers",
+            False,
+            f"Carriers list request failed: {str(e)}"
+        )
+        return False
+
 def test_admin_dashboard_critical():
     """Test Dashboard Admin (P0 - CRITIQUE) - Critical fix verification"""
     
