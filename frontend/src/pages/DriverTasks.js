@@ -23,11 +23,24 @@ const DriverTasks = () => {
       const response = await api.get('/driver/tasks');
       const tasksList = response.data.tasks || [];
       
-      setTasks(tasksList);
+      // Map backend structure (client) to frontend structure (recipient)
+      const mappedTasks = tasksList.map(task => ({
+        ...task,
+        id: task.order_id,
+        recipient: {
+          name: task.client?.name || 'N/A',
+          phone: task.client?.phone || 'N/A',
+          address: task.client?.address || 'N/A',
+          wilaya: task.client?.wilaya || 'N/A',
+          commune: task.client?.commune || 'N/A'
+        }
+      }));
+      
+      setTasks(mappedTasks);
       
       // Calculate stats
-      const total = tasksList.length;
-      const totalAmount = tasksList.reduce((sum, task) => sum + (task.cod_amount || 0), 0);
+      const total = mappedTasks.length;
+      const totalAmount = mappedTasks.reduce((sum, task) => sum + (task.cod_amount || 0), 0);
       setStats({ total, totalAmount });
     } catch (error) {
       console.error('Error fetching tasks:', error);
