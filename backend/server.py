@@ -1209,6 +1209,12 @@ app.include_router(ai_config_router.router, prefix="/api/ai-config", tags=["ai_c
 from routes import enhanced_chat as enhanced_chat_router
 app.include_router(enhanced_chat_router.router, prefix="/api/chat", tags=["chat"])
 
+# Include Shipping routes (Smart Router)
+app.include_router(shipping_router.router, prefix="/api/shipping", tags=["shipping"])
+
+# Include Webhooks routes (Carrier notifications)
+app.include_router(webhooks_router.router, prefix="/api/webhooks", tags=["webhooks"])
+
 
 app.add_middleware(
     CORSMiddleware,
