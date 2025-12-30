@@ -2776,15 +2776,20 @@ def test_cross_driver_access():
         return False
 
 def run_all_tests():
-    """Run all backend tests"""
+    """Run all backend tests - CRITICAL DEMO FIXES FIRST"""
     
-    print(f"🚀 Starting Backend API Tests for Beyond Express")
+    print(f"🚀 Starting Backend API Tests for Beyond Express - CRITICAL DEMO FIXES")
     print(f"Base URL: {BASE_URL}")
     print(f"API Base: {API_BASE}")
     print(f"{'='*60}")
+    print(f"🔥 PRIORITY: Testing critical fixes for demo")
+    print(f"{'='*60}")
     
-    # Test sequence - DRIVER API TESTS FIRST (NEW FEATURE)
+    # Test sequence - CRITICAL DEMO FIXES FIRST
     tests = [
+        ("🔥 P0 CRITICAL - Admin Dashboard", test_admin_dashboard_critical),
+        ("🚛 P1 CRITICAL - Driver PWA", test_driver_pwa_critical),
+        ("🔧 P1 CRITICAL - Driver API curl simulation", test_driver_api_curl_simulation),
         ("Authentication", test_authentication),
         ("🚗 DRIVER API - Authentication", test_driver_authentication),
         ("🔒 DRIVER API - Authorization", test_driver_authorization),
