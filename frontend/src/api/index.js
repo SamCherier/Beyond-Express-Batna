@@ -114,4 +114,23 @@ export const assignConversationToHuman = (conversationId) =>
 export const markConversationRead = (conversationId) => 
   api.post(`/whatsapp/conversation/${conversationId}/mark-read`);
 
+// Shipping / Carrier Integration
+export const shipOrder = (orderId, carrierType) => 
+  api.post('/shipping/ship', { order_id: orderId, carrier_type: carrierType });
+
+export const autoShipOrder = (orderId, strategy = 'priority') => 
+  api.post('/shipping/auto-ship', { order_id: orderId, strategy });
+
+export const bulkShipOrders = (orderIds, carrierType) => 
+  api.post('/shipping/bulk-ship', { order_ids: orderIds, carrier_type: carrierType });
+
+export const getShippingLabel = (orderId) => 
+  api.get(`/shipping/label/${orderId}`, { responseType: 'blob' });
+
+export const getCarrierTracking = (orderId) => 
+  api.get(`/shipping/tracking/${orderId}`);
+
+export const getActiveCarriers = () => 
+  api.get('/shipping/active-carriers');
+
 export default api;
