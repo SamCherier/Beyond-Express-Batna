@@ -1800,6 +1800,336 @@ def test_thermal_labels_error_handling():
     
     return True
 
+def test_admin_dashboard_critical():
+    """Test Dashboard Admin (P0 - CRITIQUE) - Critical fix verification"""
+    
+    print("🔥 Testing Admin Dashboard Critical Fix...")
+    
+    # Admin user from review request
+    admin_credentials = {
+        "email": "cherier.sam@beyondexpress-batna.com",
+        "password": "admin123456"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code == 200:
+            login_data = login_response.json()
+            admin_token = login_data.get('access_token')
+            admin_headers = {'Authorization': f'Bearer {admin_token}'}
+            
+            test_results.add_result(
+                "Admin Dashboard - Critical Login",
+                True,
+                f"✅ CRITICAL: Admin login successful with {admin_credentials['email']}"
+            )
+            
+            # Step 2: Test dashboard endpoints to verify no white screen
+            dashboard_endpoints = [
+                "/dashboard/stats",
+                "/dashboard/orders-by-status", 
+                "/dashboard/revenue-evolution",
+                "/dashboard/top-wilayas"
+            ]
+            
+            dashboard_success = 0
+            for endpoint in dashboard_endpoints:
+                try:
+                    dash_response = requests.get(
+                        f"{API_BASE}{endpoint}",
+                        headers=admin_headers,
+                        timeout=30
+                    )
+                    
+                    if dash_response.status_code == 200:
+                        dashboard_success += 1
+                    else:
+                        print(f"⚠️ Dashboard endpoint {endpoint} failed: {dash_response.status_code}")
+                        
+                except Exception as e:
+                    print(f"⚠️ Dashboard endpoint {endpoint} error: {str(e)}")
+            
+            if dashboard_success == len(dashboard_endpoints):
+                test_results.add_result(
+                    "Admin Dashboard - No White Screen",
+                    True,
+                    f"✅ CRITICAL: All {dashboard_success} dashboard endpoints working - no white screen crash"
+                )
+            else:
+                test_results.add_result(
+                    "Admin Dashboard - No White Screen", 
+                    False,
+                    f"❌ CRITICAL: Only {dashboard_success}/{len(dashboard_endpoints)} dashboard endpoints working",
+                    "Dashboard may still have white screen issues"
+                )
+            
+            return True
+            
+        else:
+            test_results.add_result(
+                "Admin Dashboard - Critical Login",
+                False,
+                f"❌ CRITICAL: Admin login failed with status {login_response.status_code}",
+                f"Credentials: {admin_credentials['email']} / {admin_credentials['password']}"
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Admin Dashboard - Critical Login",
+            False,
+            f"❌ CRITICAL: Admin login request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_pwa_critical():
+    """Test Driver PWA (P1) - Driver login and tasks verification"""
+    
+    print("🚛 Testing Driver PWA Critical...")
+    
+    # Driver user from review request
+    driver_credentials = {
+        "email": "driver@beyond.com", 
+        "password": "driver123"
+    }
+    
+    # Step 1: Login with driver user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=driver_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code == 200:
+            login_data = login_response.json()
+            driver_token = login_data.get('access_token')
+            driver_headers = {'Authorization': f'Bearer {driver_token}'}
+            user_role = login_data.get('user', {}).get('role', 'unknown')
+            
+            test_results.add_result(
+                "Driver PWA - Login",
+                True,
+                f"✅ Driver login successful with {driver_credentials['email']}, role: {user_role}"
+            )
+            
+            # Step 2: Test GET /api/driver/tasks
+            try:
+                tasks_response = requests.get(
+                    f"{API_BASE}/driver/tasks",
+                    headers=driver_headers,
+                    timeout=30
+                )
+                
+                if tasks_response.status_code == 200:
+                    tasks_data = tasks_response.json()
+                    
+                    # Verify response structure
+                    if isinstance(tasks_data, dict) and 'tasks' in tasks_data:
+                        tasks_list = tasks_data.get('tasks', [])
+                        task_count = tasks_data.get('count', 0)
+                        
+                        test_results.add_result(
+                            "Driver PWA - Tasks Structure",
+                            True,
+                            f"✅ /driver/tasks returns proper structure: {task_count} tasks found"
+                        )
+                        
+                        # Verify task structure if tasks exist
+                        if len(tasks_list) > 0:
+                            first_task = tasks_list[0]
+                            required_fields = ['order_id', 'tracking_id', 'status', 'client_name', 'client_phone', 'address', 'wilaya', 'commune', 'cod_amount']
+                            
+                            missing_fields = [field for field in required_fields if field not in first_task]
+                            
+                            if not missing_fields:
+                                test_results.add_result(
+                                    "Driver PWA - Task Data Structure",
+                                    True,
+                                    f"✅ Task structure complete: client={first_task.get('client_name')}, tracking={first_task.get('tracking_id')}, COD={first_task.get('cod_amount')} DA"
+                                )
+                            else:
+                                test_results.add_result(
+                                    "Driver PWA - Task Data Structure",
+                                    False,
+                                    f"Task missing required fields: {missing_fields}",
+                                    f"Available fields: {list(first_task.keys())}"
+                                )
+                        else:
+                            test_results.add_result(
+                                "Driver PWA - Task Data Structure",
+                                True,
+                                "✅ No tasks assigned to driver (empty list is valid)"
+                            )
+                        
+                        return True
+                    else:
+                        test_results.add_result(
+                            "Driver PWA - Tasks Structure",
+                            False,
+                            "Response missing 'tasks' field or not a dict",
+                            str(tasks_data)
+                        )
+                        return False
+                else:
+                    test_results.add_result(
+                        "Driver PWA - Tasks API",
+                        False,
+                        f"❌ GET /api/driver/tasks failed with status {tasks_response.status_code}",
+                        tasks_response.text
+                    )
+                    return False
+                    
+            except Exception as e:
+                test_results.add_result(
+                    "Driver PWA - Tasks API",
+                    False,
+                    f"GET /api/driver/tasks request failed: {str(e)}"
+                )
+                return False
+            
+        else:
+            test_results.add_result(
+                "Driver PWA - Login",
+                False,
+                f"❌ Driver login failed with status {login_response.status_code}",
+                f"Credentials: {driver_credentials['email']} / {driver_credentials['password']}"
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver PWA - Login",
+            False,
+            f"Driver login request failed: {str(e)}"
+        )
+        return False
+
+def test_driver_api_curl_simulation():
+    """Test API Driver with curl simulation - As specified in review request"""
+    
+    print("🔧 Testing Driver API with curl simulation...")
+    
+    # Step 1: Login driver and get token (simulating curl command)
+    driver_credentials = {
+        "email": "driver@beyond.com",
+        "password": "driver123"
+    }
+    
+    try:
+        # Simulate: curl -s -X POST "$API_URL/api/auth/login" -H "Content-Type: application/json" -d '{"email":"driver@beyond.com","password":"driver123"}'
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=driver_credentials,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        if login_response.status_code == 200:
+            login_data = login_response.json()
+            driver_token = login_data.get('access_token')
+            
+            if driver_token:
+                test_results.add_result(
+                    "Driver API Curl - Token Extraction",
+                    True,
+                    f"✅ Token extracted successfully: {driver_token[:20]}..."
+                )
+                
+                # Step 2: Test GET /api/driver/tasks with token (simulating curl command)
+                try:
+                    # Simulate: curl -s "$API_URL/api/driver/tasks" -H "Authorization: Bearer $TOKEN"
+                    tasks_response = requests.get(
+                        f"{API_BASE}/driver/tasks",
+                        headers={"Authorization": f"Bearer {driver_token}"},
+                        timeout=30
+                    )
+                    
+                    if tasks_response.status_code == 200:
+                        tasks_data = tasks_response.json()
+                        
+                        # Verify the 3 test orders are visible as mentioned in review request
+                        if isinstance(tasks_data, dict) and 'tasks' in tasks_data:
+                            task_count = tasks_data.get('count', 0)
+                            tasks_list = tasks_data.get('tasks', [])
+                            
+                            test_results.add_result(
+                                "Driver API Curl - Tasks Response",
+                                True,
+                                f"✅ curl simulation successful: GET /api/driver/tasks returned {task_count} tasks"
+                            )
+                            
+                            # Check if we have the expected test orders
+                            if task_count >= 3:
+                                test_results.add_result(
+                                    "Driver API Curl - Test Orders Visible",
+                                    True,
+                                    f"✅ Expected test orders visible: {task_count} tasks found (≥3 expected)"
+                                )
+                            else:
+                                test_results.add_result(
+                                    "Driver API Curl - Test Orders Visible",
+                                    False,
+                                    f"Expected at least 3 test orders, found {task_count}",
+                                    "Review request mentions '3 ordres test' should be visible"
+                                )
+                            
+                            return True
+                        else:
+                            test_results.add_result(
+                                "Driver API Curl - Tasks Response",
+                                False,
+                                "Response structure invalid",
+                                str(tasks_data)
+                            )
+                            return False
+                    else:
+                        test_results.add_result(
+                            "Driver API Curl - Tasks Response",
+                            False,
+                            f"❌ curl simulation failed: GET /api/driver/tasks returned {tasks_response.status_code}",
+                            tasks_response.text
+                        )
+                        return False
+                        
+                except Exception as e:
+                    test_results.add_result(
+                        "Driver API Curl - Tasks Response",
+                        False,
+                        f"curl tasks request failed: {str(e)}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Driver API Curl - Token Extraction",
+                    False,
+                    "No access_token in login response",
+                    str(login_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Driver API Curl - Login",
+                False,
+                f"❌ curl login simulation failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Driver API Curl - Login",
+            False,
+            f"curl login simulation request failed: {str(e)}"
+        )
+        return False
+
 def test_driver_authentication():
     """Test driver authentication with driver@beyond.com"""
     global driver_headers
