@@ -6,7 +6,8 @@ import PlanLimitBanner from '@/components/PlanLimitBanner';
 import api, { 
   getOrders, createOrder, updateOrderStatus, generateBordereau,
   getTrackingEvents, addTrackingEvent, filterOrdersByDeliveryPartner,
-  filterOrdersByUser, getEcommerceUsers, sendAIMessage, sendOrderConfirmation
+  filterOrdersByUser, getEcommerceUsers, sendAIMessage, sendOrderConfirmation,
+  shipOrder, bulkShipOrders, getActiveCarriers, getShippingLabel
 } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
