@@ -1101,6 +1101,32 @@ const OrdersPageAdvanced = () => {
                               <MessageCircle className="w-4 h-4" />
                             </Button>
                           )}
+                          
+                          {/* SHIP BUTTON - Only if carrier is active and order not shipped */}
+                          {activeCarriers.length > 0 && !order.carrier_tracking_id && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleShipSingleOrder(order, activeCarriers[0]?.carrier_type || 'yalidine')}
+                              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                              title="Expédier via transporteur"
+                            >
+                              <Send className="w-4 h-4" />
+                            </Button>
+                          )}
+                          
+                          {/* DOWNLOAD CARRIER LABEL - If already shipped */}
+                          {order.carrier_tracking_id && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadCarrierLabel(order)}
+                              className="hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200"
+                              title={`Télécharger étiquette ${order.carrier_type?.toUpperCase()} - ${order.carrier_tracking_id}`}
+                            >
+                              <Package className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
