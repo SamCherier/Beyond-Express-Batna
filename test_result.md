@@ -930,3 +930,93 @@ agent_communication:
       - Test credentials: Admin: cherier.sam@beyondexpress-batna.com / admin123456
                          Driver: driver@beyond.com / driver123
 
+
+# === SMART ROUTING ENGINE & YALIDINE INTEGRATION ===
+
+## New Features Implemented
+
+  - task: "Smart Routing Engine Backend"
+    implemented: true
+    working: true
+    files:
+      - "/app/backend/services/routing_engine.py"
+      - "/app/backend/services/carriers/base.py"
+      - "/app/backend/services/carriers/yalidine.py"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Created SmartRouter class with select_best_carrier() and sync_order() methods. Supports multiple routing strategies: cheapest, fastest, priority, balanced."
+
+  - task: "Yalidine API Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/services/carriers/yalidine.py"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Full Yalidine v1 API implementation: create_shipment, get_tracking, get_label, get_rates, validate_credentials. Maps order fields to Yalidine API format."
+
+  - task: "Shipping API Routes"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/shipping.py"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Endpoints: POST /api/shipping/ship, POST /api/shipping/auto-ship, POST /api/shipping/bulk-ship, GET /api/shipping/label/{id}, GET /api/shipping/tracking/{id}, GET /api/shipping/active-carriers"
+
+  - task: "Webhook Routes for Carrier Notifications"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/webhooks.py"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Endpoints: POST /api/webhooks/yalidine, POST /api/webhooks/dhd, POST /api/webhooks/zr-express. Auto-updates order status when carrier sends notifications."
+
+  - task: "Magic Ship Button in Orders Page"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Added '🚀 Expédier' bulk action button with carrier selection dialog. Also added per-row ship button (green Send icon) and carrier label download button (Package icon)."
+
+agent_communication:
+  - agent: "main"
+    message: |
+      ## SMART ROUTING ENGINE IMPLEMENTED
+      
+      Backend Architecture:
+      - /app/backend/services/routing_engine.py - SmartRouter class
+      - /app/backend/services/carriers/base.py - BaseCarrier interface
+      - /app/backend/services/carriers/yalidine.py - Yalidine implementation
+      
+      API Endpoints Added:
+      - POST /api/shipping/ship - Ship single order
+      - POST /api/shipping/auto-ship - Auto-select best carrier
+      - POST /api/shipping/bulk-ship - Ship multiple orders
+      - GET /api/shipping/label/{id} - Download carrier label
+      - GET /api/shipping/tracking/{id} - Get carrier tracking
+      - GET /api/shipping/active-carriers - List configured carriers
+      
+      Webhooks:
+      - POST /api/webhooks/yalidine - Receive Yalidine status updates
+      - POST /api/webhooks/dhd - Receive DHD status updates
+      - POST /api/webhooks/zr-express - Receive ZR Express updates
+      
+      Frontend Changes:
+      - Added "Expédier" bulk action button in orders page
+      - Per-row ship button for quick shipping
+      - Carrier label download button for shipped orders
+      
+      TESTING NEEDED:
+      - Configure Yalidine with real API keys
+      - Test shipping flow end-to-end
+      - Test webhook reception
