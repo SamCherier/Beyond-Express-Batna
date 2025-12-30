@@ -252,20 +252,66 @@ async def test_carrier_connection(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Test connection to a carrier API
+    Test connection to a carrier API using our carrier services
     """
     try:
         carrier_type = test_request.carrier_type.value
         credentials = test_request.credentials
         test_mode = test_request.test_mode
         
-        # Get API endpoint
+        start_time = time.time()
+        
+        # Use our carrier implementation for proper testing
+        if carrier_type == "yalidine":
+            from services.carriers.yalidine import YalidineCarrier
+            
+            creds = {
+                "api_key": credentials.api_key or "",
+                "api_token": credentials.api_token or credentials.center_id or "",
+                "center_id": credentials.center_id or ""
+            }
+            
+            carrier = YalidineCarrier(creds, test_mode)
+            is_valid = await carrier.validate_credentials()
+            
+            response_time = (time.time() - start_time) * 1000
+            
+            if is_valid:
+                # Update config with test success
+                await db.carrier_configs.update_one(
+                    {"user_id": current_user.id, "carrier_type": carrier_type},
+                    {
+                        "$set": {
+                            "last_test_status": "success",
+                            "last_test_at": datetime.now(timezone.utc).isoformat(),
+                            "last_test_message": "Connexion réussie",
+                            "is_active": True  # Auto-activate on successful test
+                        }
+                    },
+                    upsert=False
+                )
+                
+                return TestConnectionResponse(
+                    success=True,
+                    status=CarrierStatus.ACTIVE,
+                    message="✅ Connexion Yalidine réussie! API opérationnelle.",
+                    response_time_ms=response_time
+                )
+            else:
+                return TestConnectionResponse(
+                    success=False,
+                    status=CarrierStatus.ERROR,
+                    message="❌ Échec d'authentification Yalidine. Vérifiez vos identifiants API.",
+                    response_time_ms=response_time
+                )
+        
+        # Fallback for other carriers - use generic HTTP test
         endpoints = CARRIER_TEST_ENDPOINTS.get(test_request.carrier_type)
         if not endpoints:
             return TestConnectionResponse(
                 success=False,
                 status=CarrierStatus.ERROR,
-                message=f"Carrier {carrier_type} not yet supported for API testing"
+                message=f"Transporteur {carrier_type} non encore supporté pour les tests API"
             )
         
         endpoint = endpoints.get("sandbox" if test_mode else "production")
