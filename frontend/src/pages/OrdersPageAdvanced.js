@@ -89,8 +89,18 @@ const OrdersPageAdvanced = () => {
     if (user?.role === 'admin') {
       fetchEcommerceUsers();
       fetchDrivers();
+      fetchActiveCarriers();
     }
   }, [user]);
+
+  const fetchActiveCarriers = async () => {
+    try {
+      const response = await getActiveCarriers();
+      setActiveCarriers(response.data.carriers || []);
+    } catch (error) {
+      console.error('Error fetching active carriers:', error);
+    }
+  };
 
   const fetchDrivers = async () => {
     try {
