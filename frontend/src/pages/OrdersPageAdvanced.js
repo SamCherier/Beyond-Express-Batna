@@ -66,6 +66,10 @@ const OrdersPageAdvanced = () => {
   const [drivers, setDrivers] = useState([]);
   const [assignDriverDialogOpen, setAssignDriverDialogOpen] = useState(false);
   const [selectedDriverId, setSelectedDriverId] = useState('');
+  const [activeCarriers, setActiveCarriers] = useState([]);
+  const [shipDialogOpen, setShipDialogOpen] = useState(false);
+  const [selectedCarrierForShip, setSelectedCarrierForShip] = useState('yalidine');
+  const [shipLoading, setShipLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     recipient_name: '',
