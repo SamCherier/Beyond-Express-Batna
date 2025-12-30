@@ -1,223 +1,196 @@
-<analysis>**original_problem_statement**: The initial goal was a series of feature implementations, starting with fixing a critical AI Assistant bug. The user then pivoted the project to a Plan Opérationnel MVP to compete with logistics leaders like Yalidine. This involved a new technical roadmap focused on:
-
-1.  **Gestion Financière (COD Reconciliation):** Updating the  model with financial tracking fields (, , ) and creating APIs for financial management, including a critical batch transfer feature.
-2.  **Table de Tarification (Pricing Table):** Creating a system to automatically calculate  based on the destination  and delivery type, to avoid manual entry.
-3.  **Outils Marchands (Merchant Tools):**
-    *   **Bulk Import:** An Excel/CSV upload feature for merchants to import orders in mass.
-    *   **Impression d'Étiquettes (Label Printing):** A module to generate and print 10x15cm thermal shipping labels with a specific, professional layout (QR code, COD amount, etc.).
-4.  **API Chauffeur (Driver API):** Building backend endpoints () to support a future mobile application for delivery drivers, including task lists, status updates with financial logic, and daily stats.
-5.  **Performance & Nettoyage (Optimization & Cleanup):** Removing unused futuristic design components and heavy libraries (Three.js), and implementing server-side pagination and code splitting (lazy loading) to fix application slowness.
-6.  **Gestion des Chauffeurs (Driver Management UI):** An admin interface to manage users with the  role and assign them to orders.
-
-After implementing these features, the agent introduced several critical, show-stopping bugs that are now the highest priority.
+<analysis>**original_problem_statement**: The initial goal was to build a comprehensive logistics platform MVP to compete with services like Yalidine. This included a wide range of features: COD financial management, a dynamic pricing table, bulk order import via Excel, A6 thermal label printing, a Driver API, and performance optimizations. The project then expanded to include a public order tracking page, a full UI refactor with dark mode, a simulated WhatsApp notifications module, a Bring Your Own Key (BYOK) system for the AI assistant using Google Gemini, and a mobile-first PWA for drivers. The development has been characterized by rapid feature implementation followed by critical, application-breaking bugs, often related to frontend state and authentication, requiring emergency fixes. The user, a senior engineer, provides explicit, mandatory code solutions for these bugs.
 
 **User's preferred language**: The user's primary language is **French**. The next agent MUST respond in French only.
 
-**what currently exists?**: The application is a full-stack logistics platform. The backend has been significantly built out with FastAPI endpoints and MongoDB models for financial COD reconciliation, a dynamic pricing table, bulk order import, thermal label generation, and a complete Driver API. The frontend has new pages for Financial COD Management, Pricing Management, and Bulk Import, along with UI elements for label printing and driver assignment.
-
-However, the application is currently in a **CRITICAL, UNSTABLE STATE**. Recent optimization attempts have broken core functionality, including authentication (logout) and a key data page (Orders).
+**what currently exists?**: The application is a full-stack logistics platform using FastAPI, React, and MongoDB. It features a modern, dark-mode-enabled UI. Core functionalities are in place: order management, financial COD tracking, dynamic pricing, bulk import, PDF label generation, a public tracking page, and a mobile-first login for a driver PWA. An AI chatbot is integrated with a BYOK system for Google Gemini. However, the application is currently in a **CRITICAL, CRASHED STATE** due to a JavaScript reference error in the main dashboard layout, making it unusable.
 
 **Last working item**:
--   **Last item agent was working**: The agent was performing an emergency fix for three critical bugs reported by the user after an optimization attempt:
-    1.  An infinite logout loop preventing users from signing out.
-    2.  A crash on the  page ().
-    3.  The inability to access the new driver management UI.
-    The user, a senior engineer, provided the exact technical solutions required. The agent's last action was to apply these fixes.
+-   **Last item agent was working**: Fixing a critical application crash () caused by an incorrect implementation of a custom logout function. The user provided an explicit, hardcoded, inline JavaScript solution to replace the entire logout button logic in the sidebar to ensure stability for an imminent client demo. The agent's last action was preparing to implement this hardcoded fix.
 -   **Status**: IN PROGRESS
--   **Agent Testing Done**: N (The agent's last fixes were incorrect and were overridden by the user's explicit instructions).
--   **Which testing method agent to use?**: First, use the **screenshot tool** to verify that logging out successfully redirects to the login page and that  loads without crashing. Then, use the **frontend testing agent** to run a full E2E test of the login -> view orders -> logout flow to ensure no regressions.
--   **User Testing Done**: Y (User tested the agent's previous fix and reported that it failed, providing the correct solution).
+-   **Agent Testing Done**: N
+-   **Which testing method agent to use?**: After applying the fix, the agent must log in and use the **screenshot tool** on the  page to visually confirm the new logout button is present and correct. Then, use the screenshot tool with a  action on the logout button to verify it successfully logs the user out and redirects to the  page without any errors.
+-   **User Testing Done**: Y (User tested the previous state, identified the crash, and provided the exact code for the fix).
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Impossible to Logout (Auth Loop). (P0 - CRITICAL BLOCKER)
--   **Issue 2**: Orders Page () Crashes. (P0 - CRITICAL BLOCKER)
--   **Issue 3**: AI Assistant 0 message limit bug. (P1 - USER VERIFICATION PENDING)
--   **Issue 4**: Insecure Carrier API Endpoint. (P2 - Security Risk)
--   **Issue 5**: Minor UI bugs (custom font, AI model selector). (P3)
+-   **Issue 1**: Application Crash: . (P0 - CRITICAL BLOCKER)
+-   **Issue 2**: Unstable Profile Dropdown Menu. (P1 - Recurring UI Bug)
+-   **Issue 3**: Insecure Carrier API Endpoint. (P2 - Security Risk)
+-   **Issue 4**: User-friendly message for empty Drivers page. (P2 - UX Polish)
 
 **Issues Detail**:
--   **Issue 1**: Impossible to Logout (Auth Loop)
-    -   **Description**: Clicking Déconnexion reloads the page and immediately logs the user back in. This prevents access to public pages like Login/Register. The user diagnosed this as a state management issue where the app redirects before the auth state is fully cleared.
-    -   **Attempted fixes**: The agent added  which was incorrect.
+-   **Issue 1**: Application Crash: 
+    -   **Description**: The application is unusable and shows a white screen due to a JavaScript error. The agent attempted to use an imported  function in  but failed to manage the import correctly, leading to a reference error.
+    -   **Attempted fixes**: Using an external utility file () which caused the crash.
     -   **Next debug checklist**:
-        1.  Go to .
-        2.  Locate the  function.
-        3.  Replace any existing redirection logic (like ) with  as explicitly mandated by the user to force a hard reload and clear all JS memory state.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical usability bug. Fixing it will restore basic authentication functionality and allow testing of different user roles.
+        1.  Open .
+        2.  Locate the existing logout button in the sidebar.
+        3.  **Delete** the current button and its  handler.
+        4.  Replace it with the **exact hardcoded HTML/JS snippet** provided by the user in the last message, which includes inline logic for clearing storage/cookies and a hardcoded SVG icon. **DO NOT USE EXTERNAL FUNCTIONS.**
+    -   **Why fix this issue and what will be achieved with the fix?**: This is an absolute blocker. Fixing it will make the entire logged-in portion of the application accessible again, which is critical for the user's demo.
     -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y
+    -   **Is recurring issue?**: Y (This is the latest in a series of critical authentication/logout bugs).
     -   **Should Test frontend/backend/both after fix?**: Frontend.
     -   **Blocked on other issue**: None.
 
--   **Issue 2**: Orders Page () Crashes
-    -   **Description**: The page crashes, likely due to the Assign Driver feature. The code attempts to  over the  variable, which is  on initial load or if the API call fails.
-    -   **Attempted fixes**: The agent added a  block.
+-   **Issue 2**: Unstable Profile Dropdown Menu
+    -   **Description**: The user has repeatedly reported that the profile dropdown menu in the top navigation bar is broken and does not open on click. This prevents access to user info and the logout function within it.
+    -   **Attempted fixes**: The agent has implemented several fixes for this, including using a simple  hook. However, the issue persists or recurs.
     -   **Next debug checklist**:
-        1.  Go to .
-        2.  In the  function and the driver assignment modal JSX, find where  is used.
-        3.  Replace it with defensive coding as explicitly mandated by the user: .
-        4.  Ensure the  API call within  sets  to  in the  block to prevent crashes.
-    -   **Why fix this issue and what will be achieved with the fix?**: The Orders page is a core part of the application. Fixing it is essential for managing orders.
-    -   **Status**: IN PROGRESS
+        1.  After fixing the main crash, investigate the  component inside .
+        2.  Review the  state logic and the  handler.
+        3.  Ensure there are no conflicting click handlers or CSS  issues preventing the dropdown from appearing.
+    -   **Why fix this issue and what will be achieved with the fix?**: Restores a primary piece of UI for user interaction and account management, improving professional polish.
+    -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Frontend.
-    -   **Blocked on other issue**: None.
+    -   **Blocked on other issue**: Issue 1.
 
--   **Issue 3**: AI Assistant 0 message limit bug
-    -   **Description**: The AI Assistant was showing Limit of 0 messages for paid plans.
-    -   **Attempted fixes**: The agent diagnosed that old  plan names were causing a fallback to the                total        used        free      shared  buff/cache   available
-Mem:        32816332    15490288     4628564       47504    13176996    17326044
-Swap:              0           0           0 plan limits. A fix was implemented by migrating user data in the DB and adding fallbacks in the backend/frontend code. The agent's internal testing passed.
-    -   **Why fix this issue and what will be achieved with the fix?**: This was the original P0 bug. It needs to be confirmed as fixed by the user.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Frontend.
-    -   **Blocked on other issue**: None.
-
--   **Issue 4**: Insecure Carrier API Endpoint
-    -   **Description**: The  endpoint was made public (no authentication) as a hack to fix a bug. This is a security vulnerability.
-    -   **Next debug checklist**: Re-enable authentication on the endpoint in  and debug the original frontend authentication issue in .
-    -   **Why fix this issue and what will be achieved with the fix?**: To secure the application's API.
+-   **Issue 3**: Insecure Carrier API Endpoint
+    -   **Description**: The  endpoint was made public (no authentication) as a temporary hack and was never secured. This is a known security vulnerability from the initial project handoff.
+    -   **Next debug checklist**:
+        1.  In , re-introduce the authentication dependency ().
+        2.  Debug the corresponding frontend component ( or similar) to ensure it sends the auth token correctly with the API request.
+    -   **Why fix this issue and what will be achieved with the fix?**: Secures a piece of the application's API, preventing unauthorized data access.
     -   **Status**: NOT STARTED
     -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: Both.
     -   **Blocked on other issue**: None.
 
+-   **Issue 4**: User-friendly message for empty Drivers page
+    -   **Description**: The user requested that the  page display a friendly message with an illustration when no drivers are found, instead of just plain text or an error.
+    -   **Attempted fixes**: The agent added an improved empty state message.
+    -   **Next debug checklist**:
+        1.  Log in as admin.
+        2.  Navigate to the Drivers page ().
+        3.  Ensure no drivers exist in the database.
+        4.  Verify that a well-designed, user-friendly empty state component is displayed as requested by the user in message #320.
+    -   **Why fix this issue and what will be achieved with the fix?**: Improves the user experience and application polish.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: Frontend.
+    -   **Blocked on other issue**: Issue 1.
+
 **In progress Task List**:
--   **Task 1**: Finalize the Driver Management UI feature. (P1)
-    -   **Where to resume**: A page () was created and a modal for assigning drivers was added to . The backend endpoint  was also created. The work was interrupted by the critical crashes. After fixing the crashes, this feature needs to be completed and tested.
-    -   **What will be achieved with this?**: Admins will be able to manage driver accounts and assign them to orders.
+-   **Task 1**: Finalize the Driver PWA Interface (P1)
+    -   **Where to resume**: The  page and basic routes are created. The next step is to implement the functionality of the  page.
+    -   **What will be achieved with this?**: A functional mobile interface for drivers to view their assigned tasks, see COD amounts, and update order statuses with quick-action buttons (Call, GPS, Delivered, Failed).
     -   **Status**: IN PROGRESS
     -   **Should Test frontend/backend/both after fix?**: Both.
-    -   **Blocked on something**: Issue 1 and Issue 2.
+    -   **Blocked on something**: Issue 1.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P1) Confirm with the user that the AI Assistant bug is resolved.
-    -   (P2) Restore authentication to the  endpoint.
-    -   (P3) Verify and fix the Hacen Tunisia font and AI model selector bugs.
+    -   (P2) Confirm the AI Chat works end-to-end with a user-provided Gemini key, including the Darja language prompt.
+    -   (P3) Verify and fix any remaining minor UI bugs from the original handoff (e.g., Hacen Tunisia font usage).
 -   **Future Tasks**:
-    -   Implement a real payment gateway integration.
-    -   Complete the carrier integration logic to use saved API keys.
-    -   Replace placeholder icons with 3D/Hologram style icons.
+    -   Integrate a real payment gateway (Stripe, etc.).
+    -   Connect the WhatsApp Dashboard to a real provider (Twilio/Meta) instead of the current simulation.
+    -   Complete carrier integration logic to use saved API keys.
 
 **Completed work in this session**
-- **Backend**:
-  - Implemented COD financial tracking in  model (, , ).
-  - Created  model and API () for automatic shipping cost calculation.
-  - Implemented automatic calculation of  on order creation.
-  - Created seeding scripts for pricing table () and carriers ().
-  - Created Financial APIs () including a critical  endpoint.
-  - Created Bulk Order Import module (, ) using  and .
-  - Created Thermal Label Printing API () using  to generate A6-sized PDFs with QR codes.
-  - Created a full Driver API () with endpoints for tasks, status updates, and stats.
-  - Created a generic user-fetching endpoint .
-  - Fixed the AI Assistant bug by migrating data and adding code fallbacks (pending user verification).
-  - Fixed the empty Integrations page by seeding carrier data.
-- **Frontend**:
-  - Removed Futuristic design components (, ) and unused Three.js dependencies.
-  - Implemented server-side pagination on the Orders and Financial COD pages.
-  - Implemented Code Splitting (Lazy Loading) for major page components.
-  - Created  with tabs, batch-update functionality, and pagination.
-  - Created  with an editable table for shipping rates.
-  - Created  with a drag-and-drop UI for file uploads.
-  - Added checkboxes and Print Labels & Assign Driver bulk actions to .
-  - Added an application-wide  component.
+-   **Critical Bug Fixes & Admin Restore**:
+    -   Fixed initial logout loop and orders page crash.
+    -   Fixed backend API to return  for empty driver lists, preventing crashes.
+    -   Restored the user's primary admin account () via a custom script after it was accidentally deleted.
+-   **Feature: Public Tracking Page**: Implemented a public, unauthenticated page () for end-customers to track parcels. Added links to it from the landing page and admin dashboard.
+-   **Feature: Dark Mode & Landing Page V2**: Implemented a global ThemeContext for dark mode and completely redesigned the landing page to a modern, SaaS-style layout with a Bento grid.
+-   **Feature: WhatsApp Dashboard (Mock)**: Built the UI for configuring and previewing WhatsApp notifications, with a backend that logs messages to the database for simulation.
+-   **Feature: BYOK AI Chat**: Implemented a settings page () for users to add their own LLM API keys (Gemini/DeepSeek/OpenAI). The backend chat logic was enhanced to use these keys and a custom system prompt supporting Algerian Darja.
+-   **Feature: Driver PWA Foundation**: Created the mobile-first layout, login page (), and task page () for the driver-facing web app.
+-   **UX: Nuclear Logout**: Implemented an aggressive, hardcoded logout button in the sidebar to provide a stable way to exit the application, bypassing other broken UI elements.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1**: Insecure  endpoint remains public.
--   **Issue 2**: The custom Hacen Tunisia font and AI model selector bugs have not been addressed.
+-   **Issue 1**: The  endpoint remains public and insecure.
+-   **Issue 2**: The top-bar profile dropdown menu is notoriously unstable and frequently breaks, despite multiple fix attempts. The user has mostly given up on it in favor of the sidebar logout button.
 
 **Known issue recurrence from previous fork**
--   **AI Assistant Limit Bug**: This was a recurring P0 issue from the previous fork. The agent has implemented a fix, but user verification is still pending.
+-   **Authentication/Logout Instability**: This is a major, persistent theme. The problem has evolved from an auth loop to a broken dropdown to a full application crash (). The frontend's auth state management is extremely brittle.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Full-Stack:** React, FastAPI, MongoDB.
-- **Backend Data Processing:** ,  for Excel/CSV import.
-- **PDF Generation:**  for creating A6 thermal labels.
-- **QR Code Generation:** .
-- **Performance:** Server-Side Pagination, Code Splitting (React.lazy).
-- **Error Handling:** React Error Boundaries.
-- **Authentication:** Session-based (cookie), JWT.
+-   **Full-Stack**: React, FastAPI, MongoDB.
+-   **UI/UX**: TailwindCSS (with Dark Mode), PWA (mobile-first design), Headless UI.
+-   **AI**: Bring Your Own Key (BYOK) architecture for LLMs, integration with .
+-   **Backend**: Asynchronous tasks, REST API design.
+-   **Authentication**: Cookie-based sessions, JWT (for some parts), and now facing significant instability requiring hardcoded fixes.
 
 **key DB schema**
--   : 
--   : 
--   : 
--   : 
+-   : Core order data.
+-   : Stores shipping rates.
+-   : User accounts with roles (, , ).
+-   : (New) Stores simulated WhatsApp notification history.
+-   : (New) Stores user-specific API keys for AI providers.
 
 **changes in tech stack**
--   **Added:** , , , .
--   **Removed:** , , .
+-   **Added**: 
+-   **Added then Removed**: 
 
 **All files of reference**
--   : Needs  in the  function.
--   : Needs  to prevent crash.
--   : Implements Lazy Loading and the Error Boundary.
--   : Contains the  endpoint and includes all the new routers.
--   : Logic for financial batch updates.
--   : Logic for A6 PDF label generation.
--   : The complete Driver API.
+-   : Target file for the CRITICAL logout button fix. Contains the broken profile dropdown.
+-   : UI for the BYOK feature. Had a syntax error that was fixed.
+-   : Backend logic for the new AI chat, including the Darja system prompt and model fallback.
+-   : The next feature to be implemented for the Driver PWA.
+-   : Main FastAPI app file where all routes are included. Has been a source of import/syntax errors.
 
 **Areas that need refactoring**:
--   The  endpoint security must be restored.
+-   **Authentication Logic**: The entire frontend authentication flow, especially logout, is extremely brittle. It needs a single, robust, and reliable implementation instead of the current patchwork of failing components and hardcoded emergency fixes.
+-   **Profile Dropdown**: The  component within  is a recurring source of bugs and should be rewritten or stabilized.
+-   **API Security**: The  endpoint must be secured.
 
 **key api endpoints**
--   : (POST) Updates payment status for multiple orders.
--   : (POST) Imports orders from an Excel/CSV file.
--   : (POST) Generates a PDF of thermal labels for selected orders.
--   : (GET) Returns tasks for the authenticated driver.
--   : (POST) Updates an order's status by a driver.
--   : (GET) Fetches users, can be filtered by role (e.g., ).
+-   : (Public GET) Fetches non-sensitive tracking info.
+-   : (POST) Logs a simulated notification.
+-   : (GET/POST) Manages user's external AI API keys.
+-   : (POST) The new chat endpoint that uses the configured AI provider.
+-   : (GET) Returns orders assigned to the currently logged-in driver.
 
 **Critical Info for New Agent**
--   **Follow User's Explicit Instructions:** The user is a senior engineer who provides precise, correct technical solutions. **You MUST implement their solutions verbatim, especially for the current critical bugs.** Do not deviate or try your own fixes first. Your top priority is to apply  in  and  in .
--   **Current State is Broken:** The application is NOT stable. The logout is broken, and the main orders page is crashed. You must fix these two P0 bugs before doing anything else.
--   **Test Thoroughly:** The previous agent failed to catch critical bugs. After fixing the logout and orders page, perform a thorough E2E test of the login -> view orders -> assign driver -> print label -> logout flow.
+-   **URGENCY**: The user has a client demo **tomorrow**. Stability is the #1 priority. Your first action MUST be to fix the  crash.
+-   **FOLLOW USER INSTRUCTIONS VERBATIM**: The user is a senior engineer who provides exact, tested code solutions for critical bugs. Do not deviate, suggest alternatives, or ask for clarification. Implement their provided code snippets precisely as given. The current task is to hardcode the logout button logic directly inside the  handler in .
+-   **AVOID EXTERNAL UTILS FOR CRITICAL FEATURES**: The last crash was caused by importing a function from a separate utility file. For the logout feature, the user has mandated an inline, hardcoded approach. Stick to this to prevent further import/reference errors.
+-   **THE APP IS CRASHED**: You cannot run any part of the authenticated application until you apply the logout button fix.
 
-**Last 10 User Messages and any pending user messages**
-1.  **User**: Reports the app is slow and the label printing design is catastrophic (wrong size, text overlap). Requests server-side pagination and a complete redesign of the PDF generation to A6 format. (NOT COMPLETED - Partially done, but introduced new bugs)
-2.  **Agent**: Acknowledges and starts implementing pagination and PDF refactoring. (IN PROGRESS)
-3.  **User**: Requests the Driver API feature, including endpoints for tasks, status updates, and stats. (COMPLETED)
-4.  **Agent**: Implements the Driver API and tests it. (COMPLETED)
-5.  **User**: Reports a CRITICAL CRASH on the  page (). Requests defensive programming and pagination on the finance page. (COMPLETED)
-6.  **Agent**: Fixes the finance page crash by adding pagination and defensive checks. (COMPLETED)
-7.  **User**: Reports the app is still slow due to leftover  dependencies. Requests final cleanup and a new Driver Management UI. (IN PROGRESS)
-8.  **Agent**: Implements code splitting and starts the Driver Management UI. (IN PROGRESS)
-9.  **User**: Reports a CATASTROPHIC crash on ALL pages (red screen), diagnosing it as a Module Not Found error from the agent removing packages but not the imports. (COMPLETED - Fixed)
-10. **User**: Reports the app is STILL NOT STABLE. The logout is in an infinite loop and the Orders page is crashed. Provides the exact, mandatory technical solutions ( and ) to fix the issues. (PENDING - This is the current task)
+**documents and test reports created in this job**
+-   /app/backend/restore_admin.py
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User**: Reports AI config page crash () and provides the fix (remove backslashes). Asks to update the system prompt to support Algerian Darja. (COMPLETED)
+2.  **User**: Reports Gemini AI test fails with . Suspects an old library version. (COMPLETED)
+3.  **Agent**: Determines library version is fine, implements a fallback from  to . (COMPLETED)
+4.  **User**: Approves the AI fix. Requests a new feature: a mobile-first Driver PWA (). (IN PROGRESS)
+5.  **Agent**: Creates the layout and login page for the Driver PWA. (COMPLETED)
+6.  **User**: Reports URGENT logout instability on Chrome/Firefox. Provides an aggressive logout function to be placed in a new utility file (). (COMPLETED, but led to crash)
+7.  **Agent**: Implements the  utility and updates the sidebar button to use it. (COMPLETED, but led to crash)
+8.  **User**: Reports an ABSOLUTE URGENCY crash: . Scraps the external utility idea.
+9.  **User**: **(PENDING)** Provides the new, mandatory, hardcoded inline-JS implementation for the logout button in  to ensure demo stability.
+10. **Agent**: Acknowledges the hardcoded fix and is about to implement it. (LAST ACTION)
 
 **Project Health Check:**
 -   **Broken**:
-    -   Authentication: Logout functionality is in an infinite loop.
-    -   Orders Page (): Crashes on load.
+    -   **Entire Application (Authenticated routes)**: Crashed on load due to  in .
+    -   **Profile Dropdown Menu**: The dropdown in the top bar is non-functional.
 -   **Mocked**:
-    -   Payment processing for subscriptions.
+    -   WhatsApp notifications (logs to DB, does not send messages).
 
 **3rd Party Integrations**
--   **Twilio**: Used for sending WhatsApp messages.
--   **Emergent LLM Key**: Used for AI assistant functionality.
--   **pandas, openpyxl**: Used for backend Excel/CSV processing.
--   **reportlab, qrcode**: Used for backend PDF label generation.
+-   **Twilio**: Configured but likely unused, as WhatsApp is mocked.
+-   **Emergent LLM Key**: Used for the original AI assistant, now superseded by BYOK.
+-   **pandas, openpyxl**: For backend Excel/CSV processing.
+-   **reportlab, qrcode**: For backend PDF label generation.
+-   **Google Gemini**: Integrated via  for the BYOK AI Chat feature.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES.
+-   **Testing agent used after significant changes**: YES, but it has repeatedly failed to catch critical frontend crashes.
 -   **Troubleshoot agent used after agent stuck in loop**: NO.
 -   **Test files created**: None.
 -   **Known regressions**:
-    -   Logout functionality is completely broken.
-    -   The main Orders page is crashed.
+    -   The entire authentication/logout flow is a major regression point, currently culminating in a full application crash.
 
 **Credentials to test flow:**
 -   **Admin**:  / 
 -   **Driver**:  / 
 
 **What agent forgot to execute**
-- The agent's optimization attempts have repeatedly introduced critical, application-breaking bugs.
-- When removing  packages, the agent forgot to remove the corresponding  statements, causing a full application crash.
-- When implementing the logout fix, the agent used  instead of the correct approach, failing to solve the auth loop.
-- The agent did not defensively code the  call, leading to the Orders page crash.
-- The agent consistently fails to perform adequate testing after making changes, forcing the user to find and diagnose critical bugs.</analysis>
+-   The agent failed to correctly import or handle the reference to the  function in , which directly caused the current critical crash. This highlights a recurring weakness in managing JavaScript scope and imports.</analysis>
