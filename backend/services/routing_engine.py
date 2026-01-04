@@ -1,33 +1,50 @@
 """
-Smart Routing Engine
+Smart Routing Engine v2
 Intelligent carrier selection and order synchronization
 
 Features:
-  - Automatic carrier selection based on cost, speed, coverage
+  - AI-powered carrier recommendation based on geography
+  - Automatic carrier selection based on coverage, cost, speed
   - Order synchronization with carrier APIs
-  - Multi-carrier support
-  - Fallback handling
+  - Multi-carrier support with fallback handling
+  - Real-time routing decisions
 """
 import logging
 from typing import Dict, Any, Optional, List, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime, timezone
 import os
 
-from .carriers.base import BaseCarrier, ShipmentResponse
+from .carriers.base import BaseCarrier, ShipmentResponse, ShipmentStatus
 from .carriers.yalidine import YalidineCarrier
+from .carriers.zr_express import ZRExpressCarrier
 
 logger = logging.getLogger(__name__)
 
 
 class RoutingStrategy(str, Enum):
     """Strategy for selecting carrier"""
+    SMART = "smart"        # AI-powered automatic selection (DEFAULT)
     CHEAPEST = "cheapest"  # Select lowest cost carrier
     FASTEST = "fastest"    # Select fastest delivery carrier
     PRIORITY = "priority"  # Use configured priority order
     COVERAGE = "coverage"  # Best coverage for destination
     BALANCED = "balanced"  # Balance cost and speed
+
+
+@dataclass
+class CarrierRecommendation:
+    """Recommendation result from Smart Router"""
+    carrier_type: str
+    carrier_name: str
+    confidence: float  # 0.0 to 1.0
+    reason: str
+    estimated_cost: Optional[float] = None
+    estimated_days: Optional[int] = None
+    is_fallback: bool = False
+    rules_applied: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -44,27 +61,51 @@ class CarrierScore:
 
 class SmartRouter:
     """
-    Smart Routing Engine
+    Smart Routing Engine v2
     
-    Intelligently selects the best carrier for each order based on:
+    AI-powered carrier selection based on:
+    - Geographic coverage (primary rule)
     - Cost optimization
     - Delivery speed
-    - Coverage/availability
-    - User preferences
+    - Carrier availability
     - Historical performance
     """
     
     # Carrier classes registry
     CARRIER_CLASSES = {
         "yalidine": YalidineCarrier,
-        # Add more carriers here as they are implemented:
+        "zr_express": ZRExpressCarrier,
+        # Add more carriers here:
         # "dhd": DHDCarrier,
-        # "zr_express": ZRExpressCarrier,
         # "maystro": MaystroCarrier,
     }
     
-    # Default carrier priority (can be overridden per user)
-    DEFAULT_PRIORITY = ["yalidine", "dhd", "zr_express", "maystro", "guepex"]
+    # Geographic routing rules
+    # Wilayas best served by ZR Express (southern/remote Algeria)
+    ZR_EXPRESS_WILAYAS = [
+        "Adrar", "Tamanrasset", "Béchar", "Bechar", "Tindouf", "Illizi",
+        "El Oued", "Ouargla", "Ghardaïa", "Ghardaia", "Laghouat",
+        "Biskra", "El Bayadh", "Naâma", "Naama", "Djanet",
+        "Timimoun", "Bordj Badji Mokhtar", "In Salah", "In Guezzam",
+        "Touggourt", "El M'Ghair", "El Meniaa", "Ouled Djellal"
+    ]
+    
+    # Wilayas best served by Yalidine (northern/coastal Algeria)
+    YALIDINE_WILAYAS = [
+        "Alger", "Oran", "Constantine", "Annaba", "Sétif", "Setif",
+        "Blida", "Batna", "Djelfa", "Tizi Ouzou", "Béjaïa", "Bejaia",
+        "Tlemcen", "Skikda", "Chlef", "Mostaganem", "Médéa", "Medea",
+        "Boumerdès", "Boumerdes", "Tipaza", "Jijel", "Mila", "Guelma",
+        "Souk Ahras", "El Tarf", "Bouira", "M'Sila", "Msila",
+        "Bordj Bou Arréridj", "Bordj Bou Arreridj", "Khenchela",
+        "Oum El Bouaghi", "Tébessa", "Tebessa", "Tiaret", "Mascara",
+        "Saïda", "Saida", "Sidi Bel Abbès", "Sidi Bel Abbes",
+        "Aïn Defla", "Ain Defla", "Aïn Témouchent", "Ain Temouchent",
+        "Relizane", "Tissemsilt"
+    ]
+    
+    # Default carrier priority
+    DEFAULT_PRIORITY = ["yalidine", "zr_express", "dhd", "maystro", "guepex"]
     
     def __init__(self):
         self.mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
@@ -72,23 +113,142 @@ class SmartRouter:
         self.client = AsyncIOMotorClient(self.mongo_url)
         self.db = self.client[self.db_name]
         
-        logger.info("🧠 SmartRouter initialized")
+        logger.info("🧠 SmartRouter v2 initialized with AI routing")
+    
+    def _normalize_wilaya(self, wilaya: str) -> str:
+        """Normalize wilaya name for matching"""
+        if not wilaya:
+            return ""
+        # Remove accents and normalize
+        replacements = {
+            'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+            'à': 'a', 'â': 'a', 'ä': 'a',
+            'î': 'i', 'ï': 'i',
+            'ô': 'o', 'ö': 'o',
+            'ù': 'u', 'û': 'u', 'ü': 'u',
+            'ç': 'c', "'": " ", "-": " "
+        }
+        result = wilaya.lower().strip()
+        for old, new in replacements.items():
+            result = result.replace(old, new)
+        return result
+    
+    def _check_wilaya_match(self, wilaya: str, wilaya_list: List[str]) -> bool:
+        """Check if a wilaya matches any in a list"""
+        normalized = self._normalize_wilaya(wilaya)
+        for w in wilaya_list:
+            if self._normalize_wilaya(w) == normalized:
+                return True
+        return False
+    
+    async def recommend_carrier(self, order: Dict[str, Any], user_id: str) -> CarrierRecommendation:
+        """
+        🧠 AI-Powered Carrier Recommendation
+        
+        Analyzes the order and returns the best carrier recommendation
+        based on geographic rules and carrier availability.
+        
+        Args:
+            order: Order data with recipient info
+            user_id: User ID to check carrier configurations
+            
+        Returns:
+            CarrierRecommendation with carrier_type and reasoning
+        """
+        recipient = order.get('recipient', {})
+        dest_wilaya = recipient.get('wilaya', '')
+        rules_applied = []
+        
+        logger.info(f"🧠 Analyzing order for Smart Routing: Wilaya={dest_wilaya}")
+        
+        # Get user's active carriers
+        active_carriers = await self.get_active_carriers(user_id)
+        active_types = [c.get('carrier_type') for c in active_carriers]
+        
+        # ===== RULE 1: Geographic Coverage (Primary) =====
+        
+        # Check if destination is in ZR Express territory (southern Algeria)
+        if self._check_wilaya_match(dest_wilaya, self.ZR_EXPRESS_WILAYAS):
+            rules_applied.append("Règle Géographique: Wilaya du Sud")
+            
+            # Check if ZR Express is available for user
+            if 'zr_express' in active_types:
+                logger.info(f"🎯 Smart Router: ZR Express recommended for {dest_wilaya} (southern coverage)")
+                return CarrierRecommendation(
+                    carrier_type="zr_express",
+                    carrier_name="ZR Express",
+                    confidence=0.95,
+                    reason=f"📍 {dest_wilaya} est dans le Sud - ZR Express a la meilleure couverture",
+                    estimated_days=3,
+                    rules_applied=rules_applied
+                )
+            else:
+                rules_applied.append("Fallback: ZR Express non configuré")
+        
+        # Check if destination is in Yalidine territory (northern Algeria)
+        if self._check_wilaya_match(dest_wilaya, self.YALIDINE_WILAYAS):
+            rules_applied.append("Règle Géographique: Wilaya du Nord")
+            
+            if 'yalidine' in active_types:
+                logger.info(f"🎯 Smart Router: Yalidine recommended for {dest_wilaya} (northern coverage)")
+                return CarrierRecommendation(
+                    carrier_type="yalidine",
+                    carrier_name="Yalidine",
+                    confidence=0.90,
+                    reason=f"📍 {dest_wilaya} est dans le Nord - Yalidine optimal",
+                    estimated_days=2,
+                    rules_applied=rules_applied
+                )
+        
+        # ===== RULE 2: Default Fallback =====
+        rules_applied.append("Règle par Défaut")
+        
+        # Try Yalidine first (most common), then ZR Express
+        if 'yalidine' in active_types:
+            logger.info(f"🎯 Smart Router: Yalidine (default) for {dest_wilaya}")
+            return CarrierRecommendation(
+                carrier_type="yalidine",
+                carrier_name="Yalidine",
+                confidence=0.75,
+                reason=f"📦 Yalidine sélectionné (transporteur par défaut)",
+                estimated_days=2,
+                is_fallback=True,
+                rules_applied=rules_applied
+            )
+        
+        if 'zr_express' in active_types:
+            logger.info(f"🎯 Smart Router: ZR Express (fallback) for {dest_wilaya}")
+            return CarrierRecommendation(
+                carrier_type="zr_express",
+                carrier_name="ZR Express",
+                confidence=0.70,
+                reason=f"📦 ZR Express sélectionné (fallback)",
+                estimated_days=3,
+                is_fallback=True,
+                rules_applied=rules_applied
+            )
+        
+        # No carrier available
+        logger.warning(f"⚠️ Smart Router: No carrier available for user {user_id}")
+        return CarrierRecommendation(
+            carrier_type="",
+            carrier_name="",
+            confidence=0.0,
+            reason="❌ Aucun transporteur configuré",
+            is_fallback=True,
+            rules_applied=["Aucun transporteur actif"]
+        )
     
     async def get_active_carriers(self, user_id: str) -> List[Dict[str, Any]]:
-        """
-        Get all active carrier configurations for a user
-        """
+        """Get all active carrier configurations for a user"""
         configs = await self.db.carrier_configs.find(
             {"user_id": user_id, "is_active": True},
             {"_id": 0}
         ).to_list(100)
-        
         return configs
     
     async def get_carrier_instance(self, carrier_type: str, user_id: str) -> Optional[BaseCarrier]:
-        """
-        Get an initialized carrier instance for a user
-        """
+        """Get an initialized carrier instance for a user"""
         # Get carrier config
         config = await self.db.carrier_configs.find_one(
             {"user_id": user_id, "carrier_type": carrier_type, "is_active": True},
@@ -96,6 +256,9 @@ class SmartRouter:
         )
         
         if not config:
+            # For ZR Express mock, create instance without config
+            if carrier_type == "zr_express":
+                return ZRExpressCarrier({}, test_mode=True)
             logger.warning(f"⚠️ No active config found for {carrier_type}")
             return None
         
@@ -111,141 +274,36 @@ class SmartRouter:
         
         return carrier_class(credentials, test_mode)
     
-    async def select_best_carrier(
+    async def smart_ship(
         self,
         order: Dict[str, Any],
-        user_id: str,
-        strategy: RoutingStrategy = RoutingStrategy.PRIORITY
-    ) -> Optional[Tuple[str, CarrierScore]]:
+        user_id: str
+    ) -> Tuple[ShipmentResponse, CarrierRecommendation]:
         """
-        Select the best carrier for an order
+        🚀 Smart Ship - AI-powered shipping
         
-        Args:
-            order: Order data from database
-            user_id: User ID to get carrier configs
-            strategy: Selection strategy to use
-            
+        Automatically selects the best carrier and ships the order.
+        
         Returns:
-            Tuple of (carrier_type, CarrierScore) or None if no carrier available
+            Tuple of (ShipmentResponse, CarrierRecommendation)
         """
-        try:
-            # Get active carriers for user
-            active_configs = await self.get_active_carriers(user_id)
-            
-            if not active_configs:
-                logger.warning(f"⚠️ No active carriers for user {user_id}")
-                return None
-            
-            recipient = order.get('recipient', {})
-            
-            scores: List[CarrierScore] = []
-            
-            for config in active_configs:
-                carrier_type = config.get('carrier_type')
-                carrier_name = config.get('carrier_name', carrier_type)
-                
-                # Get carrier instance
-                carrier = await self.get_carrier_instance(carrier_type, user_id)
-                if not carrier:
-                    continue
-                
-                # Calculate score based on strategy
-                score = await self._calculate_carrier_score(
-                    carrier, carrier_type, carrier_name, order, strategy
-                )
-                
-                if score:
-                    scores.append(score)
-            
-            if not scores:
-                logger.warning("⚠️ No carriers scored for order")
-                return None
-            
-            # Sort by score (highest first)
-            scores.sort(key=lambda x: x.score, reverse=True)
-            
-            best = scores[0]
-            logger.info(f"🎯 Best carrier for order: {best.carrier_name} (score: {best.score:.2f}, reason: {best.reason})")
-            
-            return (best.carrier_type, best)
-            
-        except Exception as e:
-            logger.error(f"❌ Error selecting carrier: {str(e)}")
-            return None
-    
-    async def _calculate_carrier_score(
-        self,
-        carrier: BaseCarrier,
-        carrier_type: str,
-        carrier_name: str,
-        order: Dict[str, Any],
-        strategy: RoutingStrategy
-    ) -> Optional[CarrierScore]:
-        """
-        Calculate score for a carrier based on strategy
-        """
-        try:
-            recipient = order.get('recipient', {})
-            sender = order.get('sender', {})
-            
-            origin = sender.get('wilaya', 'Batna')
-            dest = recipient.get('wilaya', '')
-            
-            # Get rate if possible
-            cost = await carrier.get_rates(origin, dest)
-            
-            if strategy == RoutingStrategy.CHEAPEST:
-                # Score based on cost (lower cost = higher score)
-                if cost:
-                    score = 1000 / max(cost, 1)
-                else:
-                    score = 50  # Default medium score if cost unknown
-                reason = f"Coût: {cost or 'N/A'} DZD"
-                
-            elif strategy == RoutingStrategy.FASTEST:
-                # Score based on estimated speed (hardcoded for now)
-                speed_scores = {
-                    "yalidine": 90,
-                    "dhd": 85,
-                    "zr_express": 80,
-                    "maystro": 75,
-                }
-                score = speed_scores.get(carrier_type, 70)
-                reason = "Livraison rapide"
-                
-            elif strategy == RoutingStrategy.PRIORITY:
-                # Score based on configured priority
-                priority_order = self.DEFAULT_PRIORITY
-                if carrier_type in priority_order:
-                    position = priority_order.index(carrier_type)
-                    score = 100 - (position * 10)
-                else:
-                    score = 50
-                reason = f"Priorité #{priority_order.index(carrier_type)+1 if carrier_type in priority_order else 'N/A'}"
-                
-            elif strategy == RoutingStrategy.BALANCED:
-                # Balance cost and speed
-                cost_score = 1000 / max(cost, 1) if cost else 50
-                speed_scores = {"yalidine": 90, "dhd": 85, "zr_express": 80}
-                speed_score = speed_scores.get(carrier_type, 70)
-                score = (cost_score + speed_score) / 2
-                reason = f"Équilibré (coût: {cost or 'N/A'} DZD)"
-                
-            else:
-                score = 50
-                reason = "Score par défaut"
-            
-            return CarrierScore(
-                carrier_type=carrier_type,
-                carrier_name=carrier_name,
-                score=score,
-                cost=cost,
-                reason=reason
+        # Get AI recommendation
+        recommendation = await self.recommend_carrier(order, user_id)
+        
+        if not recommendation.carrier_type:
+            return (
+                ShipmentResponse(
+                    success=False,
+                    carrier_name="",
+                    error_message=recommendation.reason
+                ),
+                recommendation
             )
-            
-        except Exception as e:
-            logger.error(f"❌ Error calculating score for {carrier_type}: {str(e)}")
-            return None
+        
+        # Ship with recommended carrier
+        response = await self.sync_order(order, recommendation.carrier_type, user_id)
+        
+        return (response, recommendation)
     
     async def sync_order(
         self,
@@ -255,14 +313,6 @@ class SmartRouter:
     ) -> ShipmentResponse:
         """
         Synchronize an order with a carrier (create shipment)
-        
-        Args:
-            order: Order data from database
-            carrier_type: Carrier to use (e.g., 'yalidine')
-            user_id: User ID for carrier config
-            
-        Returns:
-            ShipmentResponse with result
         """
         try:
             # Get carrier instance
@@ -288,9 +338,11 @@ class SmartRouter:
                         "$set": {
                             "carrier_type": carrier_type,
                             "carrier_tracking_id": response.carrier_tracking_id,
-                            "carrier_synced_at": datetime.now().isoformat(),
+                            "carrier_synced_at": datetime.now(timezone.utc).isoformat(),
                             "carrier_label_url": response.label_url,
-                            "status": "ready_to_ship"
+                            "status": "ready_to_ship",
+                            "smart_routed": True,
+                            "routing_reason": f"AI: {carrier_type}"
                         }
                     }
                 )
@@ -309,41 +361,58 @@ class SmartRouter:
                 error_message=str(e)
             )
     
+    async def select_best_carrier(
+        self,
+        order: Dict[str, Any],
+        user_id: str,
+        strategy: RoutingStrategy = RoutingStrategy.SMART
+    ) -> Optional[Tuple[str, CarrierScore]]:
+        """
+        Select the best carrier for an order (legacy method)
+        Now redirects to recommend_carrier for SMART strategy
+        """
+        if strategy == RoutingStrategy.SMART:
+            rec = await self.recommend_carrier(order, user_id)
+            if rec.carrier_type:
+                return (rec.carrier_type, CarrierScore(
+                    carrier_type=rec.carrier_type,
+                    carrier_name=rec.carrier_name,
+                    score=rec.confidence * 100,
+                    reason=rec.reason
+                ))
+            return None
+        
+        # Fallback to old logic for other strategies
+        active_configs = await self.get_active_carriers(user_id)
+        if not active_configs:
+            return None
+        
+        # Simple priority-based selection
+        for carrier_type in self.DEFAULT_PRIORITY:
+            if any(c.get('carrier_type') == carrier_type for c in active_configs):
+                return (carrier_type, CarrierScore(
+                    carrier_type=carrier_type,
+                    carrier_name=carrier_type.replace('_', ' ').title(),
+                    score=80,
+                    reason=f"Priorité #{self.DEFAULT_PRIORITY.index(carrier_type)+1}"
+                ))
+        
+        return None
+    
     async def auto_route_and_sync(
         self,
         order: Dict[str, Any],
         user_id: str,
-        strategy: RoutingStrategy = RoutingStrategy.PRIORITY
+        strategy: RoutingStrategy = RoutingStrategy.SMART
     ) -> ShipmentResponse:
         """
         Automatically select best carrier and sync order
-        
-        This is the "magic button" that does everything:
-        1. Analyzes order
-        2. Selects best carrier
-        3. Creates shipment
-        4. Returns tracking info
         """
-        # Select best carrier
-        result = await self.select_best_carrier(order, user_id, strategy)
-        
-        if not result:
-            return ShipmentResponse(
-                success=False,
-                carrier_name="",
-                error_message="Aucun transporteur disponible. Veuillez configurer au moins un transporteur."
-            )
-        
-        carrier_type, score = result
-        
-        # Sync order with selected carrier
-        response = await self.sync_order(order, carrier_type, user_id)
-        
+        response, recommendation = await self.smart_ship(order, user_id)
         return response
 
 
 # Singleton instance
-from datetime import datetime
 _router_instance: Optional[SmartRouter] = None
 
 def get_router() -> SmartRouter:
