@@ -1800,6 +1800,296 @@ def test_thermal_labels_error_handling():
     
     return True
 
+def test_yalidine_carrier_status_api():
+    """Test Yalidine Carrier Status API - Should return not configured"""
+    
+    print("🚚 Testing Yalidine Carrier Status API...")
+    
+    # Test user from review request
+    admin_user_credentials = {
+        "email": "cherier.sam@beyondexpress-batna.com",
+        "password": "admin123456"
+    }
+    
+    # Step 1: Login with admin user
+    try:
+        login_response = requests.post(
+            f"{API_BASE}/auth/login",
+            json=admin_user_credentials,
+            timeout=30
+        )
+        
+        if login_response.status_code != 200:
+            test_results.add_result(
+                "Yalidine Carrier Status - Admin Login",
+                False,
+                f"Login failed with status {login_response.status_code}",
+                login_response.text
+            )
+            return False
+        
+        login_data = login_response.json()
+        admin_token = login_data.get('access_token')
+        admin_headers = {'Authorization': f'Bearer {admin_token}'}
+        
+        test_results.add_result(
+            "Yalidine Carrier Status - Admin Login",
+            True,
+            f"Successfully logged in as {login_data.get('user', {}).get('name', 'Admin User')}"
+        )
+        
+    except Exception as e:
+        test_results.add_result(
+            "Yalidine Carrier Status - Admin Login",
+            False,
+            f"Login request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 2: Test GET /api/shipping/carrier-status/yalidine
+    try:
+        carrier_status_response = requests.get(
+            f"{API_BASE}/shipping/carrier-status/yalidine",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if carrier_status_response.status_code == 200:
+            status_data = carrier_status_response.json()
+            
+            # Verify response structure
+            expected_fields = ['carrier_type', 'is_configured', 'is_active', 'can_ship', 'message']
+            has_all_fields = all(field in status_data for field in expected_fields)
+            
+            if has_all_fields:
+                carrier_type = status_data.get('carrier_type')
+                is_configured = status_data.get('is_configured')
+                is_active = status_data.get('is_active')
+                can_ship = status_data.get('can_ship')
+                message = status_data.get('message', '')
+                
+                # Should return not configured as per review request
+                if carrier_type == 'yalidine' and not is_configured:
+                    test_results.add_result(
+                        "Yalidine Carrier Status - Not Configured",
+                        True,
+                        f"✅ Yalidine correctly returns not configured: is_configured={is_configured}, can_ship={can_ship}, message='{message}'"
+                    )
+                    return True
+                else:
+                    test_results.add_result(
+                        "Yalidine Carrier Status - Not Configured",
+                        False,
+                        f"Expected not configured, got is_configured={is_configured}",
+                        f"Full response: {status_data}"
+                    )
+                    return False
+            else:
+                test_results.add_result(
+                    "Yalidine Carrier Status - Response Structure",
+                    False,
+                    f"Response missing required fields: {expected_fields}",
+                    str(status_data)
+                )
+                return False
+        else:
+            test_results.add_result(
+                "Yalidine Carrier Status - API Response",
+                False,
+                f"GET /api/shipping/carrier-status/yalidine failed with status {carrier_status_response.status_code}",
+                carrier_status_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Yalidine Carrier Status - API Request",
+            False,
+            f"GET /api/shipping/carrier-status/yalidine request failed: {str(e)}"
+        )
+        return False
+
+
+def test_algeria_wilayas_module():
+    """Test Algeria Wilayas Module Functions"""
+    
+    print("🗺️ Testing Algeria Wilayas Module...")
+    
+    # Test data from review request
+    test_cases = [
+        ("Alger", 16),
+        ("Batna", 5),
+        ("Tizi Ouzou", 15),
+        ("Oran", 31),
+        ("Constantine", 25)
+    ]
+    
+    try:
+        # Import and test the module functions directly
+        import sys
+        sys.path.append('/app/backend')
+        
+        from services.carriers.algeria_wilayas import get_wilaya_id, get_wilaya_name, is_valid_wilaya
+        
+        # Test get_wilaya_id function
+        all_passed = True
+        for wilaya_name, expected_id in test_cases:
+            actual_id = get_wilaya_id(wilaya_name)
+            
+            if actual_id == expected_id:
+                test_results.add_result(
+                    f"Algeria Wilayas - get_wilaya_id({wilaya_name})",
+                    True,
+                    f"✅ {wilaya_name} correctly mapped to ID {actual_id}"
+                )
+            else:
+                test_results.add_result(
+                    f"Algeria Wilayas - get_wilaya_id({wilaya_name})",
+                    False,
+                    f"Expected ID {expected_id}, got {actual_id}",
+                    f"Wilaya: {wilaya_name}"
+                )
+                all_passed = False
+        
+        # Test is_valid_wilaya function
+        for wilaya_name, _ in test_cases:
+            is_valid = is_valid_wilaya(wilaya_name)
+            
+            if is_valid:
+                test_results.add_result(
+                    f"Algeria Wilayas - is_valid_wilaya({wilaya_name})",
+                    True,
+                    f"✅ {wilaya_name} correctly validated as valid"
+                )
+            else:
+                test_results.add_result(
+                    f"Algeria Wilayas - is_valid_wilaya({wilaya_name})",
+                    False,
+                    f"{wilaya_name} should be valid but returned False"
+                )
+                all_passed = False
+        
+        # Test get_wilaya_name function (reverse lookup)
+        test_id = 16  # Alger
+        wilaya_name = get_wilaya_name(test_id)
+        
+        if wilaya_name == "Alger":
+            test_results.add_result(
+                f"Algeria Wilayas - get_wilaya_name({test_id})",
+                True,
+                f"✅ ID {test_id} correctly mapped to name '{wilaya_name}'"
+            )
+        else:
+            test_results.add_result(
+                f"Algeria Wilayas - get_wilaya_name({test_id})",
+                False,
+                f"Expected 'Alger', got '{wilaya_name}'",
+                f"ID: {test_id}"
+            )
+            all_passed = False
+        
+        return all_passed
+        
+    except ImportError as e:
+        test_results.add_result(
+            "Algeria Wilayas - Module Import",
+            False,
+            f"Failed to import algeria_wilayas module: {str(e)}"
+        )
+        return False
+    except Exception as e:
+        test_results.add_result(
+            "Algeria Wilayas - Module Test",
+            False,
+            f"Error testing algeria_wilayas module: {str(e)}"
+        )
+        return False
+
+
+def test_yalidine_adapter_data_mapping():
+    """Test YalidineAdapter Data Mapping Functions"""
+    
+    print("📱 Testing YalidineAdapter Data Mapping...")
+    
+    try:
+        # Import YalidineAdapter
+        import sys
+        sys.path.append('/app/backend')
+        
+        from services.carriers.yalidine import YalidineCarrier
+        
+        # Create YalidineAdapter instance in test mode
+        carrier = YalidineCarrier({'api_key': 'test', 'api_token': 'test'}, test_mode=True)
+        
+        # Test phone formatting
+        phone_test_cases = [
+            ("+213555123456", "0555123456"),
+            ("0555123456", "0555123456"),
+            ("555123456", "0555123456")
+        ]
+        
+        all_passed = True
+        for input_phone, expected_output in phone_test_cases:
+            formatted_phone = carrier._format_phone(input_phone)
+            
+            if formatted_phone == expected_output:
+                test_results.add_result(
+                    f"YalidineAdapter - Phone Format ({input_phone})",
+                    True,
+                    f"✅ Phone {input_phone} correctly formatted to {formatted_phone}"
+                )
+            else:
+                test_results.add_result(
+                    f"YalidineAdapter - Phone Format ({input_phone})",
+                    False,
+                    f"Expected {expected_output}, got {formatted_phone}",
+                    f"Input: {input_phone}"
+                )
+                all_passed = False
+        
+        # Test name parsing
+        name_test_cases = [
+            ("Ahmed Benali", ("Ahmed", "Benali")),
+            ("Mohammed", ("Mohammed", "")),
+            ("Ali Ben Ahmed Mansour", ("Ali", "Ben Ahmed Mansour"))
+        ]
+        
+        for input_name, expected_output in name_test_cases:
+            firstname, lastname = carrier._parse_customer_name(input_name)
+            
+            if (firstname, lastname) == expected_output:
+                test_results.add_result(
+                    f"YalidineAdapter - Name Parse ({input_name})",
+                    True,
+                    f"✅ Name '{input_name}' correctly parsed to firstname='{firstname}', lastname='{lastname}'"
+                )
+            else:
+                test_results.add_result(
+                    f"YalidineAdapter - Name Parse ({input_name})",
+                    False,
+                    f"Expected {expected_output}, got ({firstname}, {lastname})",
+                    f"Input: {input_name}"
+                )
+                all_passed = False
+        
+        return all_passed
+        
+    except ImportError as e:
+        test_results.add_result(
+            "YalidineAdapter - Module Import",
+            False,
+            f"Failed to import YalidineCarrier: {str(e)}"
+        )
+        return False
+    except Exception as e:
+        test_results.add_result(
+            "YalidineAdapter - Data Mapping Test",
+            False,
+            f"Error testing YalidineAdapter data mapping: {str(e)}"
+        )
+        return False
+
+
 def test_smart_routing_engine_shipping_api():
     """Test Smart Routing Engine - Shipping API Endpoints"""
     
