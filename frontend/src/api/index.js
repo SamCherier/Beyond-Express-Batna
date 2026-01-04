@@ -121,8 +121,19 @@ export const shipOrder = (orderId, carrierType) =>
 export const autoShipOrder = (orderId, strategy = 'priority') => 
   api.post('/shipping/auto-ship', { order_id: orderId, strategy });
 
-export const bulkShipOrders = (orderIds, carrierType) => 
-  api.post('/shipping/bulk-ship', { order_ids: orderIds, carrier_type: carrierType });
+export const bulkShipOrders = (orderIds, carrierType = 'auto', useSmartRouting = true) => 
+  api.post('/shipping/bulk-ship', { 
+    order_ids: orderIds, 
+    carrier_type: carrierType,
+    use_smart_routing: useSmartRouting
+  });
+
+export const smartBulkShip = (orderIds) => 
+  api.post('/shipping/bulk-ship', { 
+    order_ids: orderIds, 
+    carrier_type: 'auto',
+    use_smart_routing: true
+  });
 
 export const getShippingLabel = (orderId) => 
   api.get(`/shipping/label/${orderId}`, { responseType: 'blob' });
