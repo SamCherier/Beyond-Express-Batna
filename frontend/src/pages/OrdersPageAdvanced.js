@@ -71,6 +71,16 @@ const OrdersPageAdvanced = () => {
   const [selectedCarrierForShip, setSelectedCarrierForShip] = useState('yalidine');
   const [shipLoading, setShipLoading] = useState(false);
   const [yalidineStatus, setYalidineStatus] = useState({ is_configured: false, is_active: false });
+  
+  // Bulk Shipping Progress State
+  const [bulkShipProgress, setBulkShipProgress] = useState({
+    isProcessing: false,
+    current: 0,
+    total: 0,
+    successCount: 0,
+    failedCount: 0,
+    results: []
+  });
 
   const [formData, setFormData] = useState({
     recipient_name: '',
