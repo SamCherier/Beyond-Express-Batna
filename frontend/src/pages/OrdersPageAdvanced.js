@@ -378,19 +378,25 @@ const OrdersPageAdvanced = () => {
     }
 
     try {
-      const response = await api.post('/orders/print-labels', selectedOrders, {
-        responseType: 'blob'
-      });
+      toast.loading(`🖨️ Génération de ${selectedOrders.length} étiquette(s) A6...`, { id: 'print-labels' });
+      
+      // Use new unified bulk labels endpoint
+      const response = await getBulkLabels(selectedOrders);
+      
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `etiquettes_${selectedOrders.length}_commandes.pdf`;
+      link.download = `etiquettes_x${selectedOrders.length}_${new Date().toISOString().slice(0,10)}.pdf`;
       link.click();
-      toast.success(`${selectedOrders.length} étiquette(s) générée(s) !`);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`✅ ${selectedOrders.length} étiquette(s) A6 générée(s) !`, { id: 'print-labels' });
     } catch (error) {
       console.error('Error generating labels:', error);
-      toast.error('Erreur lors de la génération des étiquettes');
+      toast.error('Erreur lors de la génération des étiquettes', { id: 'print-labels' });
     }
   };
 
