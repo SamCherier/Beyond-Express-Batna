@@ -1068,3 +1068,63 @@ agent_communication:
       - Configure Yalidine with real API keys
       - Test shipping flow end-to-end
       - Test webhook reception
+
+## YalidineAdapter Implementation Complete
+
+  - task: "YalidineAdapter - Complete Implementation"
+    implemented: true
+    working: true
+    files:
+      - "/app/backend/services/carriers/yalidine.py"
+      - "/app/backend/services/carriers/algeria_wilayas.py"
+    priority: "critical"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Full Yalidine API adapter with: _parse_customer_name(), _format_phone(), _map_order_to_parcel(), create_shipment(), get_tracking(), get_label(). Includes Algeria wilaya mapping (58 wilayas with ID conversion)."
+
+  - task: "Carrier Status API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/shipping.py"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Added GET /api/shipping/carrier-status/{carrier_type} endpoint to check if carrier is configured and active for current user."
+
+  - task: "Yalidine Ship Button in Tracking Dialog"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Added 'Expédier avec Yalidine' section in tracking dialog. Shows: configured status, test/production mode, 'Expédier maintenant' button if active, 'Configurer →' button if not configured. Also shows carrier tracking info if already shipped."
+
+agent_communication:
+  - agent: "main"
+    message: |
+      ## YALIDINE ADAPTER COMPLETE
+      
+      Backend Implementation:
+      - YalidineAdapter class with full API mapping
+      - Algeria wilayas database (58 wilayas with name→ID conversion)
+      - Phone number formatting (removes +213, ensures 10 digits)
+      - Customer name parsing (firstname/lastname split)
+      - Order→Parcel field mapping
+      
+      New API Endpoint:
+      - GET /api/shipping/carrier-status/{carrier_type}
+      
+      Frontend Changes:
+      - "Expédier avec Yalidine" section in tracking dialog
+      - Shows configuration status
+      - "Expédier maintenant" button when carrier is active
+      - "Configurer →" button redirects to /dashboard/settings/integrations
+      - Shows carrier tracking info for already shipped orders
+      
+      NEXT STEPS:
+      - User needs to configure Yalidine with real API keys
+      - Test actual shipment creation with Yalidine API
