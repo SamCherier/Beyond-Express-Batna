@@ -7,7 +7,7 @@ import api, {
   getOrders, createOrder, updateOrderStatus, generateBordereau,
   getTrackingEvents, addTrackingEvent, filterOrdersByDeliveryPartner,
   filterOrdersByUser, getEcommerceUsers, sendAIMessage, sendOrderConfirmation,
-  shipOrder, bulkShipOrders, smartBulkShip, getActiveCarriers, getShippingLabel, getCarrierStatus
+  shipOrder, bulkShipOrders, smartBulkShip, getActiveCarriers, getShippingLabel, getCarrierStatus, getBulkLabels
 } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
