@@ -384,8 +384,10 @@ async def get_shipping_label(
 ):
     """
     Download shipping label PDF for an order
+    Uses unified label generator with carrier-specific handling
     """
     from fastapi.responses import Response
+    from services.label_engine import get_label_generator
     
     try:
         # Get order
@@ -400,36 +402,37 @@ async def get_shipping_label(
         carrier_type = order.get('carrier_type')
         carrier_tracking = order.get('carrier_tracking_id')
         
-        if not carrier_type or not carrier_tracking:
-            raise HTTPException(
-                status_code=400,
-                detail="Cette commande n'a pas encore été expédiée"
-            )
+        # Get label generator
+        label_gen = get_label_generator()
         
-        # Get carrier instance
-        smart_router = get_router()
-        carrier = await smart_router.get_carrier_instance(carrier_type, current_user.id)
+        # Try to get official label from carrier first
+        if carrier_type and carrier_tracking:
+            smart_router = get_router()
+            carrier = await smart_router.get_carrier_instance(carrier_type, current_user.id)
+            
+            if carrier:
+                try:
+                    official_label = await carrier.get_label(carrier_tracking)
+                    if official_label:
+                        return Response(
+                            content=official_label,
+                            media_type="application/pdf",
+                            headers={
+                                "Content-Disposition": f'attachment; filename="etiquette_{carrier_tracking}.pdf"'
+                            }
+                        )
+                except Exception as e:
+                    logger.warning(f"Could not fetch official label: {e}")
         
-        if not carrier:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Transporteur {carrier_type} non configuré"
-            )
-        
-        # Download label
-        label_pdf = await carrier.get_label(carrier_tracking)
-        
-        if not label_pdf:
-            raise HTTPException(
-                status_code=404,
-                detail="Étiquette non disponible"
-            )
+        # Fallback: Generate unified label
+        label_pdf = label_gen.generate_single_label(order)
+        tracking_id = carrier_tracking or order.get('tracking_id', 'label')
         
         return Response(
-            content=label_pdf,
+            content=label_pdf.read(),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f'attachment; filename="etiquette_{carrier_tracking}.pdf"'
+                "Content-Disposition": f'attachment; filename="etiquette_{tracking_id}.pdf"'
             }
         )
         
@@ -437,6 +440,66 @@ async def get_shipping_label(
         raise
     except Exception as e:
         logger.error(f"❌ Error getting label: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class BulkLabelRequest(BaseModel):
+    order_ids: List[str]
+
+
+@router.post("/bulk-labels")
+async def generate_bulk_labels(
+    request: BulkLabelRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate bulk labels PDF for multiple orders
+    
+    Creates a single PDF with all labels merged (A6 format)
+    Perfect for thermal printers and batch printing
+    """
+    from fastapi.responses import Response
+    from services.label_engine import get_label_generator
+    
+    try:
+        if not request.order_ids:
+            raise HTTPException(status_code=400, detail="Aucune commande sélectionnée")
+        
+        # Fetch all orders
+        orders = await db.orders.find(
+            {
+                "id": {"$in": request.order_ids},
+                "user_id": current_user.id
+            },
+            {"_id": 0}
+        ).to_list(500)
+        
+        if not orders:
+            raise HTTPException(status_code=404, detail="Aucune commande trouvée")
+        
+        logger.info(f"📄 Generating bulk labels for {len(orders)} orders")
+        
+        # Generate merged PDF
+        label_gen = get_label_generator()
+        merged_pdf = label_gen.generate_bulk_labels(orders)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        filename = f"etiquettes_x{len(orders)}_{timestamp}.pdf"
+        
+        return Response(
+            content=merged_pdf.read(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "X-Label-Count": str(len(orders))
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error generating bulk labels: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
