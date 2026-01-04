@@ -1587,18 +1587,19 @@ const OrdersPageAdvanced = () => {
                   Imprimer étiquettes
                 </Button>
                 
-                {/* MAIN ACTION: Bulk Ship with Yalidine */}
+                {/* MAIN ACTION: Smart Bulk Ship with AI */}
                 <Button
                   onClick={handleBulkShipWithProgress}
-                  disabled={!yalidineStatus.can_ship}
+                  disabled={activeCarriers.length === 0 && !yalidineStatus.can_ship}
                   className={`px-6 py-3 font-bold text-lg shadow-lg transition-all ${
-                    yalidineStatus.can_ship 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white hover:scale-105' 
+                    (activeCarriers.length > 0 || yalidineStatus.can_ship)
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white hover:scale-105' 
                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                   }`}
                 >
                   <Send className="w-5 h-5 mr-2" />
-                  🚀 Expédier avec Yalidine
+                  🧠 Expédition Intelligente
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-white/20 rounded-full">AI</span>
                 </Button>
               </div>
             </div>
