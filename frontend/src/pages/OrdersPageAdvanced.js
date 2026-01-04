@@ -450,15 +450,15 @@ const OrdersPageAdvanced = () => {
     }
   };
 
-  // NEW: Progressive bulk ship with real-time feedback
+  // NEW: Progressive bulk ship with real-time feedback and SMART ROUTING
   const handleBulkShipWithProgress = async () => {
     if (selectedOrders.length === 0) {
       toast.error('Sélectionnez des commandes à expédier');
       return;
     }
 
-    if (!yalidineStatus.can_ship) {
-      toast.error('Yalidine n\'est pas configuré. Allez dans Paramètres → Intégrations');
+    if (!yalidineStatus.can_ship && activeCarriers.length === 0) {
+      toast.error('Aucun transporteur configuré. Allez dans Paramètres → Intégrations');
       return;
     }
 
@@ -474,74 +474,56 @@ const OrdersPageAdvanced = () => {
       results: []
     });
 
-    let successCount = 0;
-    let failedCount = 0;
-    const results = [];
-
-    // Process orders one by one for real-time progress
-    for (let i = 0; i < selectedOrders.length; i++) {
-      const orderId = selectedOrders[i];
+    try {
+      // 🧠 Use Smart Routing API - AI decides best carrier for each order
+      toast.loading('🧠 Analyse AI en cours...', { id: 'smart-ship' });
       
-      try {
-        const response = await shipOrder(orderId, 'yalidine');
-        
-        if (response.data.success) {
-          successCount++;
-          results.push({
-            order_id: orderId,
-            success: true,
-            carrier_tracking_id: response.data.carrier_tracking_id
-          });
-        } else {
-          failedCount++;
-          results.push({
-            order_id: orderId,
-            success: false,
-            error_message: response.data.error_message
-          });
-        }
-      } catch (error) {
-        failedCount++;
-        results.push({
-          order_id: orderId,
-          success: false,
-          error_message: error.response?.data?.detail || 'Erreur réseau'
-        });
+      const response = await smartBulkShip(selectedOrders);
+      const { success, failed, results, carrier_summary, smart_routing } = response.data;
+      
+      toast.dismiss('smart-ship');
+      
+      // Update final progress
+      setBulkShipProgress({
+        isProcessing: false,
+        current: total,
+        total: total,
+        successCount: success,
+        failedCount: failed,
+        results: results || [],
+        carrierSummary: carrier_summary
+      });
+
+      // Show AI routing summary
+      if (carrier_summary && Object.keys(carrier_summary).length > 0) {
+        const summaryText = Object.entries(carrier_summary)
+          .map(([carrier, count]) => `${carrier}: ${count}`)
+          .join(', ');
+        toast.success(`🧠 AI Routing: ${summaryText}`, { duration: 5000 });
       }
 
-      // Update progress in real-time
-      setBulkShipProgress({
-        isProcessing: true,
-        current: i + 1,
-        total: total,
-        successCount,
-        failedCount,
-        results: [...results]
-      });
+      // Show main result
+      if (success > 0 && failed === 0) {
+        toast.success(`🎉 ${success} commande(s) expédiée(s) avec succès!`);
+      } else if (success > 0 && failed > 0) {
+        toast.warning(`✅ ${success} succès, ❌ ${failed} échec(s)`);
+      } else {
+        toast.error(`❌ Toutes les expéditions ont échoué`);
+      }
+
+      setSelectedOrders([]);
+      fetchOrders(currentPage);
+
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        setBulkShipProgress({ isProcessing: false, current: 0, total: 0, successCount: 0, failedCount: 0, results: [] });
+      }, 10000);
+
+    } catch (error) {
+      console.error('Error in smart shipping:', error);
+      setBulkShipProgress(prev => ({ ...prev, isProcessing: false }));
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'expédition intelligente', { id: 'smart-ship' });
     }
-
-    // Final state
-    setBulkShipProgress(prev => ({
-      ...prev,
-      isProcessing: false
-    }));
-
-    // Show summary
-    if (successCount > 0 && failedCount === 0) {
-      toast.success(`🎉 ${successCount} commande(s) expédiée(s) avec succès!`);
-    } else if (successCount > 0 && failedCount > 0) {
-      toast.warning(`✅ ${successCount} succès, ❌ ${failedCount} échec(s)`);
-    } else {
-      toast.error(`❌ Toutes les expéditions ont échoué`);
-    }
-
-    setSelectedOrders([]);
-    fetchOrders(currentPage);
-
-    // Auto-hide after 8 seconds
-    setTimeout(() => {
-      setBulkShipProgress({ isProcessing: false, current: 0, total: 0, successCount: 0, failedCount: 0, results: [] });
-    }, 8000);
   };
 
   const handleShipSingleOrder = async (order, carrierType = 'yalidine') => {
