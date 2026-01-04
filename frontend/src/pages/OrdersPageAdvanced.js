@@ -91,6 +91,7 @@ const OrdersPageAdvanced = () => {
       fetchEcommerceUsers();
       fetchDrivers();
       fetchActiveCarriers();
+      fetchYalidineStatus();
     }
   }, [user]);
 
@@ -100,6 +101,15 @@ const OrdersPageAdvanced = () => {
       setActiveCarriers(response.data.carriers || []);
     } catch (error) {
       console.error('Error fetching active carriers:', error);
+    }
+  };
+
+  const fetchYalidineStatus = async () => {
+    try {
+      const response = await getCarrierStatus('yalidine');
+      setYalidineStatus(response.data);
+    } catch (error) {
+      console.error('Error fetching Yalidine status:', error);
     }
   };
 
