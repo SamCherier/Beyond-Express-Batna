@@ -401,39 +401,147 @@ const OrdersPageAdvanced = () => {
       return;
     }
 
-    setShipLoading(true);
+    // Initialize progress
+    setBulkShipProgress({
+      isProcessing: true,
+      current: 0,
+      total: selectedOrders.length,
+      successCount: 0,
+      failedCount: 0,
+      results: []
+    });
+    setShipDialogOpen(false);
+
     try {
       const response = await bulkShipOrders(selectedOrders, selectedCarrierForShip);
       const { success, failed, results } = response.data;
       
-      if (success > 0) {
-        toast.success(`✅ ${success} commande(s) expédiée(s) via ${selectedCarrierForShip.toUpperCase()}!`);
-        
-        // Show tracking IDs
-        const successResults = results.filter(r => r.success);
-        successResults.forEach(r => {
-          if (r.carrier_tracking_id) {
-            toast.info(`🚚 ${r.order_id.slice(0,8)}... → ${r.carrier_tracking_id}`, { duration: 5000 });
-          }
-        });
+      // Update final progress
+      setBulkShipProgress(prev => ({
+        ...prev,
+        isProcessing: false,
+        current: prev.total,
+        successCount: success,
+        failedCount: failed,
+        results: results
+      }));
+      
+      // Show summary toast
+      if (success > 0 && failed === 0) {
+        toast.success(`🎉 ${success} commande(s) expédiée(s) avec succès!`);
+      } else if (success > 0 && failed > 0) {
+        toast.warning(`✅ ${success} succès, ❌ ${failed} échec(s)`);
+      } else if (failed > 0) {
+        toast.error(`❌ Toutes les expéditions ont échoué (${failed})`);
       }
       
-      if (failed > 0) {
-        const failedResults = results.filter(r => !r.success);
-        failedResults.forEach(r => {
-          toast.error(`❌ Échec: ${r.error_message || 'Erreur inconnue'}`, { duration: 5000 });
-        });
-      }
-      
-      setShipDialogOpen(false);
       setSelectedOrders([]);
       fetchOrders(currentPage);
+      
+      // Auto-hide progress bar after 5 seconds
+      setTimeout(() => {
+        setBulkShipProgress(prev => ({ ...prev, isProcessing: false, results: [] }));
+      }, 5000);
+      
     } catch (error) {
       console.error('Error shipping orders:', error);
+      setBulkShipProgress(prev => ({ ...prev, isProcessing: false }));
       toast.error(error.response?.data?.detail || 'Erreur lors de l\'expédition');
-    } finally {
-      setShipLoading(false);
     }
+  };
+
+  // NEW: Progressive bulk ship with real-time feedback
+  const handleBulkShipWithProgress = async () => {
+    if (selectedOrders.length === 0) {
+      toast.error('Sélectionnez des commandes à expédier');
+      return;
+    }
+
+    if (!yalidineStatus.can_ship) {
+      toast.error('Yalidine n\'est pas configuré. Allez dans Paramètres → Intégrations');
+      return;
+    }
+
+    const total = selectedOrders.length;
+    
+    // Initialize progress
+    setBulkShipProgress({
+      isProcessing: true,
+      current: 0,
+      total: total,
+      successCount: 0,
+      failedCount: 0,
+      results: []
+    });
+
+    let successCount = 0;
+    let failedCount = 0;
+    const results = [];
+
+    // Process orders one by one for real-time progress
+    for (let i = 0; i < selectedOrders.length; i++) {
+      const orderId = selectedOrders[i];
+      
+      try {
+        const response = await shipOrder(orderId, 'yalidine');
+        
+        if (response.data.success) {
+          successCount++;
+          results.push({
+            order_id: orderId,
+            success: true,
+            carrier_tracking_id: response.data.carrier_tracking_id
+          });
+        } else {
+          failedCount++;
+          results.push({
+            order_id: orderId,
+            success: false,
+            error_message: response.data.error_message
+          });
+        }
+      } catch (error) {
+        failedCount++;
+        results.push({
+          order_id: orderId,
+          success: false,
+          error_message: error.response?.data?.detail || 'Erreur réseau'
+        });
+      }
+
+      // Update progress in real-time
+      setBulkShipProgress({
+        isProcessing: true,
+        current: i + 1,
+        total: total,
+        successCount,
+        failedCount,
+        results: [...results]
+      });
+    }
+
+    // Final state
+    setBulkShipProgress(prev => ({
+      ...prev,
+      isProcessing: false
+    }));
+
+    // Show summary
+    if (successCount > 0 && failedCount === 0) {
+      toast.success(`🎉 ${successCount} commande(s) expédiée(s) avec succès!`);
+    } else if (successCount > 0 && failedCount > 0) {
+      toast.warning(`✅ ${successCount} succès, ❌ ${failedCount} échec(s)`);
+    } else {
+      toast.error(`❌ Toutes les expéditions ont échoué`);
+    }
+
+    setSelectedOrders([]);
+    fetchOrders(currentPage);
+
+    // Auto-hide after 8 seconds
+    setTimeout(() => {
+      setBulkShipProgress({ isProcessing: false, current: 0, total: 0, successCount: 0, failedCount: 0, results: [] });
+    }, 8000);
   };
 
   const handleShipSingleOrder = async (order, carrierType = 'yalidine') => {
