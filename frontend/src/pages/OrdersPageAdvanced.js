@@ -1609,24 +1609,28 @@ const OrdersPageAdvanced = () => {
 
       {/* ========== BULK SHIPPING PROGRESS BAR ========== */}
       {(bulkShipProgress.isProcessing || bulkShipProgress.results.length > 0) && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-blue-500 shadow-2xl">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-purple-500 shadow-2xl">
           <div className="max-w-7xl mx-auto px-6 py-4">
             {/* Progress Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 {bulkShipProgress.isProcessing ? (
-                  <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                  <div className="relative">
+                    <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-ping"></span>
+                  </div>
                 ) : bulkShipProgress.failedCount === 0 ? (
                   <CheckCircle className="w-6 h-6 text-green-500" />
                 ) : (
                   <AlertTriangle className="w-6 h-6 text-orange-500" />
                 )}
                 <div>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-gray-900 flex items-center gap-2">
                     {bulkShipProgress.isProcessing 
-                      ? `Envoi à Yalidine... ${bulkShipProgress.current}/${bulkShipProgress.total}`
-                      : `Expédition terminée`
+                      ? `🧠 Routage Intelligent en cours... ${bulkShipProgress.current}/${bulkShipProgress.total}`
+                      : `✅ Expédition terminée`
                     }
+                    <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">AI Optimized</span>
                   </p>
                   <p className="text-sm text-gray-500">
                     ✅ {bulkShipProgress.successCount} succès
@@ -1650,11 +1654,34 @@ const OrdersPageAdvanced = () => {
             <div className="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
-                  bulkShipProgress.failedCount > 0 ? 'bg-gradient-to-r from-green-500 to-orange-500' : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                  bulkShipProgress.failedCount > 0 
+                    ? 'bg-gradient-to-r from-purple-500 via-blue-500 to-orange-500' 
+                    : 'bg-gradient-to-r from-purple-500 via-blue-500 to-green-500'
                 }`}
                 style={{ width: `${(bulkShipProgress.current / Math.max(bulkShipProgress.total, 1)) * 100}%` }}
               />
             </div>
+            
+            {/* Carrier Summary (when complete) */}
+            {!bulkShipProgress.isProcessing && bulkShipProgress.carrierSummary && Object.keys(bulkShipProgress.carrierSummary).length > 0 && (
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm text-gray-600 font-medium">🧠 Routage:</span>
+                {Object.entries(bulkShipProgress.carrierSummary).map(([carrier, count]) => (
+                  <span 
+                    key={carrier}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      carrier.toLowerCase().includes('yalidine') 
+                        ? 'bg-red-100 text-red-700 border border-red-200'
+                        : carrier.toLowerCase().includes('zr') 
+                          ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                          : 'bg-gray-100 text-gray-700 border border-gray-200'
+                    }`}
+                  >
+                    {carrier}: {count}
+                  </span>
+                ))}
+              </div>
+            )}
             
             {/* Results Summary (when complete) */}
             {!bulkShipProgress.isProcessing && bulkShipProgress.results.length > 0 && (
@@ -1662,13 +1689,22 @@ const OrdersPageAdvanced = () => {
                 {bulkShipProgress.results.slice(0, 10).map((result, idx) => (
                   <div 
                     key={idx}
-                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
                       result.success 
-                        ? 'bg-green-100 text-green-700 border border-green-200' 
+                        ? result.carrier_name?.toLowerCase().includes('zr')
+                          ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                          : 'bg-green-100 text-green-700 border border-green-200'
                         : 'bg-red-100 text-red-700 border border-red-200'
                     }`}
                   >
-                    {result.success ? '✅' : '❌'} {result.carrier_tracking_id || result.order_id?.slice(0,8)}
+                    {result.success ? (
+                      <>
+                        {result.carrier_name?.toLowerCase().includes('zr') ? '🚛' : '📦'}
+                        {result.carrier_tracking_id || result.order_id?.slice(0,8)}
+                      </>
+                    ) : (
+                      <>❌ {result.order_id?.slice(0,8)}</>
+                    )}
                   </div>
                 ))}
                 {bulkShipProgress.results.length > 10 && (
