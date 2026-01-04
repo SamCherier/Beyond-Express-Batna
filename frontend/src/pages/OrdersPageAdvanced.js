@@ -1583,14 +1583,15 @@ const OrdersPageAdvanced = () => {
               
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
-                {/* Print Labels Button */}
+                {/* Print Labels Button - A6 Thermal */}
                 <Button
                   variant="outline"
                   onClick={handlePrintLabels}
-                  className="border-gray-600 text-white hover:bg-gray-700 bg-transparent"
+                  className="border-gray-600 text-white hover:bg-gray-700 bg-transparent px-4 py-2"
                 >
-                  <Package className="w-4 h-4 mr-2" />
-                  Imprimer étiquettes
+                  <Printer className="w-4 h-4 mr-2" />
+                  🖨️ Imprimer A6
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-white/20 rounded-full">{selectedOrders.length}</span>
                 </Button>
                 
                 {/* MAIN ACTION: Smart Bulk Ship with AI */}
