@@ -73,7 +73,8 @@ class AutoShipRequest(BaseModel):
 
 class BulkShipRequest(BaseModel):
     order_ids: List[str]
-    carrier_type: str = "yalidine"
+    carrier_type: str = "auto"  # "auto" = Smart Router, or specific carrier
+    use_smart_routing: bool = True  # Enable AI routing
 
 
 class ShipmentResult(BaseModel):
@@ -83,6 +84,7 @@ class ShipmentResult(BaseModel):
     carrier_tracking_id: Optional[str] = None
     label_url: Optional[str] = None
     error_message: Optional[str] = None
+    routing_reason: Optional[str] = None  # Why this carrier was chosen
 
 
 # ===== ENDPOINTS =====
