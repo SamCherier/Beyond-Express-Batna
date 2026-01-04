@@ -87,6 +87,53 @@ class ShipmentResult(BaseModel):
 
 # ===== ENDPOINTS =====
 
+@router.get("/carrier-status/{carrier_type}")
+async def get_carrier_status(
+    carrier_type: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Check if a carrier is configured and active for the current user
+    Used by frontend to show/hide shipping buttons
+    """
+    try:
+        config = await db.carrier_configs.find_one(
+            {"user_id": current_user.id, "carrier_type": carrier_type},
+            {"_id": 0, "credentials": 0}  # Don't return credentials
+        )
+        
+        if not config:
+            return {
+                "carrier_type": carrier_type,
+                "is_configured": False,
+                "is_active": False,
+                "test_mode": True,
+                "can_ship": False,
+                "message": "Transporteur non configuré"
+            }
+        
+        return {
+            "carrier_type": carrier_type,
+            "carrier_name": config.get("carrier_name", carrier_type),
+            "is_configured": True,
+            "is_active": config.get("is_active", False),
+            "test_mode": config.get("test_mode", True),
+            "can_ship": config.get("is_active", False),
+            "last_test_at": config.get("last_test_at"),
+            "message": "Prêt à expédier" if config.get("is_active") else "Transporteur inactif"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting carrier status: {str(e)}")
+        return {
+            "carrier_type": carrier_type,
+            "is_configured": False,
+            "is_active": False,
+            "can_ship": False,
+            "message": str(e)
+        }
+
+
 @router.post("/ship", response_model=ShipmentResult)
 async def ship_order(
     request: ShipOrderRequest,
