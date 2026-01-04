@@ -1564,6 +1564,140 @@ const OrdersPageAdvanced = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ========== FLOATING ACTION BAR (Bulk Shipping Center) ========== */}
+      {selectedOrders.length > 0 && !bulkShipProgress.isProcessing && bulkShipProgress.results.length === 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t-2 border-green-500 shadow-2xl animate-in slide-in-from-bottom duration-300">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* Selection Info */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">{selectedOrders.length}</span>
+                  </div>
+                  <div className="text-white">
+                    <p className="font-semibold">commande{selectedOrders.length > 1 ? 's' : ''} sélectionnée{selectedOrders.length > 1 ? 's' : ''}</p>
+                    <p className="text-xs text-gray-400">Prêt pour l'expédition en masse</p>
+                  </div>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedOrders([])}
+                  className="text-gray-400 hover:text-white hover:bg-gray-700"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Désélectionner
+                </Button>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                {/* Print Labels Button */}
+                <Button
+                  variant="outline"
+                  onClick={handlePrintLabels}
+                  className="border-gray-600 text-white hover:bg-gray-700 bg-transparent"
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Imprimer étiquettes
+                </Button>
+                
+                {/* MAIN ACTION: Bulk Ship with Yalidine */}
+                <Button
+                  onClick={handleBulkShipWithProgress}
+                  disabled={!yalidineStatus.can_ship}
+                  className={`px-6 py-3 font-bold text-lg shadow-lg transition-all ${
+                    yalidineStatus.can_ship 
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white hover:scale-105' 
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <Send className="w-5 h-5 mr-2" />
+                  🚀 Expédier avec Yalidine
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== BULK SHIPPING PROGRESS BAR ========== */}
+      {(bulkShipProgress.isProcessing || bulkShipProgress.results.length > 0) && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-blue-500 shadow-2xl">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            {/* Progress Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                {bulkShipProgress.isProcessing ? (
+                  <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                ) : bulkShipProgress.failedCount === 0 ? (
+                  <CheckCircle className="w-6 h-6 text-green-500" />
+                ) : (
+                  <AlertTriangle className="w-6 h-6 text-orange-500" />
+                )}
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {bulkShipProgress.isProcessing 
+                      ? `Envoi à Yalidine... ${bulkShipProgress.current}/${bulkShipProgress.total}`
+                      : `Expédition terminée`
+                    }
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    ✅ {bulkShipProgress.successCount} succès
+                    {bulkShipProgress.failedCount > 0 && ` • ❌ ${bulkShipProgress.failedCount} échec(s)`}
+                  </p>
+                </div>
+              </div>
+              
+              {!bulkShipProgress.isProcessing && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setBulkShipProgress({ isProcessing: false, current: 0, total: 0, successCount: 0, failedCount: 0, results: [] })}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  bulkShipProgress.failedCount > 0 ? 'bg-gradient-to-r from-green-500 to-orange-500' : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                }`}
+                style={{ width: `${(bulkShipProgress.current / Math.max(bulkShipProgress.total, 1)) * 100}%` }}
+              />
+            </div>
+            
+            {/* Results Summary (when complete) */}
+            {!bulkShipProgress.isProcessing && bulkShipProgress.results.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto py-2">
+                {bulkShipProgress.results.slice(0, 10).map((result, idx) => (
+                  <div 
+                    key={idx}
+                    className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${
+                      result.success 
+                        ? 'bg-green-100 text-green-700 border border-green-200' 
+                        : 'bg-red-100 text-red-700 border border-red-200'
+                    }`}
+                  >
+                    {result.success ? '✅' : '❌'} {result.carrier_tracking_id || result.order_id?.slice(0,8)}
+                  </div>
+                ))}
+                {bulkShipProgress.results.length > 10 && (
+                  <div className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                    +{bulkShipProgress.results.length - 10} autres
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
