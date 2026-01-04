@@ -3481,6 +3481,9 @@ def run_all_tests():
     
     # Test sequence - CRITICAL DEMO FIXES FIRST
     tests = [
+        ("🚚 YALIDINE - Carrier Status API", test_yalidine_carrier_status_api),
+        ("🗺️ YALIDINE - Algeria Wilayas Module", test_algeria_wilayas_module),
+        ("📱 YALIDINE - Adapter Data Mapping", test_yalidine_adapter_data_mapping),
         ("🚀 SMART ROUTING ENGINE - Shipping API", test_smart_routing_engine_shipping_api),
         ("🔗 WEBHOOKS - Test Endpoints", test_webhooks_endpoints),
         ("🚚 CARRIERS - Configuration API", test_carriers_configuration),
