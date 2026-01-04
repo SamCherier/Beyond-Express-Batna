@@ -1220,6 +1220,88 @@ const OrdersPageAdvanced = () => {
                 </CardContent>
               </Card>
 
+              {/* YALIDINE SHIPPING BUTTON - Magic Button! */}
+              {user?.role === 'admin' && !selectedOrder.carrier_tracking_id && (
+                <Card className={`border-2 ${yalidineStatus.can_ship ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${yalidineStatus.can_ship ? 'bg-green-100' : 'bg-gray-100'}`}>
+                          <Truck className={`w-6 h-6 ${yalidineStatus.can_ship ? 'text-green-600' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Expédier avec Yalidine</h3>
+                          <p className="text-xs text-gray-500">
+                            {yalidineStatus.can_ship 
+                              ? `${yalidineStatus.test_mode ? '🧪 Mode Test' : '🚀 Production'} - Prêt à expédier`
+                              : yalidineStatus.is_configured 
+                                ? '⚠️ Inactif - Testez la connexion'
+                                : '❌ Non configuré'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {yalidineStatus.can_ship ? (
+                        <Button
+                          onClick={() => handleShipSingleOrder(selectedOrder, 'yalidine')}
+                          disabled={shipLoading}
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
+                        >
+                          {shipLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Envoi en cours...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4 mr-2" />
+                              Expédier maintenant
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => window.location.href = '/dashboard/settings/integrations'}
+                          className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                        >
+                          Configurer →
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* CARRIER INFO - If already shipped */}
+              {selectedOrder.carrier_tracking_id && (
+                <Card className="border-2 border-blue-200 bg-blue-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100">
+                          <CheckCircle className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Expédié via {selectedOrder.carrier_type?.toUpperCase() || 'Yalidine'}</h3>
+                          <p className="text-sm text-blue-600 font-mono">{selectedOrder.carrier_tracking_id}</p>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={() => handleDownloadCarrierLabel(selectedOrder)}
+                        className="border-blue-300 text-blue-600 hover:bg-blue-100"
+                      >
+                        <Package className="w-4 h-4 mr-2" />
+                        Étiquette PDF
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Add New Event (Admin only) */}
               {user?.role === 'admin' && (
                 <Card className="border-2 border-blue-100">
