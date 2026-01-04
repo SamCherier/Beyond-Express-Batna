@@ -429,6 +429,51 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: POST /api/subscriptions/upgrade working correctly. Successfully upgraded from STARTER to PRO quarterly plan. Cancels old subscription (status='cancelled'), creates new subscription with correct new_plan_type='pro' and new_billing_period='quarterly'. User plan correctly updated to PRO. Authentication working properly. Supports plan changes and billing period modifications."
 
+  - task: "YalidineAdapter - Carrier Status API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/shipping.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "YalidineAdapter implementation complete with carrier status API endpoint GET /api/shipping/carrier-status/yalidine. Should return not configured when no carrier configuration exists."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: YalidineAdapter Carrier Status API working correctly. GET /api/shipping/carrier-status/yalidine returns is_configured=false as expected when no configuration exists. Response structure verified with all required fields: carrier_type, is_configured, is_active, can_ship, message. Authentication working with cherier.sam@beyondexpress-batna.com user."
+
+  - task: "YalidineAdapter - Algeria Wilayas Module"
+    implemented: true
+    working: true
+    file: "/app/backend/services/carriers/algeria_wilayas.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Algeria Wilayas module implemented with functions: get_wilaya_id(), get_wilaya_name(), is_valid_wilaya(). Provides mapping between Algerian wilaya names and numeric IDs (1-58) for Yalidine API integration."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Algeria Wilayas module working perfectly. All test cases passed: get_wilaya_id('Alger')=16, get_wilaya_id('Batna')=5, get_wilaya_id('Tizi Ouzou')=15, get_wilaya_id('Oran')=31, get_wilaya_id('Constantine')=25. is_valid_wilaya() correctly validates all test wilayas. get_wilaya_name(16)='Alger' reverse lookup working. Module ready for Yalidine API integration."
+
+  - task: "YalidineAdapter - Data Mapping Functions"
+    implemented: true
+    working: true
+    file: "/app/backend/services/carriers/yalidine.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "YalidineAdapter data mapping functions implemented: _format_phone() for Algerian phone number formatting, _parse_customer_name() for splitting full names into firstname/lastname. Handles international format (+213), ensures proper 10-digit format, and correctly parses various name formats."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: YalidineAdapter data mapping functions working perfectly. Phone formatting: '+213555123456'→'0555123456', '0555123456'→'0555123456', '555123456'→'0555123456'. Name parsing: 'Ahmed Benali'→('Ahmed', 'Benali'), 'Mohammed'→('Mohammed', ''), 'Ali Ben Ahmed Mansour'→('Ali', 'Ben Ahmed Mansour'). All test cases passed, ready for production use."
+
   - task: "Bulk Import Orders - Template Download"
     implemented: true
     working: true
