@@ -138,6 +138,9 @@ export const smartBulkShip = (orderIds) =>
 export const getShippingLabel = (orderId) => 
   api.get(`/shipping/label/${orderId}`, { responseType: 'blob' });
 
+export const getBulkLabels = (orderIds) => 
+  api.post('/shipping/bulk-labels', { order_ids: orderIds }, { responseType: 'blob' });
+
 export const getCarrierTracking = (orderId) => 
   api.get(`/shipping/tracking/${orderId}`);
 
