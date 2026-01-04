@@ -307,13 +307,36 @@ async def bulk_ship_orders(
                     ))
                     continue
                 
+                # Skip if already shipped
+                if order.get('carrier_tracking_id'):
+                    results.append(ShipmentResult(
+                        order_id=order_id,
+                        success=True,
+                        carrier_name=order.get('carrier_type', ''),
+                        carrier_tracking_id=order.get('carrier_tracking_id'),
+                        error_message="Déjà expédié",
+                        routing_reason="Commande déjà expédiée - Skip"
+                    ))
+                    continue
+                
                 order['sender'] = sender
                 
-                response = await smart_router.sync_order(
-                    order,
-                    request.carrier_type,
-                    current_user.id
-                )
+                # Use Smart Routing if enabled
+                if request.use_smart_routing or request.carrier_type == "auto":
+                    # 🧠 AI-Powered Routing
+                    response, recommendation = await smart_router.smart_ship(
+                        order,
+                        current_user.id
+                    )
+                    routing_reason = recommendation.reason
+                else:
+                    # Manual carrier selection
+                    response = await smart_router.sync_order(
+                        order,
+                        request.carrier_type,
+                        current_user.id
+                    )
+                    routing_reason = f"Sélection manuelle: {request.carrier_type}"
                 
                 results.append(ShipmentResult(
                     order_id=order_id,
@@ -321,7 +344,8 @@ async def bulk_ship_orders(
                     carrier_name=response.carrier_name,
                     carrier_tracking_id=response.carrier_tracking_id,
                     label_url=response.label_url,
-                    error_message=response.error_message
+                    error_message=response.error_message,
+                    routing_reason=routing_reason
                 ))
                 
             except Exception as e:
@@ -333,10 +357,18 @@ async def bulk_ship_orders(
         
         success_count = sum(1 for r in results if r.success)
         
+        # Group results by carrier for summary
+        carrier_summary = {}
+        for r in results:
+            if r.success and r.carrier_name:
+                carrier_summary[r.carrier_name] = carrier_summary.get(r.carrier_name, 0) + 1
+        
         return {
             "total": len(request.order_ids),
             "success": success_count,
             "failed": len(request.order_ids) - success_count,
+            "smart_routing": request.use_smart_routing,
+            "carrier_summary": carrier_summary,
             "results": [r.dict() for r in results]
         }
         
