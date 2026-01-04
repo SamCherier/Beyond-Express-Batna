@@ -133,4 +133,7 @@ export const getCarrierTracking = (orderId) =>
 export const getActiveCarriers = () => 
   api.get('/shipping/active-carriers');
 
+export const getCarrierStatus = (carrierType) =>
+  api.get(`/shipping/carrier-status/${carrierType}`);
+
 export default api;
