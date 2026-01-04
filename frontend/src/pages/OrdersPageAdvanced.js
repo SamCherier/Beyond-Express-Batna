@@ -70,6 +70,7 @@ const OrdersPageAdvanced = () => {
   const [shipDialogOpen, setShipDialogOpen] = useState(false);
   const [selectedCarrierForShip, setSelectedCarrierForShip] = useState('yalidine');
   const [shipLoading, setShipLoading] = useState(false);
+  const [yalidineStatus, setYalidineStatus] = useState({ is_configured: false, is_active: false });
 
   const [formData, setFormData] = useState({
     recipient_name: '',
