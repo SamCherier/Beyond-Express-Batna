@@ -1175,3 +1175,61 @@ agent_communication:
       NEXT STEPS:
       - User needs to configure Yalidine with real API keys
       - Test actual shipment creation with Yalidine API
+
+## Bulk Shipping Center - COMPLETE
+
+  - task: "Floating Action Bar for Bulk Selection"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    priority: "critical"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Added floating action bar at bottom of screen when orders are selected. Shows: selection count badge, 'Désélectionner' button, 'Imprimer étiquettes' button, '🚀 Expédier avec Yalidine' button (disabled if Yalidine not configured)."
+
+  - task: "Bulk Shipping with Real-Time Progress"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    priority: "critical"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ handleBulkShipWithProgress() processes orders one-by-one showing real-time progress. Progress bar shows 'Envoi à Yalidine... 3/5' during processing. Summary shows success/failed counts with tracking ID badges."
+
+  - task: "Per-Row Quick Ship Button"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/OrdersPageAdvanced.js"
+    priority: "high"
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ Added green airplane icon button on each order row for quick single-order shipping."
+
+agent_communication:
+  - agent: "main"
+    message: |
+      ## BULK SHIPPING CENTER COMPLETE
+      
+      UI Features:
+      - Checkboxes on each order row
+      - Floating action bar appears when orders selected
+      - Shows: "X commandes sélectionnées" with badge
+      - "Imprimer étiquettes" secondary button
+      - "🚀 Expédier avec Yalidine" main button (green gradient)
+      
+      Progress System:
+      - Real-time progress: "Envoi à Yalidine... 3/5"
+      - Progress bar animation
+      - Success/Failed count display
+      - Tracking ID badges for results
+      - Auto-dismiss after 8 seconds
+      
+      TESTED:
+      - Floating bar appears on selection ✅
+      - Button disabled when Yalidine not configured ✅
+      - Button enabled when Yalidine configured ✅
+      - Progress bar shows during processing ✅
+      - Results summary shows after completion ✅
