@@ -246,93 +246,186 @@ def test_orders_api_with_carrier_fields():
         )
         return False
 
-def test_get_orders():
-    """Test getting orders list - CRITICAL: Test for updated_at KeyError fix"""
+def test_unified_tracking_time_travel():
+    """Test 3: Unified Tracking System - Time Travel Test"""
+    global time_travel_order_id
     
-    print("📋 Testing Get Orders (Critical Bug Fix Verification)...")
+    print("🚀 Testing Unified Tracking System - Time Travel...")
     
+    # Step 1: Create a new test order for Ghardaïa
     try:
-        response = requests.get(
+        create_response = requests.post(
             f"{API_BASE}/orders",
+            json=TIME_TRAVEL_ORDER_DATA,
             headers=headers,
             timeout=30
         )
         
-        if response.status_code == 200:
-            data = response.json()
+        if create_response.status_code == 200:
+            order_data = create_response.json()
+            time_travel_order_id = order_data.get('id')
             
-            if isinstance(data, list):
-                print(f"✅ SUCCESS: GET /api/orders returned 200 OK with {len(data)} orders")
-                
-                # Verify all orders have required fields including updated_at
-                missing_fields = []
-                orders_with_all_fields = 0
-                
-                required_fields = ['id', 'tracking_id', 'status', 'cod_amount', 'recipient', 'sender', 'updated_at']
-                
-                for i, order in enumerate(data):
-                    order_missing = []
-                    for field in required_fields:
-                        if field not in order:
-                            order_missing.append(field)
-                    
-                    if order_missing:
-                        missing_fields.append(f"Order {i+1}: missing {order_missing}")
-                    else:
-                        orders_with_all_fields += 1
-                    
-                    # Check recipient structure
-                    recipient = order.get('recipient', {})
-                    if not isinstance(recipient, dict) or 'wilaya' not in recipient or 'commune' not in recipient:
-                        missing_fields.append(f"Order {i+1}: recipient missing wilaya/commune")
-                
-                if not missing_fields:
-                    test_results.add_result(
-                        "Get Orders List - Critical Bug Fix",
-                        True,
-                        f"✅ CRITICAL FIX VERIFIED: All {len(data)} orders have required fields including updated_at. No KeyError occurred."
-                    )
-                    return True
-                else:
-                    test_results.add_result(
-                        "Get Orders List - Critical Bug Fix",
-                        False,
-                        f"Some orders missing required fields: {orders_with_all_fields}/{len(data)} complete",
-                        "; ".join(missing_fields[:5])  # Show first 5 issues
-                    )
-                    return False
-            else:
-                test_results.add_result(
-                    "Get Orders List - Critical Bug Fix",
-                    False,
-                    "Response is not a list",
-                    str(data)
-                )
-                return False
-        elif response.status_code == 500:
             test_results.add_result(
-                "Get Orders List - Critical Bug Fix",
-                False,
-                "❌ CRITICAL: 500 Internal Server Error - KeyError bug may still exist!",
-                response.text
+                "Time Travel - Order Creation",
+                True,
+                f"Test order created for Ghardaïa with ID: {time_travel_order_id}"
             )
-            return False
         else:
             test_results.add_result(
-                "Get Orders List - Critical Bug Fix",
+                "Time Travel - Order Creation",
                 False,
-                f"Get orders failed with status {response.status_code}",
-                response.text
+                f"Order creation failed with status {create_response.status_code}",
+                create_response.text
             )
             return False
             
     except Exception as e:
         test_results.add_result(
-            "Get Orders List - Critical Bug Fix",
+            "Time Travel - Order Creation",
             False,
-            f"Get orders request failed: {str(e)}"
+            f"Order creation request failed: {str(e)}"
         )
         return False
+    
+    # Step 2: Ship it with Smart Router
+    try:
+        ship_response = requests.post(
+            f"{API_BASE}/shipping/bulk-ship",
+            json={
+                "order_ids": [time_travel_order_id],
+                "use_smart_routing": True
+            },
+            headers=headers,
+            timeout=30
+        )
+        
+        if ship_response.status_code == 200:
+            ship_data = ship_response.json()
+            results = ship_data.get('results', [])
+            
+            if results and len(results) > 0:
+                result = results[0]
+                carrier_name = result.get('carrier_name', '')
+                
+                if 'ZR Express' in carrier_name or 'zr_express' in carrier_name.lower():
+                    test_results.add_result(
+                        "Time Travel - Smart Router ZR Assignment",
+                        True,
+                        f"Order assigned to ZR Express (southern coverage): {carrier_name}"
+                    )
+                else:
+                    test_results.add_result(
+                        "Time Travel - Smart Router ZR Assignment",
+                        False,
+                        f"Expected ZR Express for Ghardaïa, got: {carrier_name}"
+                    )
+            else:
+                test_results.add_result(
+                    "Time Travel - Smart Router Response",
+                    False,
+                    "No results in bulk-ship response",
+                    str(ship_data)
+                )
+        else:
+            test_results.add_result(
+                "Time Travel - Smart Router",
+                False,
+                f"Bulk ship failed with status {ship_response.status_code}",
+                ship_response.text
+            )
+            return False
+            
+    except Exception as e:
+        test_results.add_result(
+            "Time Travel - Smart Router",
+            False,
+            f"Bulk ship request failed: {str(e)}"
+        )
+        return False
+    
+    # Step 3: Test Time Travel - First call (should change to in_transit)
+    try:
+        sync_response_1 = requests.post(
+            f"{API_BASE}/shipping/sync-status/{time_travel_order_id}",
+            json={"force_advance": True},
+            headers=headers,
+            timeout=30
+        )
+        
+        if sync_response_1.status_code == 200:
+            sync_data_1 = sync_response_1.json()
+            new_status_1 = sync_data_1.get('new_status', '')
+            
+            if new_status_1 == 'in_transit':
+                test_results.add_result(
+                    "Time Travel - First Advance",
+                    True,
+                    f"First time travel successful: status changed to {new_status_1}"
+                )
+            else:
+                test_results.add_result(
+                    "Time Travel - First Advance",
+                    False,
+                    f"Expected 'in_transit', got '{new_status_1}'",
+                    str(sync_data_1)
+                )
+        else:
+            test_results.add_result(
+                "Time Travel - First Advance",
+                False,
+                f"First sync failed with status {sync_response_1.status_code}",
+                sync_response_1.text
+            )
+            
+    except Exception as e:
+        test_results.add_result(
+            "Time Travel - First Advance",
+            False,
+            f"First sync request failed: {str(e)}"
+        )
+    
+    # Step 4: Test Time Travel - Second call (should change to delivered)
+    try:
+        sync_response_2 = requests.post(
+            f"{API_BASE}/shipping/sync-status/{time_travel_order_id}",
+            json={"force_advance": True},
+            headers=headers,
+            timeout=30
+        )
+        
+        if sync_response_2.status_code == 200:
+            sync_data_2 = sync_response_2.json()
+            new_status_2 = sync_data_2.get('new_status', '')
+            
+            if new_status_2 == 'delivered':
+                test_results.add_result(
+                    "Time Travel - Second Advance",
+                    True,
+                    f"Second time travel successful: status changed to {new_status_2}"
+                )
+            else:
+                test_results.add_result(
+                    "Time Travel - Second Advance",
+                    False,
+                    f"Expected 'delivered', got '{new_status_2}'",
+                    str(sync_data_2)
+                )
+        else:
+            test_results.add_result(
+                "Time Travel - Second Advance",
+                False,
+                f"Second sync failed with status {sync_response_2.status_code}",
+                sync_response_2.text
+            )
+            
+    except Exception as e:
+        test_results.add_result(
+            "Time Travel - Second Advance",
+            False,
+            f"Second sync request failed: {str(e)}"
+        )
+    
+    return True
 
 def test_tracking_events():
     """Test tracking events GET and POST"""
