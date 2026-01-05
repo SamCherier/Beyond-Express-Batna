@@ -130,9 +130,9 @@ async def login(credentials: UserLogin, response: Response):
     # Create JWT token
     access_token = create_access_token(data={"sub": user_doc['id']})
     
-    # Create session
+    # Create session - Extended to 30 days for stable demo
     session_token = generate_session_token()
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=30)
     
     session_doc = {
         "id": str(uuid.uuid4()),
@@ -143,16 +143,15 @@ async def login(credentials: UserLogin, response: Response):
     }
     await db.sessions.insert_one(session_doc)
     
-    # Set cookie - permissive settings for cross-origin
-    is_production = os.environ.get('ENVIRONMENT', 'development') == 'production'
+    # Set cookie - 30 days, permissive for dev/prod
     response.set_cookie(
         key="session_token",
         value=session_token,
-        max_age=7 * 24 * 60 * 60,
+        max_age=30 * 24 * 60 * 60,  # 30 days
         path="/",
         httponly=True,
-        samesite="none",  # Allow cross-origin
-        secure=True  # Required for SameSite=None
+        samesite="lax",  # More compatible than 'none'
+        secure=False  # Works in both http and https
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
@@ -197,9 +196,9 @@ async def process_google_session(request: Request, response: Response):
         await db.users.insert_one(user_dict)
         user_doc = user_dict
     
-    # Create session
+    # Create session - Extended to 30 days for stable demo
     session_token = session_data['session_token']
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=30)
     
     session_doc = {
         "id": str(uuid.uuid4()),
@@ -210,16 +209,15 @@ async def process_google_session(request: Request, response: Response):
     }
     await db.sessions.insert_one(session_doc)
     
-    # Set cookie - permissive settings for cross-origin
-    is_production = os.environ.get('ENVIRONMENT', 'development') == 'production'
+    # Set cookie - 30 days, permissive for dev/prod
     response.set_cookie(
         key="session_token",
         value=session_token,
-        max_age=7 * 24 * 60 * 60,
+        max_age=30 * 24 * 60 * 60,  # 30 days
         path="/",
         httponly=True,
-        samesite="none",  # Allow cross-origin
-        secure=True  # Required for SameSite=None
+        samesite="lax",  # More compatible than 'none'
+        secure=False  # Works in both http and https
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})

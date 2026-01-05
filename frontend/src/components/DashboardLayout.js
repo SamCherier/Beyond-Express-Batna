@@ -125,36 +125,44 @@ const DashboardLayout = () => {
               </button>
             </div>
 
-            {/* User Profile Menu */}
-            <div className="relative">
+            {/* User Profile Menu - Fixed z-index and click handling */}
+            <div className="relative z-50">
               <button 
-                onClick={() => setProfileMenuOpen(!profileMenuOpen)} 
-                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileMenuOpen(!profileMenuOpen);
+                }} 
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer select-none"
+                data-testid="profile-menu-button"
               >
                 {user?.picture ? (
-                  <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full" />
+                  <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full pointer-events-none" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold">
+                  <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold pointer-events-none">
                     {user?.name?.[0]?.toUpperCase()}
                   </div>
                 )}
-                <div className="hidden md:block text-left">
+                <div className="hidden md:block text-left pointer-events-none">
                   <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                   <p className="text-xs text-gray-500">{t(user?.role)}</p>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform pointer-events-none ${profileMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {profileMenuOpen && (
                 <>
                   {/* Backdrop to close menu when clicking outside */}
                   <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setProfileMenuOpen(false)}
+                    className="fixed inset-0 z-[60]" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileMenuOpen(false);
+                    }}
                   />
                   
                   {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-[70]">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-bold text-gray-900">{user?.name}</p>
                       <p className="text-xs text-gray-500">{user?.email}</p>
@@ -162,8 +170,10 @@ const DashboardLayout = () => {
                     </div>
                     
                     <button 
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         localStorage.clear();
                         sessionStorage.clear();
                         document.cookie.split(";").forEach((c) => {
@@ -171,7 +181,7 @@ const DashboardLayout = () => {
                         });
                         window.location.href = '/login';
                       }}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium rounded-b-lg"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
