@@ -27,30 +27,24 @@ ADMIN_CREDENTIALS = {
 # Test order ID from review request
 TEST_ORDER_ID = "8c1b0c8a-7a6d-441a-b168-a06e1c74e90e"
 
-TEST_ORDER_DATA = {
+# Test data for Time Travel test
+TIME_TRAVEL_ORDER_DATA = {
     "recipient": {
-        "name": "Ahmed Benali",
-        "phone": "0555123456",
-        "address": "Rue Didouche Mourad, Cité El Badr",
-        "wilaya": "Alger",
-        "commune": "Bab Ezzouar"
+        "name": "Test Client",
+        "phone": "0555999888",
+        "address": "Test",
+        "wilaya": "Ghardaïa",
+        "commune": "Ghardaïa"
     },
-    "description": "Smartphone Samsung Galaxy A54 5G 128GB - Téléphone portable",
-    "cod_amount": 45000.0,
-    "service_type": "E-COMMERCE"
-}
-
-TEST_TRACKING_EVENT = {
-    "status": "in_transit",
-    "location": "Centre de tri Alger",
-    "notes": "Colis en cours de traitement au centre de tri"
+    "description": "Time Travel Test",
+    "cod_amount": 3000,
+    "delivery_type": "Livraison à domicile"
 }
 
 # Global variables for test session
-session_token = None
-test_order_id = None
+access_token = None
 headers = {}
-driver_headers = {}
+time_travel_order_id = None
 
 class TestResults:
     def __init__(self):
