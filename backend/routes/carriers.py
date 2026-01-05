@@ -368,9 +368,6 @@ async def test_carrier_connection(
 # GENERIC API BUILDER (ADMIN ONLY)
 # ============================================
 
-from pydantic import BaseModel
-from typing import Optional
-
 class GenericCarrierCreate(BaseModel):
     name: str
     base_url: str
