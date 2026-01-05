@@ -143,15 +143,15 @@ async def login(credentials: UserLogin, response: Response):
     }
     await db.sessions.insert_one(session_doc)
     
-    # Set cookie - 30 days, permissive for dev/prod
+    # Set cookie - 30 days, cross-origin compatible
     response.set_cookie(
         key="session_token",
         value=session_token,
         max_age=30 * 24 * 60 * 60,  # 30 days
         path="/",
         httponly=True,
-        samesite="lax",  # More compatible than 'none'
-        secure=False  # Works in both http and https
+        samesite="none",  # Required for cross-origin
+        secure=True  # Required for SameSite=None
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
@@ -209,15 +209,15 @@ async def process_google_session(request: Request, response: Response):
     }
     await db.sessions.insert_one(session_doc)
     
-    # Set cookie - 30 days, permissive for dev/prod
+    # Set cookie - 30 days, cross-origin compatible
     response.set_cookie(
         key="session_token",
         value=session_token,
         max_age=30 * 24 * 60 * 60,  # 30 days
         path="/",
         httponly=True,
-        samesite="lax",  # More compatible than 'none'
-        secure=False  # Works in both http and https
+        samesite="none",  # Required for cross-origin
+        secure=True  # Required for SameSite=None
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
