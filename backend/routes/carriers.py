@@ -555,13 +555,6 @@ async def get_preconfigured_carriers():
         ]
     }
 
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error deleting carrier config: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to delete carrier config")
-
 
 # ============================================
 # GENERIC API BUILDER (ADMIN ONLY)
