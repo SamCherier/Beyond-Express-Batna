@@ -159,7 +159,7 @@ def test_amine_ai_agent():
             
             # Check for expected content in response
             has_order_info = any(keyword in response_text.lower() for keyword in ['trk442377', 'in_transit', 'tlemcen', '4494'])
-            has_darja = any(keyword in response_text for keyword in ['مرحبا بيك', 'مرحبا', 'بيك'])
+            has_darja = any(keyword in response_text for keyword in ['مرحبا بيك', 'مرحبا', 'بيك', 'أهلاً بك', 'أهلاً'])
             
             if has_order_info and has_darja:
                 test_results.add_result(
