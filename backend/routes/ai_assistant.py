@@ -184,20 +184,44 @@ async def call_ai_api(message: str, model: str, provider: str, session_id: str) 
     """
     Call AI API using emergentintegrations
     Supports: OpenAI (GPT-4o, GPT-5), Anthropic (Claude), Gemini
+    
+    For Gemini: Uses Amine Agent 🇩🇿 (The Algerian AI)
     """
     try:
+        # 🇩🇿 For Gemini, use Amine Agent with function calling
+        if provider == "gemini":
+            from services.amine_agent import amine_agent
+            
+            # Amine needs a Gemini API key - use Emergent key
+            result = await amine_agent.chat(
+                user_message=message,
+                api_key=emergent_api_key,
+                session_id=session_id
+            )
+            return result.get("response", "Désolé, je n'ai pas pu traiter votre demande.")
+        
+        # For other providers, use emergentintegrations
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        # Set system message
-        system_message = """Vous êtes l'assistant IA de Beyond Express, une plateforme 3PL logistique en Algérie.
-Vous aidez les utilisateurs avec:
-- Suivi et gestion des commandes
-- Questions sur les stocks
-- Informations sur les livraisons
-- Conseils logistiques
-- Fonctionnalités de la plateforme
+        # Set system message (Algerian style for all)
+        system_message = """أنت "أمين" (Amine)، مساعد Beyond Express. أنت جزائري 🇩🇿 وتتكلم بالدارجة الجزائرية والفرنسية والعربية.
 
-Répondez toujours en français, de manière claire, concise et professionnelle."""
+شخصيتك:
+- ودود ومحترف
+- تستعمل التعبيرات الجزائرية: "مرحبا بيك!", "ما تخمش راسك", "كاين مشكل؟ نحلولك!"
+- تساعد في: تتبع الطرود، حساب الأسعار، إدارة الطلبات
+
+معلومات Beyond Express:
+- شركة لوجستيك جزائرية متخصصة في توصيل الطرود
+- خدمة الدفع عند الاستلام (COD)
+- تغطية كل 58 ولاية جزائرية
+- إشعارات واتساب أوتوماتيكية
+
+التعريفة:
+- الجزائر العاصمة: 400 دج
+- وهران: 550 دج
+- قسنطينة: 600 دج
+- باقي الولايات: 500-800 دج"""
         
         # Use LlmChat with system message
         chat = LlmChat(
