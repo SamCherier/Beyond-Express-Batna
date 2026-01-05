@@ -3684,7 +3684,7 @@ def run_all_tests():
         ("🔥 P0 CRITICAL - Admin Dashboard", test_admin_dashboard_critical),
         ("🚛 P1 CRITICAL - Driver PWA", test_driver_pwa_critical),
         ("🔧 P1 CRITICAL - Driver API curl simulation", test_driver_api_curl_simulation),
-        ("Authentication", test_authentication),
+        ("Authentication", test_session_auth),
         ("🚗 DRIVER API - Authentication", test_driver_authentication),
         ("🔒 DRIVER API - Authorization", test_driver_authorization),
         ("📋 DRIVER API - Tasks", test_driver_tasks),
