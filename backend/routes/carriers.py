@@ -555,19 +555,6 @@ async def get_preconfigured_carriers():
         ]
     }
 
-            "user_id": user_id,
-            "carrier_type": carrier_type
-        })
-        
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Carrier configuration not found")
-        
-        logger.info(f"✅ Carrier config deleted for user {user_id}, carrier {carrier_type}")
-        
-        return {
-            "success": True,
-            "message": "Carrier configuration deleted"
-        }
     
     except HTTPException:
         raise
