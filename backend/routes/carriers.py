@@ -555,49 +555,6 @@ async def get_preconfigured_carriers():
         ]
     }
 
-
-# The old code below should be removed - it was duplicated from the insertion
-            "user_id": user_id,
-            "carrier_type": carrier_type
-        })
-        
-        if not config:
-            raise HTTPException(status_code=404, detail="Carrier not configured")
-        
-        new_status = not config.get("is_active", False)
-        
-        await configs_collection.update_one(
-            {"id": config["id"]},
-            {"$set": {"is_active": new_status, "updated_at": datetime.now(timezone.utc)}}
-        )
-        
-        logger.info(f"✅ Carrier {carrier_type} {'activated' if new_status else 'deactivated'} for user {user_id}")
-        
-        return {
-            "success": True,
-            "is_active": new_status,
-            "message": f"Carrier {'activated' if new_status else 'deactivated'}"
-        }
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error toggling carrier status: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to toggle carrier status")
-
-@router.delete("/{carrier_type}")
-async def delete_carrier_config(
-    carrier_type: str,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Delete carrier configuration
-    """
-    try:
-        user_id = current_user.id
-        
-        configs_collection = db["carrier_configs"]
-        result = await configs_collection.delete_one({
             "user_id": user_id,
             "carrier_type": carrier_type
         })
