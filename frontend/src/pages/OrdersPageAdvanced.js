@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
+import { useAIDoctor } from '@/hooks/useAIDoctor';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
+import AIDoctorModal from '@/components/AIDoctorModal';
 import api, { 
   getOrders, createOrder, updateOrderStatus, generateBordereau,
   getTrackingEvents, addTrackingEvent, filterOrdersByDeliveryPartner,
