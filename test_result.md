@@ -327,3 +327,30 @@ The Driver PWA is exceptionally well-implemented with:
 - ✅ Real-time task management and status updates
 
 **Recommendation:** Driver PWA is production-ready and provides an excellent mobile experience for delivery drivers.
+
+## Session 5: Amine Agent - The Algerian AI
+
+### New Features Implemented
+1. Amine Agent (/backend/services/amine_agent.py)
+2. Multi-language support (Darja, French, Arabic)
+3. Order tracking via database lookup
+4. Pricing calculator for 58 wilayas
+5. Algerian personality with local expressions
+
+### System Prompt Persona
+- Name: Amine
+- Company: Beyond Express
+- Languages: Darja (مرحبا بيك), French, Arabic
+- Tone: Professional, empathetic, local
+
+### Tools Available
+1. get_order_status(tracking_id) - DB lookup
+2. calculate_shipping_price(wilaya) - Pricing grid
+
+### Test Scenarios
+1. "Win rah TRK442377?" -> Returns order status from DB
+2. "Chhal livraison l'Constantine?" -> Returns 600 DA domicile, 500 DA stopdesk
+3. Mixed language responses with emojis
+
+### Credentials
+- Admin: cherier.sam@beyondexpress-batna.com / admin123456
