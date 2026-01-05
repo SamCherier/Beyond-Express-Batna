@@ -3697,7 +3697,7 @@ def run_all_tests():
         ("🚫 NEW FEATURE - Thermal Labels Error Handling", test_thermal_labels_error_handling),
         ("BUG 1 FIX - Carriers Integration Page", test_carriers_integration_page),
         ("BUG 2 FIX - Batch Transfer Payment", test_batch_transfer_payment),
-        ("AI Assistant PRO User Bug Fix", test_ai_assistant_pro_user_bug_fix),
+        ("🇩🇿 Amine AI Agent - The Algerian AI", test_amine_ai_agent),
         ("Get Orders - CRITICAL BUG FIX", test_get_orders),
         ("Orders Count Verification", test_orders_count_verification),
         ("Order Creation", test_order_creation),
