@@ -84,51 +84,57 @@ class TestResults:
                     print(f"    Details: {result['details']}")
         print(f"{'='*60}")
 
-def test_authentication():
-    """Test user authentication and get session token"""
-    global session_token, headers
+def test_session_auth():
+    """Test 1: Session/Auth Test - Login and verify access_token"""
+    global access_token, headers
     
-    print("🔐 Testing Authentication...")
-    
-    # First try to register the user
-    try:
-        register_response = requests.post(
-            f"{API_BASE}/auth/register",
-            json=TEST_USER,
-            timeout=30
-        )
-        
-        if register_response.status_code == 200:
-            print("✅ User registered successfully")
-        elif register_response.status_code == 400 and "already registered" in register_response.text:
-            print("ℹ️ User already exists, proceeding with login")
-        else:
-            print(f"⚠️ Registration failed: {register_response.status_code} - {register_response.text}")
-    except Exception as e:
-        print(f"⚠️ Registration request failed: {str(e)}")
+    print("🔐 Testing Session/Auth...")
     
     try:
-        # Test login
+        # Test login with admin credentials
         response = requests.post(
             f"{API_BASE}/auth/login",
-            json={"email": TEST_USER["email"], "password": TEST_USER["password"]},
+            json=ADMIN_CREDENTIALS,
             timeout=30
         )
         
         if response.status_code == 200:
             data = response.json()
-            session_token = data.get('access_token')
-            headers = {'Authorization': f'Bearer {session_token}'}
+            access_token = data.get('access_token')
+            headers = {'Authorization': f'Bearer {access_token}'}
             
             test_results.add_result(
-                "Authentication - Login",
+                "Session/Auth - Login",
                 True,
-                f"Successfully logged in as {data.get('user', {}).get('name', 'Unknown')}"
+                f"Successfully logged in. Access token received: {access_token[:20]}..."
             )
-            return True
+            
+            # Test GET /api/auth/me with the token
+            me_response = requests.get(
+                f"{API_BASE}/auth/me",
+                headers=headers,
+                timeout=30
+            )
+            
+            if me_response.status_code == 200:
+                user_data = me_response.json()
+                test_results.add_result(
+                    "Session/Auth - /auth/me",
+                    True,
+                    f"Token verification successful. User: {user_data.get('name', 'Unknown')}"
+                )
+                return True
+            else:
+                test_results.add_result(
+                    "Session/Auth - /auth/me",
+                    False,
+                    f"/auth/me failed with status {me_response.status_code}",
+                    me_response.text
+                )
+                return False
         else:
             test_results.add_result(
-                "Authentication - Login",
+                "Session/Auth - Login",
                 False,
                 f"Login failed with status {response.status_code}",
                 response.text
@@ -137,7 +143,7 @@ def test_authentication():
             
     except Exception as e:
         test_results.add_result(
-            "Authentication - Login",
+            "Session/Auth - Login",
             False,
             f"Login request failed: {str(e)}"
         )
