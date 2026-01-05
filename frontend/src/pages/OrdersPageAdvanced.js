@@ -1839,6 +1839,9 @@ const OrdersPageAdvanced = () => {
           </div>
         </div>
       )}
+
+      {/* AI Doctor Modal - Intelligent Error Handler */}
+      <AIDoctorModal {...aiDoctor.modalProps} />
     </div>
   );
 };
