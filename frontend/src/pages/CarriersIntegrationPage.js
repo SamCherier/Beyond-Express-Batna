@@ -209,6 +209,48 @@ const CarriersIntegrationPage = () => {
       toast.error('Erreur lors de la suppression');
     }
   };
+  
+  // Generic Carrier Functions
+  const handleCreateGenericCarrier = async () => {
+    if (!genericForm.name || !genericForm.base_url) {
+      toast.error('Nom et URL de base requis');
+      return;
+    }
+    
+    setSaveLoading(true);
+    try {
+      await api.post('/carriers/generic', genericForm);
+      toast.success(`${genericForm.name} ajouté avec succès!`);
+      setShowGenericModal(false);
+      setGenericForm({
+        name: '',
+        base_url: '',
+        auth_type: 'bearer',
+        auth_header_name: 'Authorization',
+        auth_header_template: 'Bearer {KEY}',
+        api_key: '',
+        secret_key: '',
+        logo_color: '#1E3A8A'
+      });
+      fetchGenericCarriers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la création');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+  
+  const handleDeleteGenericCarrier = async (carrierId) => {
+    if (!window.confirm('Supprimer ce transporteur personnalisé?')) return;
+    
+    try {
+      await api.delete(`/carriers/generic/${carrierId}`);
+      toast.success('Transporteur supprimé');
+      fetchGenericCarriers();
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
 
   const getStatusBadge = (carrier) => {
     if (!carrier.is_configured) {
