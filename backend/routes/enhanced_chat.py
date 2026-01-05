@@ -84,37 +84,28 @@ async def send_chat_message(chat: ChatMessage, current_user: User = Depends(get_
         
         # Generate response based on provider
         if provider == 'gemini':
-            genai.configure(api_key=api_key)
-            
-            # Try gemini-1.5-flash first, fallback to gemini-pro
-            try:
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                model_name = 'gemini-1.5-flash'
-            except Exception as e:
-                logger.warning(f"gemini-1.5-flash not available, using gemini-pro: {e}")
-                model = genai.GenerativeModel('gemini-pro')
-                model_name = 'gemini-pro'
-            
-            # Create full prompt with context
-            full_prompt = BEYOND_EXPRESS_CONTEXT + context_addition + "\n\nQuestion de l'utilisateur: " + chat.message
-            
-            response = model.generate_content(full_prompt)
+            # 🇩🇿 Use Amine Agent - The Algerian AI
+            result = await amine_agent.chat(
+                user_message=chat.message,
+                api_key=api_key,
+                session_id=current_user.id
+            )
             
             # Save to chat history
             await db.chat_history.insert_one({
                 "user_id": current_user.id,
                 "message": chat.message,
-                "response": response.text,
+                "response": result["response"],
                 "provider": provider,
-                "model": model_name,
+                "model": result["model"],
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             
             return ChatResponse(
-                response=response.text,
-                provider="Google Gemini",
-                model=model_name,
-                timestamp=datetime.now(timezone.utc).isoformat()
+                response=result["response"],
+                provider=result["provider"],
+                model=result["model"],
+                timestamp=result["timestamp"]
             )
         
         elif provider == 'deepseek':
