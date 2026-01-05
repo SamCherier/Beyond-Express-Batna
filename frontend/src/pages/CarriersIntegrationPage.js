@@ -30,33 +30,78 @@ import { toast } from 'sonner';
 
 const CarriersIntegrationPage = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  
   const [carriers, setCarriers] = useState([]);
+  const [genericCarriers, setGenericCarriers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCarrier, setSelectedCarrier] = useState(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showGenericModal, setShowGenericModal] = useState(false);
   const [credentials, setCredentials] = useState({});
   const [testMode, setTestMode] = useState(true);
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
+  
+  // Generic carrier form state
+  const [genericForm, setGenericForm] = useState({
+    name: '',
+    base_url: '',
+    auth_type: 'bearer',
+    auth_header_name: 'Authorization',
+    auth_header_template: 'Bearer {KEY}',
+    api_key: '',
+    secret_key: '',
+    logo_color: '#1E3A8A'
+  });
 
   useEffect(() => {
     fetchCarriers();
-  }, []);
+    if (isAdmin) {
+      fetchGenericCarriers();
+    }
+  }, [isAdmin]);
 
   const fetchCarriers = async () => {
     try {
       setLoading(true);
       const response = await getCarriers();
       console.log('✅ Carriers loaded:', response.data);
-      setCarriers(response.data);
+      
+      // Add Anderson to the list if not present
+      const carriersList = response.data;
+      const hasAnderson = carriersList.some(c => c.carrier_type === 'anderson');
+      
+      if (!hasAnderson) {
+        carriersList.push({
+          carrier_type: 'anderson',
+          name: 'Anderson Logistics',
+          description: 'Service logistique premium - Couverture nationale Algérie',
+          is_configured: false,
+          is_active: false,
+          required_fields: ['api_key', 'secret_key'],
+          logo_color: '#1E3A8A'
+        });
+      }
+      
+      setCarriers(carriersList);
     } catch (error) {
       console.error('❌ Error fetching carriers:', error);
-      console.error('Error response:', error.response?.data);
       const errorMsg = error.response?.data?.detail || 'Erreur lors du chargement des transporteurs';
       toast.error(errorMsg);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchGenericCarriers = async () => {
+    try {
+      const response = await api.get('/carriers/generic');
+      setGenericCarriers(response.data.carriers || []);
+    } catch (error) {
+      console.error('Error fetching generic carriers:', error);
     }
   };
 
