@@ -196,43 +196,52 @@ class TrackingService:
         force_advance: bool
     ) -> Dict[str, Any]:
         """
-        Simulate ZR Express status progression for demo
+        🚀 TIME TRAVEL - Simulate ZR Express status progression for demo
         
-        Each call advances the status by one step
+        SIMPLIFIED progression (per user request):
+        - 1st click: PENDING/any -> IN_TRANSIT
+        - 2nd click: IN_TRANSIT -> DELIVERED
+        - After DELIVERED: stays DELIVERED
+        
+        This allows quick demo without waiting for real trucks!
         """
         current_status = order.get('status', 'pending')
         
-        # Convert to MasterStatus enum
-        try:
-            current_enum = MasterStatus(current_status)
-        except ValueError:
-            current_enum = MasterStatus.PENDING
+        logger.info(f"🕐 Time Travel activated! Current: {current_status}")
         
-        # Check if we should advance
-        if force_advance or not is_final_status(current_enum):
-            # Get next status in progression
-            next_enum = get_next_status_simulation(current_enum)
+        # TIME TRAVEL LOGIC - Simple 3-step progression
+        # pending/preparing/ready_to_ship -> in_transit -> delivered
+        
+        if current_status in ['pending', 'preparing', 'ready_to_ship', 'picked_up', 'in_stock']:
+            # First click: Jump to IN_TRANSIT
+            next_status = 'in_transit'
+            location = f"Hub ZR Express - En route vers {order.get('recipient', {}).get('wilaya', 'destination')}"
+            carrier_raw = "IN_TRANSIT"
             
-            # Generate mock location based on status
-            locations = {
-                MasterStatus.PREPARING: "Entrepôt Beyond Express - Batna",
-                MasterStatus.READY_TO_SHIP: "Entrepôt Beyond Express - Batna",
-                MasterStatus.PICKED_UP: "Ramassage effectué",
-                MasterStatus.IN_TRANSIT: "Hub ZR Express - Ghardaïa",
-                MasterStatus.OUT_FOR_DELIVERY: f"Livreur en route - {order.get('recipient', {}).get('wilaya', 'N/A')}",
-                MasterStatus.DELIVERED: f"Livré à {order.get('recipient', {}).get('commune', 'destination')}"
-            }
+        elif current_status == 'in_transit':
+            # Second click: Jump to DELIVERED
+            next_status = 'delivered'
+            location = f"Livré à {order.get('recipient', {}).get('commune', '')} - {order.get('recipient', {}).get('wilaya', '')}"
+            carrier_raw = "DELIVERED"
             
-            return {
-                "new_status": next_enum.value,
-                "carrier_raw_status": next_enum.value.upper(),
-                "location": locations.get(next_enum, "ZR Express")
-            }
+        elif current_status == 'out_for_delivery':
+            # Also jump to DELIVERED
+            next_status = 'delivered'
+            location = f"Livré à {order.get('recipient', {}).get('commune', '')} - {order.get('recipient', {}).get('wilaya', '')}"
+            carrier_raw = "DELIVERED"
+            
+        else:
+            # Already delivered/returned/cancelled - no change
+            next_status = current_status
+            location = None
+            carrier_raw = current_status.upper()
+        
+        logger.info(f"🕐 Time Travel result: {current_status} -> {next_status}")
         
         return {
-            "new_status": current_status,
-            "carrier_raw_status": current_enum.value.upper(),
-            "location": None
+            "new_status": next_status,
+            "carrier_raw_status": carrier_raw,
+            "location": location
         }
     
     async def _add_tracking_event(
