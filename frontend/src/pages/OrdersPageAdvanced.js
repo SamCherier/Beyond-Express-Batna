@@ -281,34 +281,61 @@ const OrdersPageAdvanced = () => {
   };
 
   const handleCreateOrder = async () => {
-    try {
+    // Validation frontend avant envoi
+    if (!formData.recipient_name?.trim()) {
+      aiDoctor.interceptError({ message: "Le nom du destinataire est requis", field: "recipient_name" });
+      return;
+    }
+    if (!formData.recipient_phone?.trim()) {
+      aiDoctor.interceptError({ message: "Le téléphone du destinataire est requis", field: "recipient_phone" });
+      return;
+    }
+    if (!formData.recipient_wilaya) {
+      aiDoctor.interceptError({ message: "La wilaya est requise", field: "recipient_wilaya" });
+      return;
+    }
+    if (!formData.cod_amount || parseFloat(formData.cod_amount) <= 0) {
+      aiDoctor.interceptError({ message: "Le montant COD doit être supérieur à 0", field: "cod_amount" });
+      return;
+    }
+
+    const createOrderRequest = async () => {
       const orderData = {
         recipient: {
-          name: formData.recipient_name,
-          phone: formData.recipient_phone,
-          address: formData.recipient_address,
+          name: formData.recipient_name.trim(),
+          phone: formData.recipient_phone.trim(),
+          address: formData.recipient_address?.trim() || "Non spécifiée",
           wilaya: formData.recipient_wilaya,
-          commune: formData.recipient_commune
+          commune: formData.recipient_commune || formData.recipient_wilaya
         },
         cod_amount: parseFloat(formData.cod_amount),
-        description: formData.description,
-        delivery_partner: formData.delivery_partner,
-        delivery_type: formData.delivery_type  // Add delivery_type
+        description: formData.description?.trim() || "Commande e-commerce",
+        delivery_partner: formData.delivery_partner || null,
+        delivery_type: formData.delivery_type || "Livraison à Domicile"
       };
 
-      await createOrder(orderData, formData.send_whatsapp_confirmation);
+      const response = await createOrder(orderData, formData.send_whatsapp_confirmation);
       
       const successMessage = formData.send_whatsapp_confirmation
-        ? 'Commande créée avec succès! Confirmation WhatsApp envoyée.'
-        : 'Commande créée avec succès!';
+        ? '✅ Commande créée avec succès! Confirmation WhatsApp envoyée.'
+        : '✅ Commande créée avec succès!';
       
-      toast.success(successMessage);
+      toast.success(successMessage, {
+        description: `N° de suivi: ${response.data.tracking_id}`
+      });
       setCreateDialogOpen(false);
       fetchOrders();
       resetForm();
+      
+      return response;
+    };
+
+    try {
+      await createOrderRequest();
     } catch (error) {
       console.error('Error creating order:', error);
-      toast.error(error.response?.data?.detail || 'Erreur lors de la création');
+      // AI Doctor intercepte l'erreur avec possibilité de retry
+      aiDoctor.interceptError(error, createOrderRequest);
     }
   };
 
