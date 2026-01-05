@@ -74,6 +74,10 @@ const OrdersPageAdvanced = () => {
   const [shipLoading, setShipLoading] = useState(false);
   const [yalidineStatus, setYalidineStatus] = useState({ is_configured: false, is_active: false });
   
+  // Unified Tracking System - Control Tower
+  const [orderTimeline, setOrderTimeline] = useState(null);
+  const [syncingStatus, setSyncingStatus] = useState(false);
+  
   // Bulk Shipping Progress State
   const [bulkShipProgress, setBulkShipProgress] = useState({
     isProcessing: false,
