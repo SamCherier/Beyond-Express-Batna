@@ -8,6 +8,7 @@ import google.generativeai as genai
 import sys
 sys.path.append('/app/backend')
 from server import get_current_user
+from services.amine_agent import amine_agent
 
 logger = logging.getLogger(__name__)
 
