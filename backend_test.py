@@ -427,55 +427,17 @@ def test_unified_tracking_time_travel():
     
     return True
 
-def test_tracking_events():
-    """Test tracking events GET and POST"""
+def test_timeline_api():
+    """Test 4: Timeline API Test - GET /api/shipping/timeline/{order_id}"""
     
-    print("🚚 Testing Tracking Events...")
+    print("📊 Testing Timeline API...")
     
-    if not test_order_id:
-        test_results.add_result(
-            "Tracking Events",
-            False,
-            "No test order ID available"
-        )
-        return False
+    # Test with the time travel order if available, otherwise use test order
+    test_order = time_travel_order_id if time_travel_order_id else TEST_ORDER_ID
     
-    # Test POST - Add tracking event
-    try:
-        response = requests.post(
-            f"{API_BASE}/orders/{test_order_id}/tracking",
-            json=TEST_TRACKING_EVENT,
-            headers=headers,
-            timeout=30
-        )
-        
-        if response.status_code == 200:
-            test_results.add_result(
-                "Add Tracking Event",
-                True,
-                "Tracking event added successfully"
-            )
-        else:
-            test_results.add_result(
-                "Add Tracking Event",
-                False,
-                f"Add tracking event failed with status {response.status_code}",
-                response.text
-            )
-            return False
-            
-    except Exception as e:
-        test_results.add_result(
-            "Add Tracking Event",
-            False,
-            f"Add tracking event request failed: {str(e)}"
-        )
-        return False
-    
-    # Test GET - Get tracking events
     try:
         response = requests.get(
-            f"{API_BASE}/orders/{test_order_id}/tracking",
+            f"{API_BASE}/shipping/timeline/{test_order}",
             headers=headers,
             timeout=30
         )
@@ -483,35 +445,78 @@ def test_tracking_events():
         if response.status_code == 200:
             data = response.json()
             
-            if isinstance(data, list):
-                test_results.add_result(
-                    "Get Tracking Events",
-                    True,
-                    f"Retrieved {len(data)} tracking events"
-                )
-                return True
+            # Check required fields
+            required_fields = ['current_status', 'carrier_type', 'carrier_tracking_id', 'timeline']
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if not missing_fields:
+                timeline = data.get('timeline', [])
+                
+                # Verify timeline structure
+                timeline_valid = True
+                step_count = 0
+                
+                for step in timeline:
+                    if not isinstance(step, dict):
+                        timeline_valid = False
+                        break
+                    
+                    step_fields = ['status', 'label', 'completed', 'current']
+                    if not all(field in step for field in step_fields):
+                        timeline_valid = False
+                        break
+                    
+                    step_count += 1
+                
+                if timeline_valid and step_count > 0:
+                    test_results.add_result(
+                        "Timeline API - Structure",
+                        True,
+                        f"Timeline API returned valid structure with {step_count} steps. Current status: {data.get('current_status')}"
+                    )
+                    
+                    # Check for specific timeline steps
+                    expected_steps = ['pending', 'preparing', 'in_transit', 'delivered']
+                    found_steps = [step.get('status') for step in timeline]
+                    matching_steps = [step for step in expected_steps if step in found_steps]
+                    
+                    test_results.add_result(
+                        "Timeline API - Expected Steps",
+                        len(matching_steps) >= 3,
+                        f"Found {len(matching_steps)}/{len(expected_steps)} expected timeline steps: {matching_steps}"
+                    )
+                    
+                    return True
+                else:
+                    test_results.add_result(
+                        "Timeline API - Timeline Structure",
+                        False,
+                        f"Invalid timeline structure or empty timeline",
+                        f"Timeline: {timeline}"
+                    )
+                    return False
             else:
                 test_results.add_result(
-                    "Get Tracking Events",
+                    "Timeline API - Required Fields",
                     False,
-                    "Response is not a list",
+                    f"Missing required fields: {missing_fields}",
                     str(data)
                 )
                 return False
         else:
             test_results.add_result(
-                "Get Tracking Events",
+                "Timeline API - Response",
                 False,
-                f"Get tracking events failed with status {response.status_code}",
+                f"Timeline API failed with status {response.status_code}",
                 response.text
             )
             return False
             
     except Exception as e:
         test_results.add_result(
-            "Get Tracking Events",
+            "Timeline API - Request",
             False,
-            f"Get tracking events request failed: {str(e)}"
+            f"Timeline API request failed: {str(e)}"
         )
         return False
 
