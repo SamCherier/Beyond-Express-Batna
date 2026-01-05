@@ -365,7 +365,7 @@ def test_amine_ai_agent():
             response_text = ai_data.get('response', '')
             
             # Check for "not found" message (including Arabic)
-            has_not_found = any(keyword in response_text.lower() for keyword in ['not found', 'introuvable', 'pas trouvé', 'لم يتم العثور', 'ما لقيناهش', 'مالقيناهش'])
+            has_not_found = any(keyword in response_text.lower() for keyword in ['not found', 'introuvable', 'pas trouvé', 'لم يتم العثور', 'ما لقيناهش', 'مالقيناهش', 'ما قدرتش نلقى', 'قدرتش نلقى'])
             
             if has_not_found:
                 test_results.add_result(
