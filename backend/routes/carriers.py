@@ -361,6 +361,7 @@ async def test_carrier_connection(
                         status=CarrierStatus.ERROR,
                         message=f"❌ API returned status {response.status_code}",
                         response_time_ms=response_time
+                    )
 
 
 # ============================================
