@@ -536,38 +536,8 @@ async def get_preconfigured_carriers():
         ]
     }
 
-                    )
-        
-        except httpx.TimeoutException:
-            return TestConnectionResponse(
-                success=False,
-                status=CarrierStatus.ERROR,
-                message="⏱️ Connection timeout. API did not respond in time."
-            )
-        except Exception as e:
-            return TestConnectionResponse(
-                success=False,
-                status=CarrierStatus.ERROR,
-                message=f"❌ Connection error: {str(e)}"
-            )
-    
-    except Exception as e:
-        logger.error(f"Error testing carrier connection: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to test connection")
 
-@router.put("/{carrier_type}/toggle")
-async def toggle_carrier_status(
-    carrier_type: str,
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Toggle carrier active status
-    """
-    try:
-        user_id = current_user.id
-        
-        configs_collection = db["carrier_configs"]
-        config = await configs_collection.find_one({
+# The old code below should be removed - it was duplicated from the insertion
             "user_id": user_id,
             "carrier_type": carrier_type
         })
