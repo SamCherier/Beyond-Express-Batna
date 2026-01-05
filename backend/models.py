@@ -185,6 +185,16 @@ class Order(OrderBase):
     qr_code: Optional[str] = None
     pin_code: str = ""  # New field for unique PIN
     
+    # Carrier Integration fields
+    carrier_type: Optional[str] = None  # yalidine, zr_express, etc.
+    carrier_tracking_id: Optional[str] = None  # Carrier's tracking number
+    carrier_synced_at: Optional[str] = None  # Last sync timestamp
+    carrier_label_url: Optional[str] = None  # PDF label URL
+    smart_routed: bool = False  # Was this order routed by AI?
+    routing_reason: Optional[str] = None  # Why this carrier was selected
+    last_sync_at: Optional[str] = None  # Last tracking status sync
+    last_carrier_status: Optional[str] = None  # Raw status from carrier
+    
     # Financial fields for COD Reconciliation
     shipping_cost: float = 0.0  # Frais de livraison (auto-filled from PricingTable)
     net_to_merchant: float = 0.0  # Net à payer au vendeur (cod_amount - shipping_cost)
