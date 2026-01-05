@@ -4,12 +4,14 @@ Manage carrier API configurations and test connections
 """
 from fastapi import APIRouter, HTTPException, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel
 from datetime import datetime, timezone
 import os
 import logging
-from typing import List
+from typing import List, Optional
 import httpx
 import time
+import uuid
 
 from models import (
     CarrierConfig, CarrierConfigCreate, CarrierConfigUpdate,
