@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Beyond Express - Phase 2 Orders Page Advanced Features
-Tests all backend endpoints for the Orders Page Advanced Features implementation.
+Backend API Testing for Logistics OS - Unified Tracking System & Time Travel
+Tests critical features: Session/Auth, Orders API with Carrier Fields, Unified Tracking System, Time Travel
 """
 
 import requests
@@ -18,16 +18,14 @@ load_dotenv('/app/frontend/.env')
 BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://logistics-os.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
-# Test data - realistic Algerian data
-TEST_USER = {
-    "email": "admin@beyondexpress.dz",
-    "password": "admin123",
-    "name": "Admin Test User",
-    "role": "admin"
+# Test credentials from review request
+ADMIN_CREDENTIALS = {
+    "email": "cherier.sam@beyondexpress-batna.com",
+    "password": "admin123456"
 }
 
-# Admin user mentioned in review request
-ADMIN_USER_ID = "9d275120-3f24-4c1a-86d4-3aeff0fa3e95"
+# Test order ID from review request
+TEST_ORDER_ID = "8c1b0c8a-7a6d-441a-b168-a06e1c74e90e"
 
 TEST_ORDER_DATA = {
     "recipient": {
