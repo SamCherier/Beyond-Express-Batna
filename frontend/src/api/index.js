@@ -150,4 +150,14 @@ export const getActiveCarriers = () =>
 export const getCarrierStatus = (carrierType) =>
   api.get(`/shipping/carrier-status/${carrierType}`);
 
+// Unified Tracking System - Control Tower
+export const syncOrderStatus = (orderId, forceAdvance = false) =>
+  api.post(`/shipping/sync-status/${orderId}`, { force_advance: forceAdvance });
+
+export const bulkSyncStatus = (orderIds, forceAdvance = false) =>
+  api.post('/shipping/bulk-sync-status', { order_ids: orderIds, force_advance: forceAdvance });
+
+export const getOrderTimeline = (orderId) =>
+  api.get(`/shipping/timeline/${orderId}`);
+
 export default api;
