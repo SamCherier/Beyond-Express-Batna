@@ -364,6 +364,23 @@ async def test_carrier_connection(
                         message=f"❌ API returned status {response.status_code}",
                         response_time_ms=response_time
                     )
+        
+        except httpx.TimeoutException:
+            return TestConnectionResponse(
+                success=False,
+                status=CarrierStatus.ERROR,
+                message="⏱️ Connection timeout. API did not respond in time."
+            )
+        except Exception as e:
+            return TestConnectionResponse(
+                success=False,
+                status=CarrierStatus.ERROR,
+                message=f"❌ Connection error: {str(e)}"
+            )
+    
+    except Exception as e:
+        logger.error(f"Error testing carrier: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to test connection")
 
 
 # ============================================
