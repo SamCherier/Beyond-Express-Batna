@@ -8,6 +8,33 @@ const api = axios.create({
   withCredentials: true
 });
 
+// Add auth token to all requests (backup for cross-origin cookie issues)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+// Handle 401 responses - redirect to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Don't redirect if already on login page or during initial auth check
+      const isAuthEndpoint = error.config?.url?.includes('/auth/');
+      if (!isAuthEndpoint && !window.location.pathname.includes('/login')) {
+        console.warn('Session expired, redirecting to login...');
+        // Don't immediately redirect - let the component handle it
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Dashboard
 export const getDashboardStats = () => api.get('/dashboard/stats');
 export const getOrdersByStatus = () => api.get('/dashboard/orders-by-status');
