@@ -599,3 +599,250 @@ async def get_user_active_carriers(
     except Exception as e:
         logger.error(f"❌ Error getting active carriers: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# =====================================
+# UNIFIED TRACKING SYSTEM - Control Tower
+# =====================================
+
+class SyncStatusRequest(BaseModel):
+    force_advance: bool = False  # For ZR Express Mock - Time Travel
+
+
+class BulkSyncRequest(BaseModel):
+    order_ids: List[str]
+    force_advance: bool = False
+
+
+@router.post("/sync-status/{order_id}")
+async def sync_order_status(
+    order_id: str,
+    request: SyncStatusRequest = None,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    🔄 Sync tracking status for a single order from its carrier
+    
+    For ZR Express (Mock): Uses "Time Travel" simulation
+    - 1st click: PENDING -> IN_TRANSIT
+    - 2nd click: IN_TRANSIT -> DELIVERED
+    
+    For Real Carriers (Yalidine): Fetches actual status from API
+    """
+    from services.tracking_service import TrackingService
+    
+    try:
+        # Verify order belongs to user
+        order = await db.orders.find_one(
+            {"id": order_id, "user_id": current_user.id},
+            {"_id": 0}
+        )
+        
+        if not order:
+            raise HTTPException(status_code=404, detail="Commande non trouvée")
+        
+        # Initialize tracking service
+        tracking_svc = TrackingService()
+        
+        # Sync status (force_advance for ZR Mock time travel)
+        force = request.force_advance if request else False
+        result = await tracking_svc.sync_order_status(
+            order_id=order_id,
+            user_id=current_user.id,
+            force_advance=force
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error syncing status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/bulk-sync-status")
+async def bulk_sync_status(
+    request: BulkSyncRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    🔄 Sync tracking status for multiple orders at once
+    
+    Perfect for "Actualiser Tout" button in dashboard
+    """
+    from services.tracking_service import TrackingService
+    
+    try:
+        if not request.order_ids:
+            raise HTTPException(status_code=400, detail="Aucune commande sélectionnée")
+        
+        tracking_svc = TrackingService()
+        results = []
+        
+        for order_id in request.order_ids:
+            try:
+                # Verify order belongs to user
+                order = await db.orders.find_one(
+                    {"id": order_id, "user_id": current_user.id},
+                    {"_id": 0}
+                )
+                
+                if not order:
+                    results.append({
+                        "order_id": order_id,
+                        "success": False,
+                        "error": "Commande non trouvée"
+                    })
+                    continue
+                
+                result = await tracking_svc.sync_order_status(
+                    order_id=order_id,
+                    user_id=current_user.id,
+                    force_advance=request.force_advance
+                )
+                results.append(result)
+                
+            except Exception as e:
+                results.append({
+                    "order_id": order_id,
+                    "success": False,
+                    "error": str(e)
+                })
+        
+        # Summary
+        success_count = sum(1 for r in results if r.get('success'))
+        changed_count = sum(1 for r in results if r.get('status_changed'))
+        
+        return {
+            "total": len(request.order_ids),
+            "success": success_count,
+            "failed": len(request.order_ids) - success_count,
+            "status_changed": changed_count,
+            "results": results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error bulk syncing: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/timeline/{order_id}")
+async def get_order_timeline(
+    order_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    📊 Get full tracking timeline for an order
+    
+    Returns all tracking events with status metadata for visual display
+    """
+    from services.status_mapper import MasterStatus, get_status_meta
+    
+    try:
+        # Verify order belongs to user
+        order = await db.orders.find_one(
+            {"id": order_id, "user_id": current_user.id},
+            {"_id": 0}
+        )
+        
+        if not order:
+            raise HTTPException(status_code=404, detail="Commande non trouvée")
+        
+        # Get tracking events
+        events = await db.tracking_events.find(
+            {"order_id": order_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(100)  # Oldest first for timeline
+        
+        # Current status
+        current_status = order.get('status', 'pending')
+        
+        # Define timeline steps
+        timeline_steps = [
+            {"status": "pending", "label": "En attente", "icon": "⏳"},
+            {"status": "preparing", "label": "Préparation", "icon": "📦"},
+            {"status": "ready_to_ship", "label": "Prêt", "icon": "✅"},
+            {"status": "picked_up", "label": "Récupéré", "icon": "🚛"},
+            {"status": "in_transit", "label": "En transit", "icon": "🚚"},
+            {"status": "out_for_delivery", "label": "En livraison", "icon": "🏃"},
+            {"status": "delivered", "label": "Livré", "icon": "✅"},
+        ]
+        
+        # Find current step index
+        status_order = [s["status"] for s in timeline_steps]
+        current_index = -1
+        
+        if current_status in status_order:
+            current_index = status_order.index(current_status)
+        elif current_status in ["returned", "failed", "cancelled"]:
+            # Terminal states - show at end
+            current_index = len(timeline_steps)
+        
+        # Build timeline with completion status
+        timeline = []
+        for i, step in enumerate(timeline_steps):
+            step_data = {
+                **step,
+                "completed": i < current_index,
+                "current": i == current_index,
+                "upcoming": i > current_index,
+                "timestamp": None
+            }
+            
+            # Find matching event
+            for event in events:
+                if event.get('status') == step["status"]:
+                    step_data["timestamp"] = event.get('timestamp')
+                    step_data["location"] = event.get('location')
+                    break
+            
+            timeline.append(step_data)
+        
+        # Handle terminal states
+        terminal_status = None
+        if current_status == "returned":
+            terminal_status = {
+                "status": "returned",
+                "label": "Retourné",
+                "icon": "↩️",
+                "color": "#EF4444",
+                "current": True
+            }
+        elif current_status == "failed":
+            terminal_status = {
+                "status": "failed",
+                "label": "Échec",
+                "icon": "⚠️",
+                "color": "#F97316",
+                "current": True
+            }
+        elif current_status == "cancelled":
+            terminal_status = {
+                "status": "cancelled",
+                "label": "Annulé",
+                "icon": "❌",
+                "color": "#6B7280",
+                "current": True
+            }
+        
+        return {
+            "order_id": order_id,
+            "tracking_id": order.get('tracking_id'),
+            "carrier_type": order.get('carrier_type'),
+            "carrier_tracking_id": order.get('carrier_tracking_id'),
+            "current_status": current_status,
+            "last_sync_at": order.get('last_sync_at'),
+            "timeline": timeline,
+            "terminal_status": terminal_status,
+            "events": events
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting timeline: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
