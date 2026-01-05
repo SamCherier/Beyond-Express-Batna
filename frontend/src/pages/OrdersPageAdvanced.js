@@ -42,6 +42,7 @@ const OrdersPageAdvanced = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { checkAccess } = useFeatureAccess();
+  const aiDoctor = useAIDoctor();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
