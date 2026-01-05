@@ -603,12 +603,71 @@ const OrdersPageAdvanced = () => {
   const openTrackingDialog = async (order) => {
     setSelectedOrder(order);
     setTrackingDialogOpen(true);
+    setOrderTimeline(null); // Reset timeline
+    
     try {
-      const response = await getTrackingEvents(order.id);
-      setTrackingEvents(response.data);
+      // Fetch tracking events and timeline in parallel
+      const [eventsResponse, timelineResponse] = await Promise.all([
+        getTrackingEvents(order.id),
+        getOrderTimeline(order.id).catch(() => null) // Don't fail if timeline API fails
+      ]);
+      
+      setTrackingEvents(eventsResponse.data);
+      
+      if (timelineResponse?.data) {
+        setOrderTimeline(timelineResponse.data);
+      }
     } catch (error) {
-      console.error('Error fetching tracking events:', error);
+      console.error('Error fetching tracking data:', error);
       toast.error('Erreur lors du chargement de l\'historique');
+    }
+  };
+
+  // 🔄 Sync Order Status from Carrier (Time Travel for ZR Express Mock)
+  const handleSyncStatus = async (orderId) => {
+    setSyncingStatus(true);
+    try {
+      // Force advance for ZR Express mock (Time Travel!)
+      const forceAdvance = selectedOrder?.carrier_type === 'zr_express';
+      
+      const response = await syncOrderStatus(orderId, forceAdvance);
+      
+      if (response.data.success) {
+        if (response.data.status_changed) {
+          toast.success(`✅ Statut mis à jour: ${response.data.status_label}`, {
+            description: response.data.location || 'Statut synchronisé avec le transporteur'
+          });
+        } else {
+          toast.info('ℹ️ Aucun changement de statut', {
+            description: 'Le statut est déjà à jour'
+          });
+        }
+        
+        // Refresh timeline and events
+        const [eventsResponse, timelineResponse] = await Promise.all([
+          getTrackingEvents(orderId),
+          getOrderTimeline(orderId)
+        ]);
+        
+        setTrackingEvents(eventsResponse.data);
+        setOrderTimeline(timelineResponse.data);
+        
+        // Update order in local state
+        if (response.data.status_changed) {
+          setSelectedOrder(prev => ({
+            ...prev,
+            status: response.data.new_status
+          }));
+          fetchOrders(); // Refresh main list
+        }
+      } else {
+        toast.error(`❌ Erreur: ${response.data.error || 'Impossible de synchroniser'}`);
+      }
+    } catch (error) {
+      console.error('Error syncing status:', error);
+      toast.error('❌ Erreur lors de la synchronisation');
+    } finally {
+      setSyncingStatus(false);
     }
   };
 
