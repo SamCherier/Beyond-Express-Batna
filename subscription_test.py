@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Configuration
-BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://parcelpro-10.preview.emergentagent.com')
+BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://logistics-os.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
 # Test user from review request
