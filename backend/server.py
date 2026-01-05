@@ -413,8 +413,24 @@ async def create_order(
     send_whatsapp_confirmation: bool = False,
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Create a new order with detailed validation and error messages
+    """
     if current_user.role not in [UserRole.ADMIN, UserRole.ECOMMERCE]:
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(status_code=403, detail="Non autorisé: Seuls les administrateurs et e-commerçants peuvent créer des commandes")
+    
+    # Detailed validation with specific error messages
+    if not order_data.recipient.name or not order_data.recipient.name.strip():
+        raise HTTPException(status_code=400, detail="Champ requis manquant: 'Nom du destinataire' (recipient.name)")
+    
+    if not order_data.recipient.phone or not order_data.recipient.phone.strip():
+        raise HTTPException(status_code=400, detail="Champ requis manquant: 'Téléphone du destinataire' (recipient.phone)")
+    
+    if not order_data.recipient.wilaya or not order_data.recipient.wilaya.strip():
+        raise HTTPException(status_code=400, detail="Champ requis manquant: 'Wilaya' (recipient.wilaya)")
+    
+    if order_data.cod_amount is None or order_data.cod_amount < 0:
+        raise HTTPException(status_code=400, detail="Montant COD invalide: Doit être un nombre positif")
     
     # Generate tracking ID
     tracking_id = f"BEX-{secrets.token_hex(6).upper()}"
