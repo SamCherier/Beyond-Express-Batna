@@ -333,152 +333,156 @@ class AmineAgent:
     async def chat(self, user_message: str, api_key: str, session_id: str = None) -> Dict[str, Any]:
         """
         Main chat method - Process user message and generate response
+        Uses emergentintegrations for Gemini with manual function handling
         
         Args:
             user_message: User's message
-            api_key: Gemini API key
+            api_key: Emergent LLM API key
             session_id: Optional session ID for context
             
         Returns:
             Response dict with message, provider, model
         """
         try:
-            # Configure Gemini
-            genai.configure(api_key=api_key)
+            from emergentintegrations.llm.chat import LlmChat, UserMessage as LlmUserMessage
             
-            # Try gemini-1.5-flash first (supports function calling)
-            try:
-                model = genai.GenerativeModel(
-                    model_name='gemini-1.5-flash',
-                    system_instruction=AMINE_SYSTEM_PROMPT,
-                    tools=[genai.protos.Tool(
-                        function_declarations=[
-                            genai.protos.FunctionDeclaration(
-                                name=tool["name"],
-                                description=tool["description"],
-                                parameters=genai.protos.Schema(
-                                    type=genai.protos.Type.OBJECT,
-                                    properties={
-                                        k: genai.protos.Schema(
-                                            type=genai.protos.Type.STRING,
-                                            description=v.get("description", "")
-                                        ) for k, v in tool["parameters"]["properties"].items()
-                                    },
-                                    required=tool["parameters"].get("required", [])
-                                )
-                            ) for tool in self.tools
-                        ]
-                    )]
-                )
-                model_name = "gemini-1.5-flash"
-            except Exception as e:
-                logger.warning(f"gemini-1.5-flash not available: {e}")
-                # Fallback to basic gemini-pro
-                model = genai.GenerativeModel('gemini-pro')
-                model_name = "gemini-pro"
+            # Step 1: Check for tracking ID in message and get order info
+            tracking_match = re.search(
+                r'(TRK[\d]+|BEX-[\w]+|YAL-[\w]+|yal[\d]+)', 
+                user_message, 
+                re.IGNORECASE
+            )
             
-            # Start chat
-            chat = model.start_chat(history=[])
+            context_addition = ""
+            if tracking_match:
+                tracking_id = tracking_match.group(1)
+                logger.info(f"🔍 Found tracking ID: {tracking_id}")
+                
+                order_info = await self.get_order_status(tracking_id)
+                
+                if order_info.get("found"):
+                    context_addition = f"""
+
+📦 معلومات الطرد (INFO COMMANDE):
+- رقم التتبع: {order_info['tracking_id']}
+- الحالة: {order_info['status_label']}
+- الوجهة: {order_info['destination']['wilaya']}, {order_info['destination']['commune']}
+- المبلغ COD: {order_info['cod_amount']} دج
+- الناقل: {order_info.get('carrier', 'Beyond Express')}
+"""
+                    if order_info.get('carrier_tracking_id'):
+                        context_addition += f"- رقم الناقل: {order_info['carrier_tracking_id']}\n"
+                else:
+                    context_addition = f"\n❌ لم يتم العثور على طرد برقم: {tracking_id}\n"
+            
+            # Step 2: Check for price query
+            price_match = re.search(
+                r'(?:prix|chhal|combien|tarif|كم|سعر).*?(?:vers|pour|à|l[\'e]?|ل|إلى)\s*(\w+)', 
+                user_message, 
+                re.IGNORECASE
+            )
+            
+            if price_match:
+                wilaya = price_match.group(1)
+                logger.info(f"💰 Price query for: {wilaya}")
+                
+                pricing = self.calculate_shipping_price(wilaya)
+                context_addition += f"""
+
+💰 تعريفة الشحن (TARIF LIVRAISON):
+- الولاية: {pricing['wilaya']}
+- التوصيل للمنزل (Domicile): {pricing['domicile_price']} دج
+- نقطة الاستلام (Stop Desk): {pricing['stopdesk_price']} دج
+"""
+            
+            # Step 3: Build full prompt
+            full_system = AMINE_SYSTEM_PROMPT + context_addition
+            
+            # Step 4: Use emergentintegrations with Gemini
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=session_id or "amine-default",
+                system_message=full_system
+            ).with_model("gemini", "gemini-2.5-flash")
             
             # Send message
-            response = chat.send_message(user_message)
+            llm_message = LlmUserMessage(text=user_message)
+            response = await chat.send_message(llm_message)
             
-            # Check for function calls
-            if response.candidates[0].content.parts:
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, 'function_call') and part.function_call:
-                        fc = part.function_call
-                        function_name = fc.name
-                        function_args = dict(fc.args) if fc.args else {}
-                        
-                        logger.info(f"🔧 Function call: {function_name}({function_args})")
-                        
-                        # Execute function
-                        if function_name == "get_order_status":
-                            result = await self.get_order_status(
-                                tracking_id=function_args.get("tracking_id", "")
-                            )
-                        elif function_name == "calculate_shipping_price":
-                            result = self.calculate_shipping_price(
-                                wilaya=function_args.get("wilaya", ""),
-                                delivery_type=function_args.get("delivery_type", "domicile")
-                            )
-                        else:
-                            result = {"error": f"Unknown function: {function_name}"}
-                        
-                        logger.info(f"📊 Function result: {result}")
-                        
-                        # Send function result back to Gemini
-                        response = chat.send_message(
-                            genai.protos.Content(
-                                parts=[genai.protos.Part(
-                                    function_response=genai.protos.FunctionResponse(
-                                        name=function_name,
-                                        response={"result": result}
-                                    )
-                                )]
-                            )
-                        )
-            
-            # Extract final text response
-            final_response = ""
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, 'text') and part.text:
-                    final_response += part.text
+            logger.info(f"✅ Amine responded successfully")
             
             return {
-                "response": final_response or "Désolé, je n'ai pas pu traiter votre demande. 🙏",
+                "response": response,
                 "provider": "Google Gemini",
-                "model": model_name,
+                "model": "gemini-2.5-flash",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
             
         except Exception as e:
             logger.error(f"❌ Amine chat error: {str(e)}")
             
-            # Fallback to simple response without function calling
-            try:
-                return await self._simple_chat(user_message, api_key)
-            except:
-                return {
-                    "response": f"Désolé, j'ai un problème technique. Ma tkezerch rassek, ça va s'arranger! 🙏\n\nErreur: {str(e)[:100]}",
-                    "provider": "Google Gemini",
-                    "model": "error",
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                }
+            # Fallback: Try to give a helpful response based on extracted data
+            fallback_response = await self._generate_fallback_response(user_message)
+            if fallback_response:
+                return fallback_response
+            
+            return {
+                "response": f"Désolé, j'ai un problème technique. Ma tkezerch rassek, ça va s'arranger! 🙏\n\nErreur: {str(e)[:100]}",
+                "provider": "Google Gemini",
+                "model": "error",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
     
-    async def _simple_chat(self, user_message: str, api_key: str) -> Dict[str, Any]:
-        """Fallback simple chat without function calling"""
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+    async def _generate_fallback_response(self, user_message: str) -> Optional[Dict[str, Any]]:
+        """Generate a response without LLM if we have concrete data"""
         
-        # Check for tracking ID in message
-        tracking_match = re.search(r'(TRK\d+|BEX-[\w]+|YAL-[\w]+)', user_message, re.IGNORECASE)
-        context = ""
-        
+        # Check for tracking ID
+        tracking_match = re.search(r'(TRK[\d]+|BEX-[\w]+|YAL-[\w]+)', user_message, re.IGNORECASE)
         if tracking_match:
             tracking_id = tracking_match.group(1)
             order_info = await self.get_order_status(tracking_id)
+            
             if order_info.get("found"):
-                context = f"\n\nINFO COMMANDE:\n- Numéro: {order_info['tracking_id']}\n- Statut: {order_info['status_label']}\n- Destination: {order_info['destination']['wilaya']}\n- Montant COD: {order_info['cod_amount']} DA"
+                response = f"""مرحبا بيك! 👋
+
+📦 طردك رقم **{order_info['tracking_id']}** موجود!
+
+🚚 **الحالة**: {order_info['status_label']}
+📍 **الوجهة**: {order_info['destination']['wilaya']}
+💰 **المبلغ COD**: {order_info['cod_amount']} دج
+
+إن شاء الله يوصلك قريب! 🤲"""
+                
+                return {
+                    "response": response,
+                    "provider": "Beyond Express",
+                    "model": "fallback",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
         
-        # Check for price request
-        price_match = re.search(r'(?:prix|chhal|combien|tarif).*?(?:vers|pour|à|l[\'e]?)\s*(\w+)', user_message, re.IGNORECASE)
+        # Check for price query
+        price_match = re.search(r'(?:prix|chhal|combien|tarif).*?(\w+)', user_message, re.IGNORECASE)
         if price_match:
             wilaya = price_match.group(1)
             pricing = self.calculate_shipping_price(wilaya)
-            context += f"\n\nTARIF LIVRAISON:\n- Wilaya: {pricing['wilaya']}\n- Domicile: {pricing['domicile_price']} DA\n- Stop Desk: {pricing['stopdesk_price']} DA"
+            
+            response = f"""مرحبا بيك! 👋
+
+💰 تعريفة الشحن إلى **{pricing['wilaya']}**:
+
+🏠 **التوصيل للمنزل**: {pricing['domicile_price']} دج
+📍 **Stop Desk**: {pricing['stopdesk_price']} دج
+
+هل تحب نساعدك بشيء آخر؟ 😊"""
+            
+            return {
+                "response": response,
+                "provider": "Beyond Express",
+                "model": "fallback",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
         
-        full_prompt = AMINE_SYSTEM_PROMPT + context + f"\n\nMessage utilisateur: {user_message}"
-        
-        response = model.generate_content(full_prompt)
-        
-        return {
-            "response": response.text,
-            "provider": "Google Gemini",
-            "model": "gemini-pro",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        return None
 
 
 # Singleton instance
