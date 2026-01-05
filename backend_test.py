@@ -149,58 +149,100 @@ def test_session_auth():
         )
         return False
 
-def test_order_creation():
-    """Test order creation with wilaya/commune"""
-    global test_order_id
+def test_orders_api_with_carrier_fields():
+    """Test 2: Orders API with Carrier Fields - GET /api/orders should return orders with carrier fields"""
     
-    print("📦 Testing Order Creation...")
+    print("📦 Testing Orders API with Carrier Fields...")
     
     try:
-        response = requests.post(
+        response = requests.get(
             f"{API_BASE}/orders",
-            json=TEST_ORDER_DATA,
             headers=headers,
             timeout=30
         )
         
         if response.status_code == 200:
             data = response.json()
-            test_order_id = data.get('id')
             
-            # Verify wilaya and commune are included
-            recipient = data.get('recipient', {})
-            has_wilaya = 'wilaya' in recipient and recipient['wilaya'] == TEST_ORDER_DATA['recipient']['wilaya']
-            has_commune = 'commune' in recipient and recipient['commune'] == TEST_ORDER_DATA['recipient']['commune']
-            
-            if has_wilaya and has_commune:
-                test_results.add_result(
-                    "Order Creation with Wilaya/Commune",
-                    True,
-                    f"Order created successfully with ID: {test_order_id}"
-                )
-                return True
+            if isinstance(data, dict) and 'orders' in data:
+                orders = data['orders']
+            elif isinstance(data, list):
+                orders = data
             else:
                 test_results.add_result(
-                    "Order Creation with Wilaya/Commune",
+                    "Orders API - Response Format",
                     False,
-                    "Order created but missing wilaya/commune data",
-                    f"Wilaya: {recipient.get('wilaya')}, Commune: {recipient.get('commune')}"
+                    "Unexpected response format",
+                    str(data)
+                )
+                return False
+            
+            if len(orders) > 0:
+                # Check for carrier fields in orders
+                carrier_fields_found = 0
+                test_order_found = False
+                
+                for order in orders:
+                    has_carrier_type = 'carrier_type' in order
+                    has_carrier_tracking = 'carrier_tracking_id' in order
+                    
+                    if has_carrier_type and has_carrier_tracking:
+                        carrier_fields_found += 1
+                    
+                    # Check for the specific test order
+                    if order.get('id') == TEST_ORDER_ID:
+                        test_order_found = True
+                        carrier_type = order.get('carrier_type')
+                        carrier_tracking = order.get('carrier_tracking_id')
+                        
+                        if carrier_type == 'ZR Express':
+                            test_results.add_result(
+                                "Orders API - Test Order ZR Express",
+                                True,
+                                f"Test order {TEST_ORDER_ID} found with ZR Express carrier"
+                            )
+                        else:
+                            test_results.add_result(
+                                "Orders API - Test Order ZR Express",
+                                False,
+                                f"Test order found but carrier_type is '{carrier_type}', expected 'ZR Express'"
+                            )
+                
+                test_results.add_result(
+                    "Orders API - Carrier Fields",
+                    carrier_fields_found > 0,
+                    f"Found {carrier_fields_found}/{len(orders)} orders with carrier fields (carrier_type, carrier_tracking_id)"
+                )
+                
+                if not test_order_found:
+                    test_results.add_result(
+                        "Orders API - Test Order Exists",
+                        False,
+                        f"Test order {TEST_ORDER_ID} not found in orders list"
+                    )
+                
+                return carrier_fields_found > 0
+            else:
+                test_results.add_result(
+                    "Orders API - Orders Count",
+                    False,
+                    "No orders found in response"
                 )
                 return False
         else:
             test_results.add_result(
-                "Order Creation with Wilaya/Commune",
+                "Orders API - Response",
                 False,
-                f"Order creation failed with status {response.status_code}",
+                f"GET /api/orders failed with status {response.status_code}",
                 response.text
             )
             return False
             
     except Exception as e:
         test_results.add_result(
-            "Order Creation with Wilaya/Commune",
+            "Orders API - Request",
             False,
-            f"Order creation request failed: {str(e)}"
+            f"GET /api/orders request failed: {str(e)}"
         )
         return False
 
