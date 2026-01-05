@@ -341,10 +341,23 @@ const CarriersIntegrationPage = () => {
             {/* Logo */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-400">
-                    {carrier.name.charAt(0)}
-                  </span>
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: carrier.logo_color ? `${carrier.logo_color}20` : '#f3f4f6' }}
+                >
+                  {carrier.carrier_type === 'anderson' ? (
+                    <span 
+                      className="text-xl font-black"
+                      style={{ color: carrier.logo_color || '#1E3A8A' }}
+                    >
+                      A
+                    </span>
+                  ) : (
+                    <Truck 
+                      className="w-6 h-6"
+                      style={{ color: carrier.logo_color || '#6b7280' }}
+                    />
+                  )}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
@@ -403,7 +416,75 @@ const CarriersIntegrationPage = () => {
             </div>
           </div>
         ))}
+        
+        {/* Generic/Custom Carriers (Admin Only) */}
+        {isAdmin && genericCarriers.map((carrier) => (
+          <div
+            key={carrier.carrier_id}
+            className="relative bg-white rounded-xl shadow-md border-2 border-dashed border-purple-300 p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="absolute -top-2 -right-2 px-2 py-1 bg-purple-500 text-white text-xs rounded-full">
+              Custom
+            </div>
+            
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${carrier.logo_color}20` }}
+                >
+                  <Globe 
+                    className="w-6 h-6"
+                    style={{ color: carrier.logo_color }}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {carrier.name}
+                  </h3>
+                  <span className="text-xs text-purple-600 font-mono">
+                    {carrier.base_url?.substring(0, 30)}...
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              API personnalisée - Configurée par Admin
+            </p>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleDeleteGenericCarrier(carrier.carrier_id)}
+                variant="outline"
+                className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
+      
+      {/* Add Custom API Button (ADMIN ONLY) */}
+      {isAdmin && (
+        <div className="mt-8 border-t border-gray-200 pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">API Personnalisée</h2>
+              <p className="text-sm text-gray-600">Ajoutez des transporteurs inconnus sans coder</p>
+            </div>
+            <Button
+              onClick={() => setShowGenericModal(true)}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter API Personnalisée
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Configuration Modal */}
       {showConfigModal && selectedCarrier && (
