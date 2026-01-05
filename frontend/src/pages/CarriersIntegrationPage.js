@@ -628,6 +628,190 @@ const CarriersIntegrationPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Generic API Builder Modal (ADMIN ONLY) */}
+      {showGenericModal && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowGenericModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">
+                    ➕ Ajouter API Personnalisée
+                  </h2>
+                  <p className="text-purple-200 text-sm mt-1">
+                    Connectez n'importe quel transporteur sans coder
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowGenericModal(false)}
+                  className="text-white/80 hover:text-white"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Nom du transporteur *</Label>
+                  <Input
+                    value={genericForm.name}
+                    onChange={(e) => setGenericForm({...genericForm, name: e.target.value})}
+                    placeholder="Ex: SpeedDz Express"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Couleur du logo</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={genericForm.logo_color}
+                      onChange={(e) => setGenericForm({...genericForm, logo_color: e.target.value})}
+                      className="w-14 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      value={genericForm.logo_color}
+                      onChange={(e) => setGenericForm({...genericForm, logo_color: e.target.value})}
+                      placeholder="#1E3A8A"
+                      className="flex-1 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Base URL */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Base URL de l'API *</Label>
+                <Input
+                  value={genericForm.base_url}
+                  onChange={(e) => setGenericForm({...genericForm, base_url: e.target.value})}
+                  placeholder="https://api.transporteur.dz/v1"
+                  className="font-mono"
+                />
+              </div>
+              
+              {/* Authentication */}
+              <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                <h3 className="font-bold text-gray-900">🔐 Authentification</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Type d'auth</Label>
+                    <select
+                      value={genericForm.auth_type}
+                      onChange={(e) => {
+                        const type = e.target.value;
+                        let template = 'Bearer {KEY}';
+                        let headerName = 'Authorization';
+                        
+                        if (type === 'api_key') {
+                          template = '{KEY}';
+                          headerName = 'X-API-Key';
+                        } else if (type === 'basic') {
+                          template = 'Basic {KEY}';
+                        }
+                        
+                        setGenericForm({
+                          ...genericForm, 
+                          auth_type: type,
+                          auth_header_template: template,
+                          auth_header_name: headerName
+                        });
+                      }}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                    >
+                      <option value="bearer">Bearer Token</option>
+                      <option value="api_key">API Key</option>
+                      <option value="basic">Basic Auth</option>
+                      <option value="custom_header">Header Personnalisé</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Nom du Header</Label>
+                    <Input
+                      value={genericForm.auth_header_name}
+                      onChange={(e) => setGenericForm({...genericForm, auth_header_name: e.target.value})}
+                      placeholder="Authorization"
+                      className="font-mono"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Template du Header</Label>
+                  <Input
+                    value={genericForm.auth_header_template}
+                    onChange={(e) => setGenericForm({...genericForm, auth_header_template: e.target.value})}
+                    placeholder="Bearer {KEY}"
+                    className="font-mono"
+                  />
+                  <p className="text-xs text-gray-500">Utilisez {'{KEY}'} et {'{SECRET}'} comme placeholders</p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Clé API</Label>
+                    <Input
+                      type="password"
+                      value={genericForm.api_key}
+                      onChange={(e) => setGenericForm({...genericForm, api_key: e.target.value})}
+                      placeholder="Votre clé API"
+                      className="font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Secret (optionnel)</Label>
+                    <Input
+                      type="password"
+                      value={genericForm.secret_key}
+                      onChange={(e) => setGenericForm({...genericForm, secret_key: e.target.value})}
+                      placeholder="Votre secret"
+                      className="font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 rounded-b-2xl">
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowGenericModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleCreateGenericCarrier}
+                  disabled={saveLoading || !genericForm.name || !genericForm.base_url}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {saveLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4 mr-2" />
+                  )}
+                  Ajouter le transporteur
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
