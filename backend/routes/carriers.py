@@ -600,3 +600,144 @@ async def delete_carrier_config(
     except Exception as e:
         logger.error(f"Error deleting carrier config: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to delete carrier config")
+
+
+# ============================================
+# GENERIC API BUILDER (ADMIN ONLY)
+# ============================================
+
+class GenericCarrierCreate(BaseModel):
+    name: str
+    base_url: str
+    auth_type: str = "bearer"
+    auth_header_name: str = "Authorization"
+    auth_header_template: str = "Bearer {KEY}"
+    api_key: str = ""
+    secret_key: str = ""
+    logo_color: str = "#1E3A8A"
+
+
+@router.get("/generic")
+async def get_generic_carriers(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all generic/custom carrier configurations - ADMIN ONLY"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only feature")
+    
+    try:
+        generic_configs = await db.generic_carriers.find(
+            {"user_id": current_user.id},
+            {"_id": 0}
+        ).to_list(100)
+        
+        return {"success": True, "carriers": generic_configs}
+    except Exception as e:
+        logger.error(f"Error fetching generic carriers: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generic")
+async def create_generic_carrier(
+    config: GenericCarrierCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new generic carrier - ADMIN ONLY"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only feature")
+    
+    try:
+        carrier_id = config.name.lower().replace(" ", "_").replace("-", "_")
+        carrier_id = "".join(c for c in carrier_id if c.isalnum() or c == "_")
+        
+        existing = await db.generic_carriers.find_one({
+            "user_id": current_user.id,
+            "carrier_id": carrier_id
+        })
+        
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Carrier '{config.name}' already exists")
+        
+        now = datetime.now(timezone.utc).isoformat()
+        
+        carrier_doc = {
+            "id": str(uuid.uuid4()),
+            "carrier_id": carrier_id,
+            "user_id": current_user.id,
+            "name": config.name,
+            "base_url": config.base_url,
+            "auth_type": config.auth_type,
+            "auth_header_name": config.auth_header_name,
+            "auth_header_template": config.auth_header_template,
+            "api_key": config.api_key,
+            "secret_key": config.secret_key,
+            "logo_color": config.logo_color,
+            "is_active": True,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        await db.generic_carriers.insert_one(carrier_doc)
+        
+        logger.info(f"✅ Generic carrier '{config.name}' created by {current_user.email}")
+        
+        return {
+            "success": True,
+            "message": f"Carrier '{config.name}' added successfully",
+            "carrier_id": carrier_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating generic carrier: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/generic/{carrier_id}")
+async def delete_generic_carrier(
+    carrier_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a generic carrier - ADMIN ONLY"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin only feature")
+    
+    try:
+        result = await db.generic_carriers.delete_one({
+            "user_id": current_user.id,
+            "carrier_id": carrier_id
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Carrier not found")
+        
+        return {"success": True, "message": "Carrier deleted"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/preconfigured")
+async def get_preconfigured_carriers():
+    """Get list of pre-configured carriers"""
+    return {
+        "carriers": [
+            {
+                "id": "anderson",
+                "name": "Anderson Logistics",
+                "description": "Service logistique premium Algérie",
+                "logo_color": "#1E3A8A",
+                "requires": ["api_key", "secret_key"]
+            },
+            {
+                "id": "speedz",
+                "name": "SpeedZ Express",
+                "description": "Livraison express Algérie",
+                "logo_color": "#10B981",
+                "requires": ["api_key"]
+            }
+        ]
+    }
