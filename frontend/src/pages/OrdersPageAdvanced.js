@@ -1473,6 +1473,26 @@ const OrdersPageAdvanced = () => {
                 </Card>
               )}
 
+              {/* 🚀 UNIFIED TRACKING SYSTEM - Visual Timeline */}
+              {selectedOrder.carrier_tracking_id && (
+                <TrackingTimeline
+                  timeline={orderTimeline?.timeline || [
+                    { status: 'pending', label: 'En attente', icon: '⏳', completed: selectedOrder.status !== 'pending' && selectedOrder.status !== 'in_stock', current: selectedOrder.status === 'pending' || selectedOrder.status === 'in_stock' },
+                    { status: 'preparing', label: 'Préparation', icon: '📦', completed: ['ready_to_ship', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(selectedOrder.status), current: selectedOrder.status === 'preparing' },
+                    { status: 'in_transit', label: 'En transit', icon: '🚚', completed: ['out_for_delivery', 'delivered'].includes(selectedOrder.status), current: selectedOrder.status === 'in_transit' },
+                    { status: 'out_for_delivery', label: 'En livraison', icon: '🏃', completed: selectedOrder.status === 'delivered', current: selectedOrder.status === 'out_for_delivery' },
+                    { status: 'delivered', label: 'Livré', icon: '✅', completed: false, current: selectedOrder.status === 'delivered' },
+                  ]}
+                  currentStatus={selectedOrder.status}
+                  terminalStatus={orderTimeline?.terminal_status}
+                  carrierType={selectedOrder.carrier_type}
+                  carrierTrackingId={selectedOrder.carrier_tracking_id}
+                  lastSyncAt={orderTimeline?.last_sync_at}
+                  onSync={() => handleSyncStatus(selectedOrder.id)}
+                  syncing={syncingStatus}
+                />
+              )}
+
               {/* Add New Event (Admin only) */}
               {user?.role === 'admin' && (
                 <Card className="border-2 border-blue-100">
