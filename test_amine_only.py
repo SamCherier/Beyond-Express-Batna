@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Configuration
-BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://logistics-os.preview.emergentagent.com')
+BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://shipment-hub-138.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials from review request
