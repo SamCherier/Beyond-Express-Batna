@@ -13,6 +13,7 @@ import api, {
   syncOrderStatus, getOrderTimeline, bulkSyncStatus
 } from '@/api';
 import TrackingTimeline from '@/components/TrackingTimeline';
+import AIPackaging from '@/components/AIPackaging';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -1420,6 +1421,9 @@ const OrdersPageAdvanced = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* 🧠 AI PACKAGING OPTIMIZER - The WOW Feature! */}
+              <AIPackaging order={selectedOrder} />
 
               {/* YALIDINE SHIPPING BUTTON - Magic Button! */}
               {user?.role === 'admin' && !selectedOrder.carrier_tracking_id && (
