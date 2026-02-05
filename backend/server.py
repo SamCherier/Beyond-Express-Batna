@@ -16,6 +16,7 @@ from models import *
 from auth_utils import hash_password, verify_password, create_access_token, verify_token, generate_session_token
 from pdf_generator_yalidine import generate_bordereau_pdf_yalidine_format as generate_bordereau_pdf
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from audit_logger import AuditLogger, AuditAction
 from routes import whatsapp as whatsapp_router
 from routes import subscriptions as subscriptions_router
 from routes import ai_assistant as ai_assistant_router
@@ -31,6 +32,9 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Initialize Audit Logger
+audit_logger = AuditLogger(db)
 
 # Create the main app without a prefix
 app = FastAPI()
