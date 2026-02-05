@@ -1433,7 +1433,9 @@ const OrdersPageAdvanced = () => {
               </Card>
 
               {/* 🧠 AI PACKAGING OPTIMIZER - The WOW Feature! */}
-              <AIPackaging order={selectedOrder} />
+              <Suspense fallback={<MiniLoader />}>
+                <AIPackaging order={selectedOrder} />
+              </Suspense>
 
               {/* YALIDINE SHIPPING BUTTON - Magic Button! */}
               {user?.role === 'admin' && !selectedOrder.carrier_tracking_id && (
