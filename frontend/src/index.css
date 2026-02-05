@@ -83,6 +83,54 @@ code {
         --chart-4: 280 65% 60%;
         --chart-5: 340 75% 55%;
     }
+    
+    /* 🇩🇿 Independence Day Theme (5 Juillet) - Algerian Colors */
+    .independence {
+        --background: 0 0% 98%;
+        --foreground: 140 80% 25%;
+        --card: 0 0% 100%;
+        --card-foreground: 140 80% 25%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 140 80% 25%;
+        --primary: 140 80% 35%;  /* Algerian Green */
+        --primary-foreground: 0 0% 100%;
+        --secondary: 0 100% 45%;  /* Algerian Red */
+        --secondary-foreground: 0 0% 100%;
+        --muted: 0 0% 96%;
+        --muted-foreground: 140 40% 35%;
+        --accent: 0 100% 45%;  /* Red accent */
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 140 30% 85%;
+        --input: 140 20% 90%;
+        --ring: 140 80% 35%;
+        --chart-1: 140 76% 45%;  /* Green */
+        --chart-2: 0 100% 50%;   /* Red */
+        --chart-3: 0 0% 100%;    /* White */
+        --chart-4: 140 60% 60%;
+        --chart-5: 0 80% 60%;
+    }
+    
+    /* Independence Day special effects */
+    .independence body {
+        background: linear-gradient(135deg, rgba(0,128,0,0.03) 0%, rgba(255,255,255,1) 50%, rgba(220,20,60,0.03) 100%);
+    }
+    
+    /* Add subtle celebration glow to cards */
+    .independence [class*="bg-card"],
+    .independence [class*="bg-white"] {
+        box-shadow: 0 0 20px rgba(0,128,0,0.1), 0 0 40px rgba(220,20,60,0.05);
+    }
+    
+    /* Buttons get patriotic colors */
+    .independence button[class*="bg-"] {
+        transition: all 0.3s ease;
+    }
+    
+    .independence button[class*="bg-"]:hover {
+        box-shadow: 0 4px 15px rgba(140, 80, 35, 0.3);
+    }
 }
 
 @layer base {
