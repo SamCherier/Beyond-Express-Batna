@@ -14,7 +14,17 @@ const AIPackaging = ({ order }) => {
   const [result, setResult] = useState(null);
   const [scanProgress, setScanProgress] = useState(0);
   
+  // Product dimensions input
+  const [dimensions, setDimensions] = useState({
+    length: '',
+    width: '',
+    height: ''
+  });
+  
+  const isDimensionsValid = dimensions.length && dimensions.width && dimensions.height;
+  
   const handleOptimize = async () => {
+    if (!isDimensionsValid) return;
     setIsScanning(true);
     setScanProgress(0);
     setResult(null);
@@ -32,30 +42,38 @@ const AIPackaging = ({ order }) => {
       if (progress >= 100) {
         clearInterval(timer);
         
-        // Generate mock result
+        // Generate mock result based on product dimensions
+        const productVolume = parseFloat(dimensions.length) * parseFloat(dimensions.width) * parseFloat(dimensions.height);
+        
         const boxes = [
-          { name: 'S1', dimensions: '15x15x8 cm', efficiency: 18 },
-          { name: 'S2', dimensions: '20x20x10 cm', efficiency: 22 },
-          { name: 'M1', dimensions: '25x25x15 cm', efficiency: 15 },
-          { name: 'M2', dimensions: '30x30x20 cm', efficiency: 12 },
-          { name: 'L1', dimensions: '40x40x25 cm', efficiency: 8 },
+          { name: 'S1', dimensions: '15x15x8 cm', volume: 1800, efficiency: 18 },
+          { name: 'S2', dimensions: '20x20x10 cm', volume: 4000, efficiency: 22 },
+          { name: 'M1', dimensions: '25x25x15 cm', volume: 9375, efficiency: 15 },
+          { name: 'M2', dimensions: '30x30x20 cm', volume: 18000, efficiency: 12 },
+          { name: 'L1', dimensions: '40x40x25 cm', volume: 40000, efficiency: 8 },
         ];
         
-        // Randomly select a box with bias towards S2 and M1
-        const weights = [0.15, 0.35, 0.30, 0.15, 0.05];
-        const random = Math.random();
-        let cumulative = 0;
-        let selectedBox = boxes[1]; // Default to S2
+        // Select the smallest box that fits the product
+        let selectedBox = boxes[boxes.length - 1]; // Default to largest
         
         for (let i = 0; i < boxes.length; i++) {
-          cumulative += weights[i];
-          if (random <= cumulative) {
+          if (boxes[i].volume >= productVolume * 1.1) { // 10% margin
             selectedBox = boxes[i];
             break;
           }
         }
         
-        setResult(selectedBox);
+        // Calculate real efficiency based on volume usage
+        const volumeUsage = (productVolume / selectedBox.volume) * 100;
+        const wastedSpace = 100 - volumeUsage;
+        const efficiency = Math.min(Math.round(volumeUsage * 0.3), 25); // Max 25% efficiency
+        
+        setResult({
+          ...selectedBox,
+          efficiency,
+          productDimensions: `${dimensions.length}×${dimensions.width}×${dimensions.height}`,
+          volumeUsage: volumeUsage.toFixed(1)
+        });
         setIsScanning(false);
       }
     }, interval);
@@ -80,24 +98,80 @@ const AIPackaging = ({ order }) => {
             </div>
           </div>
           
-          <Button
-            onClick={handleOptimize}
-            disabled={isScanning}
-            className="relative overflow-hidden bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 text-white font-semibold shadow-lg border-0 transition-all duration-300"
-          >
-            {isScanning ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Scanning...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Optimiser
-              </>
-            )}
-          </Button>
         </div>
+        
+        {/* Product Dimensions Input */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div>
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+              Longueur (cm)
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="ex: 20"
+              value={dimensions.length}
+              onChange={(e) => setDimensions({...dimensions, length: e.target.value})}
+              className="w-full px-3 py-2 rounded-lg border-2 border-cyan-200 dark:border-cyan-700 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-sm"
+            />
+          </div>
+          
+          <div>
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+              Largeur (cm)
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="ex: 15"
+              value={dimensions.width}
+              onChange={(e) => setDimensions({...dimensions, width: e.target.value})}
+              className="w-full px-3 py-2 rounded-lg border-2 border-purple-200 dark:border-purple-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all text-sm"
+            />
+          </div>
+          
+          <div>
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+              Hauteur (cm)
+            </label>
+            <input
+              type="number"
+              min="1"
+              placeholder="ex: 10"
+              value={dimensions.height}
+              onChange={(e) => setDimensions({...dimensions, height: e.target.value})}
+              className="w-full px-3 py-2 rounded-lg border-2 border-pink-200 dark:border-pink-700 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all text-sm"
+            />
+          </div>
+        </div>
+        
+        <Button
+          onClick={handleOptimize}
+          disabled={isScanning || !isDimensionsValid}
+          className={`w-full relative overflow-hidden text-white font-semibold shadow-lg border-0 transition-all duration-300 ${
+            !isDimensionsValid
+              ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+              : 'bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600'
+          }`}
+        >
+          {isScanning ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Scanning...
+            </>
+          ) : !isDimensionsValid ? (
+            <>
+              <Sparkles className="w-4 h-4 mr-2 opacity-50" />
+              Entrez les dimensions
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 mr-2" />
+              🧠 Optimiser
+            </>
+          )}
+        </Button>
+      </div>
         
         {/* Scanning Animation */}
         {isScanning && (
@@ -180,17 +254,19 @@ const AIPackaging = ({ order }) => {
             
             <div className="p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200 dark:border-blue-700">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                <strong>💡 Conseil :</strong> Cette boîte minimise l'espace vide et réduit les frais de transport aérien de {(result.efficiency * 0.5).toFixed(0)}%.
+                <strong>💡 Analyse :</strong> Basé sur vos dimensions ({result.productDimensions} cm), l'IA recommande la boîte {result.name}. 
+                Taux d'utilisation de l'espace : {result.volumeUsage}%. 
+                Cette optimisation réduit les frais de transport aérien de {(result.efficiency * 0.5).toFixed(0)}%.
               </p>
             </div>
           </div>
         )}
         
-        {!isScanning && !result && (
+        {!isScanning && !result && !isDimensionsValid && (
           <div className="mt-4 p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
             <Box className="w-12 h-12 text-gray-400 mx-auto mb-2" />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Cliquez sur "Optimiser" pour obtenir la recommandation AI
+              Entrez les dimensions du produit pour obtenir une recommandation AI
             </p>
           </div>
         )}
