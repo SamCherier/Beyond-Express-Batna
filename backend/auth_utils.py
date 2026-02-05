@@ -1,4 +1,4 @@
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
@@ -21,7 +21,7 @@ ph = PasswordHasher(
     hash_len=32,           # 32 bytes output
     salt_len=16,           # 16 bytes salt
     encoding='utf-8',
-    type='argon2id'        # Hybrid mode (resistant to side-channel + GPU attacks)
+    type=Type.ID           # Argon2id (hybrid mode: resistant to side-channel + GPU attacks)
 )
 
 JWT_SECRET = os.environ.get('JWT_SECRET', 'default_secret_key')
