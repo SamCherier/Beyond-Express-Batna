@@ -36,6 +36,56 @@ const webpackConfig = {
     },
     configure: (webpackConfig) => {
 
+      // Performance optimizations
+      if (process.env.NODE_ENV === 'production') {
+        // Enable code splitting optimization
+        webpackConfig.optimization = {
+          ...webpackConfig.optimization,
+          splitChunks: {
+            chunks: 'all',
+            cacheGroups: {
+              // Vendor libraries (heavy libraries)
+              vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: 'vendors',
+                priority: 10,
+                reuseExistingChunk: true,
+              },
+              // React & Router (frequently used)
+              react: {
+                test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
+                name: 'react-vendor',
+                priority: 20,
+                reuseExistingChunk: true,
+              },
+              // UI components (Radix, Shadcn)
+              ui: {
+                test: /[\\/]node_modules[\\/](@radix-ui)[\\/]/,
+                name: 'ui-vendor',
+                priority: 15,
+                reuseExistingChunk: true,
+              },
+              // Charts library
+              charts: {
+                test: /[\\/]node_modules[\\/](recharts)[\\/]/,
+                name: 'charts-vendor',
+                priority: 12,
+                reuseExistingChunk: true,
+              },
+              // Common code shared between pages
+              common: {
+                minChunks: 2,
+                priority: 5,
+                reuseExistingChunk: true,
+                name: 'common',
+              },
+            },
+          },
+          // Minimize bundle size
+          minimize: true,
+        };
+      }
+
       // Disable hot reload completely if environment variable is set
       if (config.disableHotReload) {
         // Remove hot reload related plugins
