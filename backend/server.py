@@ -1235,6 +1235,42 @@ async def public_track_order(tracking_id: str):
         logger.error(f"Error in public tracking: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la récupération des données")
 
+# ===== AUDIT LOG ROUTES (ADMIN ONLY) =====
+@api_router.get("/audit/logs")
+async def get_audit_logs(
+    limit: int = 100,
+    action: Optional[str] = None,
+    user_id: Optional[str] = None,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get recent audit logs (admin only)"""
+    if action or user_id:
+        logs = await audit_logger.search_logs(
+            action=action,
+            user_id=user_id,
+            limit=limit
+        )
+    else:
+        logs = await audit_logger.get_recent_logs(limit=limit)
+    
+    return {"logs": logs, "total": len(logs)}
+
+@api_router.get("/audit/verify-integrity")
+async def verify_audit_integrity(current_user: User = Depends(get_current_admin)):
+    """Verify the integrity of the audit log chain"""
+    result = await audit_logger.verify_chain_integrity()
+    return result
+
+@api_router.get("/audit/user/{user_id}")
+async def get_user_audit_logs(
+    user_id: str,
+    limit: int = 100,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get all audit logs for a specific user"""
+    logs = await audit_logger.get_user_actions(user_id, limit=limit)
+    return {"user_id": user_id, "logs": logs, "total": len(logs)}
+
 # Include the router in the main app
 app.include_router(api_router)
 
