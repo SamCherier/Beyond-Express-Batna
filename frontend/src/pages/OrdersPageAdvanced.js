@@ -1538,6 +1538,7 @@ const OrdersPageAdvanced = () => {
                   onSync={() => handleSyncStatus(selectedOrder.id)}
                   syncing={syncingStatus}
                 />
+                </Suspense>
               )}
 
               {/* Add New Event (Admin only) */}
