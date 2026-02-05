@@ -171,7 +171,6 @@ const AIPackaging = ({ order }) => {
             </>
           )}
         </Button>
-      </div>
         
         {/* Scanning Animation */}
         {isScanning && (
