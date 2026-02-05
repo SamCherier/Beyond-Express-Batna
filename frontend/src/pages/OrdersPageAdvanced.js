@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
@@ -12,8 +12,11 @@ import api, {
   shipOrder, bulkShipOrders, smartBulkShip, getActiveCarriers, getShippingLabel, getCarrierStatus, getBulkLabels,
   syncOrderStatus, getOrderTimeline, bulkSyncStatus
 } from '@/api';
-import TrackingTimeline from '@/components/TrackingTimeline';
-import AIPackaging from '@/components/AIPackaging';
+
+// Lazy load heavy components for better performance
+const TrackingTimeline = lazy(() => import('@/components/TrackingTimeline'));
+const AIPackaging = lazy(() => import('@/components/AIPackaging'));
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,6 +26,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Search, FileDown, Package, Eye, Clock, MapPin, CheckCircle, AlertTriangle, RefreshCw, MessageCircle, Truck, ExternalLink, Send, Loader2, X, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { COMMUNES_BY_WILAYA } from '@/data/communes';
+
+// Mini loader for lazy components
+const MiniLoader = () => (
+  <div className="flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-6 w-6 border-2 border-red-200 border-t-red-500"></div>
+  </div>
+);
 
 const ALGERIAN_WILAYAS = [
   'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar', 
