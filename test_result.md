@@ -113,10 +113,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Session/Auth API"
-    - "Orders API with Carrier Fields"
-    - "Unified Tracking System - Time Travel"
-    - "Timeline API"
+    - "AI Packaging Optimizer with Dimension Fields"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
