@@ -462,7 +462,8 @@ async def get_top_wilayas(current_user: User = Depends(get_current_user)):
 async def create_order(
     order_data: OrderCreate, 
     send_whatsapp_confirmation: bool = False,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    request: Request = None
 ):
     """
     Create a new order with detailed validation and error messages
@@ -548,6 +549,22 @@ async def create_order(
         order_dict['transferred_date'] = order_dict['transferred_date'].isoformat()
     
     await db.orders.insert_one(order_dict)
+    
+    # Log order creation
+    await audit_logger.log_action(
+        action=AuditAction.CREATE_ORDER,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        resource_type="order",
+        resource_id=order_obj.id,
+        details={
+            "tracking_id": tracking_id,
+            "recipient_wilaya": order_data.recipient.wilaya,
+            "cod_amount": order_data.cod_amount
+        },
+        ip_address=request.client.host if request and request.client else None,
+        status="success"
+    )
     
     # Optional: Send WhatsApp confirmation automatically
     if send_whatsapp_confirmation and order_obj.recipient.phone:
