@@ -1521,8 +1521,9 @@ const OrdersPageAdvanced = () => {
 
               {/* 🚀 UNIFIED TRACKING SYSTEM - Visual Timeline */}
               {selectedOrder.carrier_tracking_id && (
-                <TrackingTimeline
-                  timeline={orderTimeline?.timeline || [
+                <Suspense fallback={<MiniLoader />}>
+                  <TrackingTimeline
+                    timeline={orderTimeline?.timeline || [
                     { status: 'pending', label: 'En attente', icon: '⏳', completed: selectedOrder.status !== 'pending' && selectedOrder.status !== 'in_stock', current: selectedOrder.status === 'pending' || selectedOrder.status === 'in_stock' },
                     { status: 'preparing', label: 'Préparation', icon: '📦', completed: ['ready_to_ship', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(selectedOrder.status), current: selectedOrder.status === 'preparing' },
                     { status: 'in_transit', label: 'En transit', icon: '🚚', completed: ['out_for_delivery', 'delivered'].includes(selectedOrder.status), current: selectedOrder.status === 'in_transit' },
