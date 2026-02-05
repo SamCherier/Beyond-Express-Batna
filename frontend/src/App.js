@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n';
 import { Toaster } from 'sonner';
+import useRoutePrefetch from '@/hooks/useRoutePrefetch';
 
 // Optimized Loading Component with brand identity
 const PageLoader = () => (
@@ -86,6 +87,9 @@ const PublicRoute = ({ children }) => {
 };
 
 function AppRoutes() {
+  // Prefetch routes on idle for instant navigation
+  useRoutePrefetch();
+  
   return (
     <Routes>
       {/* Public Routes */}
