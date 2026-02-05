@@ -99,7 +99,7 @@ async def get_current_admin(current_user: User = Depends(get_current_user)) -> U
 
 # ===== AUTH ROUTES =====
 @api_router.post("/auth/register", response_model=User)
-async def register(user_data: UserCreate):
+async def register(user_data: UserCreate, request: Request):
     # Check if user exists
     existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
@@ -119,6 +119,16 @@ async def register(user_data: UserCreate):
     user_dict['created_at'] = user_dict['created_at'].isoformat()
     
     await db.users.insert_one(user_dict)
+    
+    # Log user creation
+    await audit_logger.log_action(
+        action=AuditAction.CREATE_USER,
+        user_id=user_obj.id,
+        user_email=user_data.email,
+        details={"role": user_data.role},
+        ip_address=request.client.host if request.client else None,
+        status="success"
+    )
     
     return user_obj
 
@@ -260,11 +270,20 @@ async def process_google_session(request: Request, response: Response):
     }
 
 @api_router.post("/auth/logout")
-async def logout(response: Response, session_token: Optional[str] = Cookie(None)):
+async def logout(response: Response, session_token: Optional[str] = Cookie(None), current_user: User = Depends(get_current_user)):
     if session_token:
         await db.sessions.delete_one({"session_token": session_token})
     
     response.delete_cookie(key="session_token", path="/")
+    
+    # Log logout
+    await audit_logger.log_action(
+        action=AuditAction.LOGOUT,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        status="success"
+    )
+    
     return {"message": "Logged out successfully"}
 
 @api_router.get("/auth/me", response_model=User)
