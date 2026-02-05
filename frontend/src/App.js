@@ -8,10 +8,16 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n';
 import { Toaster } from 'sonner';
 
-// Loading Component
+// Optimized Loading Component with brand identity
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="relative">
+      <div className="animate-spin rounded-full h-16 w-16 border-4 border-red-200 border-t-red-500"></div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
+      </div>
+    </div>
+    <p className="mt-4 text-gray-600 dark:text-gray-300 font-medium animate-pulse">Chargement...</p>
   </div>
 );
 
