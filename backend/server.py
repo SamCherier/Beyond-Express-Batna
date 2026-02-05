@@ -123,12 +123,30 @@ async def register(user_data: UserCreate):
     return user_obj
 
 @api_router.post("/auth/login")
-async def login(credentials: UserLogin, response: Response):
+async def login(credentials: UserLogin, response: Response, request: Request):
     user_doc = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user_doc:
+        # Log failed login attempt
+        await audit_logger.log_action(
+            action=AuditAction.FAILED_LOGIN,
+            user_id="unknown",
+            user_email=credentials.email,
+            details={"reason": "User not found"},
+            ip_address=request.client.host if request.client else None,
+            status="failed"
+        )
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not verify_password(credentials.password, user_doc['password']):
+        # Log failed login attempt
+        await audit_logger.log_action(
+            action=AuditAction.FAILED_LOGIN,
+            user_id=user_doc['id'],
+            user_email=credentials.email,
+            details={"reason": "Invalid password"},
+            ip_address=request.client.host if request.client else None,
+            status="failed"
+        )
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # Create JWT token
@@ -159,6 +177,16 @@ async def login(credentials: UserLogin, response: Response):
     )
     
     user_obj = User(**{k: v for k, v in user_doc.items() if k != 'password'})
+    
+    # Log successful login
+    await audit_logger.log_action(
+        action=AuditAction.LOGIN,
+        user_id=user_doc['id'],
+        user_email=credentials.email,
+        details={"method": "password"},
+        ip_address=request.client.host if request.client else None,
+        status="success"
+    )
     
     return {
         "access_token": access_token,
