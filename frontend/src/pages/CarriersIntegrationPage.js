@@ -829,21 +829,70 @@ const CarriersIntegrationPage = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Generic Test Result */}
+              {genericTestResult && (
+                <div
+                  className={`p-4 rounded-lg border ${
+                    genericTestResult.success
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-red-50 border-red-200'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {genericTestResult.success ? (
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <p
+                        className={`font-semibold ${
+                          genericTestResult.success ? 'text-green-900' : 'text-red-900'
+                        }`}
+                      >
+                        {genericTestResult.message}
+                      </p>
+                      {genericTestResult.details && (
+                        <p
+                          className={`text-sm mt-1 ${
+                            genericTestResult.success ? 'text-green-700' : 'text-red-700'
+                          }`}
+                        >
+                          {genericTestResult.details}
+                        </p>
+                      )}
+                      {genericTestResult.response_time_ms && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Temps de réponse: {genericTestResult.response_time_ms} ms
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 rounded-b-2xl">
               <div className="flex gap-3">
                 <Button
-                  onClick={() => setShowGenericModal(false)}
+                  onClick={handleTestGenericConnection}
+                  disabled={genericTestLoading || !genericForm.base_url || !genericForm.api_key}
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-blue-300 text-blue-600 hover:bg-blue-50"
                 >
-                  Annuler
+                  {genericTestLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Wifi className="w-4 h-4 mr-2" />
+                  )}
+                  📡 Tester
                 </Button>
+                
                 <Button
                   onClick={handleCreateGenericCarrier}
-                  disabled={saveLoading || !genericForm.name || !genericForm.base_url}
+                  disabled={saveLoading || !genericForm.name || !genericForm.base_url || !genericTestResult?.success}
                   className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   {saveLoading ? (
@@ -854,6 +903,12 @@ const CarriersIntegrationPage = () => {
                   Ajouter le transporteur
                 </Button>
               </div>
+              
+              {!genericTestResult?.success && genericTestResult && (
+                <p className="text-sm text-center text-gray-600 mt-3">
+                  ⚠️ Testez d'abord la connexion avant d'ajouter
+                </p>
+              )}
             </div>
           </div>
         </div>
