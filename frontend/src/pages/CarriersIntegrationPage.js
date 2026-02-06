@@ -255,6 +255,48 @@ const CarriersIntegrationPage = () => {
       toast.error('Erreur lors de la suppression');
     }
   };
+  
+  const handleTestGenericConnection = async () => {
+    if (!genericForm.base_url || !genericForm.api_key) {
+      toast.error('URL de base et clé API requis pour le test');
+      return;
+    }
+    
+    setGenericTestLoading(true);
+    setGenericTestResult(null);
+    
+    try {
+      // Build auth header value
+      let authHeaderValue = genericForm.auth_header_template
+        .replace('{KEY}', genericForm.api_key)
+        .replace('{SECRET}', genericForm.secret_key || '');
+      
+      const response = await api.post('/carriers/test-connection', {
+        base_url: genericForm.base_url,
+        auth_header_name: genericForm.auth_header_name,
+        auth_header_value: authHeaderValue,
+        test_endpoint: '/'  // Test root endpoint
+      });
+      
+      setGenericTestResult(response.data);
+      
+      if (response.data.success) {
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      const errorResult = {
+        success: false,
+        message: '❌ Erreur système',
+        details: error.response?.data?.detail || error.message || 'Erreur réseau'
+      };
+      setGenericTestResult(errorResult);
+      toast.error(errorResult.message);
+    } finally {
+      setGenericTestLoading(false);
+    }
+  };
 
   const getStatusBadge = (carrier) => {
     if (!carrier.is_configured) {
