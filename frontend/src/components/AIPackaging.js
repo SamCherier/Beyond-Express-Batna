@@ -68,11 +68,21 @@ const AIPackaging = ({ order }) => {
         const wastedSpace = 100 - volumeUsage;
         const efficiency = Math.min(Math.round(volumeUsage * 0.3), 25); // Max 25% efficiency
         
+        // Strategic messages for Algerian road transport
+        const strategicMessages = [
+          "🚛 Optimisation Routière : Ce format compact permet d'ajouter 15% de colis supplémentaires par camion.",
+          "⛽ Économie Carburant : La réduction du volume optimise l'aérodynamisme et réduit l'empreinte carbone.",
+          "📦 Densité Hub : Ce format est idéal pour le stockage optimisé dans les dépôts régionaux (Wilayas du Sud)."
+        ];
+        
+        const randomMessage = strategicMessages[Math.floor(Math.random() * strategicMessages.length)];
+        
         setResult({
           ...selectedBox,
           efficiency,
           productDimensions: `${dimensions.length}×${dimensions.width}×${dimensions.height}`,
-          volumeUsage: volumeUsage.toFixed(1)
+          volumeUsage: volumeUsage.toFixed(1),
+          strategicMessage: randomMessage
         });
         setIsScanning(false);
       }
@@ -255,7 +265,9 @@ const AIPackaging = ({ order }) => {
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 <strong>💡 Analyse :</strong> Basé sur vos dimensions ({result.productDimensions} cm), l'IA recommande la boîte {result.name}. 
                 Taux d'utilisation de l'espace : {result.volumeUsage}%. 
-                Cette optimisation réduit les frais de transport aérien de {(result.efficiency * 0.5).toFixed(0)}%.
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-2 font-medium">
+                {result.strategicMessage}
               </p>
             </div>
           </div>
