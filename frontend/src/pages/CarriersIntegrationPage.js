@@ -45,6 +45,10 @@ const CarriersIntegrationPage = () => {
   const [testResult, setTestResult] = useState(null);
   const [saveLoading, setSaveLoading] = useState(false);
   
+  // Generic test result (separate from standard carrier test)
+  const [genericTestResult, setGenericTestResult] = useState(null);
+  const [genericTestLoading, setGenericTestLoading] = useState(false);
+  
   // Generic carrier form state
   const [genericForm, setGenericForm] = useState({
     name: '',
