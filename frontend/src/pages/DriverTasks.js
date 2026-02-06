@@ -357,6 +357,83 @@ const DriverTasks = () => {
         </div>
       </div>
 
+      {/* ===== SMART CIRCUIT OPTIMIZER BUTTON ===== */}
+      <div className="px-4 pb-4">
+        {!isOptimized ? (
+          <button
+            onClick={handleOptimizeRoute}
+            disabled={isOptimizing || tasks.filter(t => isPendingTask(t.status)).length === 0}
+            className={`w-full relative overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
+              isOptimizing 
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-600' 
+                : 'bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:shadow-xl hover:shadow-purple-500/30 active:scale-[0.98]'
+            } ${tasks.filter(t => isPendingTask(t.status)).length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {/* Animated background effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-red-400/20 animate-pulse" />
+            
+            <div className="relative flex items-center justify-center gap-3">
+              {isOptimizing ? (
+                <>
+                  <div className="animate-spin">
+                    <RefreshCw className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-lg">Optimisation en cours...</p>
+                    <div className="w-48 h-1 bg-white/30 rounded-full mt-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-white transition-all duration-300"
+                        style={{ width: `${optimizationProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <p className="font-bold text-white text-lg flex items-center gap-2">
+                      🚀 Optimiser ma tournée (AI)
+                    </p>
+                    <p className="text-white/80 text-sm">Économisez du temps & du carburant</p>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-white/60" />
+                </>
+              )}
+            </div>
+          </button>
+        ) : (
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-4 shadow-lg shadow-green-500/30">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <CheckCircle className="w-7 h-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-white text-lg">✅ Tournée Optimisée !</p>
+                <div className="flex items-center gap-4 mt-1">
+                  <div className="flex items-center gap-1 text-white/90 text-sm">
+                    <Clock className="w-4 h-4" />
+                    <span className="font-semibold">{optimizationGains.time} min</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-white/90 text-sm">
+                    <TrendingDown className="w-4 h-4" />
+                    <span className="font-semibold">{optimizationGains.fuel}L essence</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOptimized(false)}
+                className="text-white/60 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ===== TASKS LIST ===== */}
       <div className="px-4">
         <div className="flex items-center justify-between mb-4">
