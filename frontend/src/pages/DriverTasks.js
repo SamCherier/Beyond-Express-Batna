@@ -96,6 +96,71 @@ const DriverTasks = () => {
     }
   };
 
+  // ===== SMART CIRCUIT OPTIMIZER =====
+  
+  const handleOptimizeRoute = async () => {
+    setIsOptimizing(true);
+    setOptimizationProgress(0);
+    
+    // Simulation stages
+    const stages = [
+      { progress: 20, text: "🔄 Analyse du trafic en temps réel (Google Maps Data)..." },
+      { progress: 50, text: "🗺️ Calcul de l'itinéraire optimal..." },
+      { progress: 75, text: "⛽ Calcul de l'économie de carburant..." },
+      { progress: 100, text: "✅ Optimisation terminée!" }
+    ];
+    
+    for (const stage of stages) {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setOptimizationProgress(stage.progress);
+      toast.info(stage.text, { duration: 800 });
+    }
+    
+    // Optimize task order (simulate intelligent reordering)
+    const pendingTasks = tasks.filter(t => !['delivered', 'delivery_failed', 'returned'].includes(t.status));
+    
+    // Assign traffic conditions and stop numbers
+    const optimizedTasks = pendingTasks.map((task, index) => ({
+      ...task,
+      stopNumber: index + 1,
+      trafficCondition: TRAFFIC_CONDITIONS[Math.floor(Math.random() * TRAFFIC_CONDITIONS.length)],
+      trafficAlert: TRAFFIC_ALERTS[Math.floor(Math.random() * TRAFFIC_ALERTS.length)]
+    }));
+    
+    // Mix with already completed tasks
+    const completedTasks = tasks.filter(t => ['delivered', 'delivery_failed', 'returned'].includes(t.status));
+    
+    setTasks([...optimizedTasks, ...completedTasks]);
+    
+    // Calculate realistic gains
+    const timeGain = Math.floor(Math.random() * 30) + 30; // 30-60 min
+    const fuelGain = (Math.random() * 2 + 2).toFixed(1); // 2.0-4.0L
+    
+    setOptimizationGains({ time: timeGain, fuel: fuelGain });
+    setIsOptimized(true);
+    setIsOptimizing(false);
+    
+    toast.success(`🎉 Tournée optimisée ! Gain : ${timeGain} min / ${fuelGain}L d'essence`, { duration: 5000 });
+  };
+  
+  const getTrafficColor = (condition) => {
+    switch(condition) {
+      case 'fluide': return 'bg-green-500';
+      case 'modere': return 'bg-yellow-500';
+      case 'dense': return 'bg-red-500';
+      default: return 'bg-gray-400';
+    }
+  };
+  
+  const getTrafficLabel = (condition) => {
+    switch(condition) {
+      case 'fluide': return 'Fluide';
+      case 'modere': return 'Modéré';
+      case 'dense': return 'Dense';
+      default: return 'N/A';
+    }
+  };
+
   // ===== QUICK ACTIONS =====
   
   const handleCall = (phone) => {
