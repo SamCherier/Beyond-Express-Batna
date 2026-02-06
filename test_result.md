@@ -125,7 +125,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Packaging Optimizer with Dimension Fields"
+    - "Smart Circuit Optimizer - Driver Interface"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
