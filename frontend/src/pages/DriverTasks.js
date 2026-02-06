@@ -479,26 +479,53 @@ const DriverTasks = () => {
                   {/* Task Header */}
                   <div className="p-4">
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                      <div className="flex items-center gap-3 flex-1">
+                        {/* Stop Number Badge (if optimized) */}
+                        {isOptimized && task.stopNumber && isPending && (
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg">
+                            #{task.stopNumber}
+                          </div>
+                        )}
+                        
+                        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
                           <User className="w-5 h-5 text-gray-400" />
                         </div>
-                        <div>
-                          <h3 className="font-bold text-white">{task.recipient.name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-white truncate">{task.recipient.name}</h3>
                           <p className="text-sm text-gray-400">{task.tracking_id}</p>
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusBadge.color}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex-shrink-0 ${statusBadge.color}`}>
                         {statusBadge.label}
                       </span>
                     </div>
 
-                    {/* Location */}
-                    <div className="flex items-center gap-2 text-gray-400 mb-3">
-                      <MapPinned className="w-4 h-4 text-red-400" />
-                      <span className="text-sm truncate">
-                        {task.recipient.commune}, {task.recipient.wilaya}
-                      </span>
+                    {/* Traffic Alert (if exists) */}
+                    {isOptimized && task.trafficAlert && isPending && (
+                      <div className="mb-3 p-2 bg-orange-900/30 border border-orange-700/50 rounded-lg">
+                        <p className="text-xs text-orange-300 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          {task.trafficAlert}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Location with Traffic Indicator */}
+                    <div className="flex items-center justify-between gap-2 text-gray-400 mb-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <MapPinned className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <span className="text-sm truncate">
+                          {task.recipient.commune}, {task.recipient.wilaya}
+                        </span>
+                      </div>
+                      
+                      {/* Traffic Condition Indicator */}
+                      {isOptimized && task.trafficCondition && isPending && (
+                        <div className="flex items-center gap-1 bg-gray-700/50 px-2 py-1 rounded-full flex-shrink-0">
+                          <div className={`w-2 h-2 rounded-full ${getTrafficColor(task.trafficCondition)} animate-pulse`} />
+                          <span className="text-xs text-gray-300">{getTrafficLabel(task.trafficCondition)}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* COD Amount - Large Display */}
