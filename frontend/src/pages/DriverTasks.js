@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Phone, MapPin, CheckCircle, XCircle, Package, Navigation, 
   Camera, RefreshCw, Clock, DollarSign, Truck, ChevronRight,
-  User, MapPinned, Banknote, X, Upload, AlertTriangle
+  User, MapPinned, Banknote, X, Upload, AlertTriangle, Zap, Route, TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,13 +10,25 @@ import { toast } from 'sonner';
 import api from '@/api';
 
 /**
- * DriverTasks - Uber-Like Mobile-First PWA
+ * DriverTasks - Uber-Like Mobile-First PWA + Smart Circuit Optimizer
  * 
  * Dark mode by default for battery saving
  * Large touch-friendly buttons
  * Quick actions: Call, GPS, Photo Proof
  * Delivery workflow: DELIVERED / FAILED with reasons
+ * AI Route Optimization with Traffic Intel
  */
+
+// Traffic conditions simulation
+const TRAFFIC_CONDITIONS = ['fluide', 'modere', 'dense'];
+const TRAFFIC_ALERTS = [
+  "⚠️ Accident sur la Rocade Sud - +15min",
+  "🚧 Travaux Avenue 1er Novembre - Détour conseillé",
+  "🚦 Forte affluence Centre-Ville - +10min",
+  null, // No alert
+  null,
+  null
+];
 
 const DriverTasks = () => {
   const { user, logout } = useAuth();
@@ -31,6 +43,12 @@ const DriverTasks = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [processingAction, setProcessingAction] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // Smart Circuit Optimizer state
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [isOptimized, setIsOptimized] = useState(false);
+  const [optimizationProgress, setOptimizationProgress] = useState(0);
+  const [optimizationGains, setOptimizationGains] = useState({ time: 0, fuel: 0 });
 
   useEffect(() => {
     fetchTasks();
