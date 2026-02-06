@@ -37,6 +37,110 @@ def get_current_user():
         raise HTTPException(status_code=500, detail="Auth not configured")
     return get_current_user_dependency
 
+# ===== TEST CONNECTION ENDPOINT =====
+
+class TestConnectionRequest(BaseModel):
+    base_url: str
+    auth_header_name: str
+    auth_header_value: str
+    test_endpoint: Optional[str] = "/"
+
+@router.post("/test-connection")
+async def test_carrier_connection(request: TestConnectionRequest):
+    """
+    Test connection to a carrier API
+    Returns detailed error information for debugging
+    """
+    try:
+        # Build full URL
+        url = f"{request.base_url.rstrip('/')}/{request.test_endpoint.lstrip('/')}"
+        
+        # Build headers
+        headers = {
+            request.auth_header_name: request.auth_header_value
+        }
+        
+        start_time = time.time()
+        
+        # Make test request
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                response = await client.get(url, headers=headers)
+                response_time = round((time.time() - start_time) * 1000)  # ms
+                
+                # Success cases (200-299)
+                if 200 <= response.status_code < 300:
+                    return {
+                        "success": True,
+                        "status_code": response.status_code,
+                        "message": "✅ Connexion réussie !",
+                        "response_time_ms": response_time,
+                        "details": f"API accessible. Temps de réponse : {response_time}ms"
+                    }
+                
+                # Authentication errors
+                elif response.status_code in [401, 403]:
+                    return {
+                        "success": False,
+                        "status_code": response.status_code,
+                        "message": "❌ Clé invalide ou accès refusé",
+                        "response_time_ms": response_time,
+                        "details": f"Code {response.status_code}: Vérifiez votre clé API et vos permissions. Réponse: {response.text[:200]}"
+                    }
+                
+                # Not found
+                elif response.status_code == 404:
+                    return {
+                        "success": False,
+                        "status_code": response.status_code,
+                        "message": "⚠️ URL incorrecte",
+                        "response_time_ms": response_time,
+                        "details": f"L'endpoint '{url}' n'existe pas. Vérifiez l'URL de base."
+                    }
+                
+                # Other errors
+                else:
+                    return {
+                        "success": False,
+                        "status_code": response.status_code,
+                        "message": f"⚠️ Erreur API ({response.status_code})",
+                        "response_time_ms": response_time,
+                        "details": f"Réponse: {response.text[:200]}"
+                    }
+                    
+            except httpx.ConnectError as e:
+                return {
+                    "success": False,
+                    "status_code": 0,
+                    "message": "⚠️ Erreur de connexion",
+                    "details": f"Impossible de se connecter à '{request.base_url}'. Vérifiez l'URL et votre connexion internet. Erreur: {str(e)}"
+                }
+            
+            except httpx.TimeoutException:
+                return {
+                    "success": False,
+                    "status_code": 0,
+                    "message": "⚠️ Timeout",
+                    "details": f"L'API ne répond pas (timeout après 10s). Vérifiez que l'URL est correcte."
+                }
+            
+            except Exception as e:
+                return {
+                    "success": False,
+                    "status_code": 0,
+                    "message": "⚠️ Erreur réseau",
+                    "details": f"Erreur lors de la connexion: {str(e)}"
+                }
+    
+    except Exception as e:
+        logger.error(f"Test connection error: {e}")
+        return {
+            "success": False,
+            "status_code": 0,
+            "message": "❌ Erreur système",
+            "details": f"Erreur interne: {str(e)}"
+        }
+
 # Carrier API endpoints (test endpoints)
 CARRIER_TEST_ENDPOINTS = {
     CarrierType.YALIDINE: {
