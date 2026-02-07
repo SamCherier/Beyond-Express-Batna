@@ -189,7 +189,7 @@ async def create_return(data: ReturnCreate, request: Request):
 @router.patch("/{return_id}")
 async def update_return(return_id: str, data: ReturnUpdate, request: Request):
     db = _db()
-    user = await _auth(request)
+    await _auth(request)  # verify auth
 
     ret = await db.returns.find_one({"id": return_id}, {"_id": 0})
     if not ret:
