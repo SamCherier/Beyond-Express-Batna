@@ -7,22 +7,17 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n';
 import { Toaster } from 'sonner';
-import useRoutePrefetch from '@/hooks/useRoutePrefetch';
+import { AnimatePresence } from 'framer-motion';
 
-// Optimized Loading Component with brand identity
+// Loading spinner
 const PageLoader = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-    <div className="relative">
-      <div className="animate-spin rounded-full h-16 w-16 border-4 border-red-200 border-t-red-500"></div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse"></div>
-      </div>
-    </div>
-    <p className="mt-4 text-gray-600 dark:text-gray-300 font-medium animate-pulse">Chargement...</p>
+  <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+    <div className="aurora-spinner" />
+    <p className="mt-4 text-muted-foreground text-sm font-medium animate-pulse">Chargement...</p>
   </div>
 );
 
-// Eager loading for public pages (fast initial load)
+// Eager-loaded public pages
 import LandingPageModern from '@/pages/LandingPageModernV2';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -31,7 +26,7 @@ import DriverLogin from '@/pages/DriverLogin';
 import DriverLayout from '@/components/DriverLayout';
 import DashboardLayout from '@/components/DashboardLayout';
 
-// Lazy loading for dashboard pages (code splitting)
+// Lazy-loaded dashboard pages
 const AdminDashboardModern = lazy(() => import('@/pages/AdminDashboardModern'));
 const OrdersPageAdvanced = lazy(() => import('@/pages/OrdersPageAdvanced'));
 const ProductsPage = lazy(() => import('@/pages/ProductsPage'));
@@ -43,173 +38,62 @@ const FinancialCODPage = lazy(() => import('@/pages/FinancialCODPage'));
 const PricingManagementPage = lazy(() => import('@/pages/PricingManagementPage'));
 const BulkImportPage = lazy(() => import('@/pages/BulkImportPage'));
 const DriverTasks = lazy(() => import('@/pages/DriverTasks'));
-
 const DriversManagementPage = lazy(() => import('@/pages/DriversManagementPage'));
 const AIConfigPage = lazy(() => import('@/pages/AIConfigPage'));
+const ReturnsPage = lazy(() => import('@/pages/ReturnsPage'));
+const WarehousePage = lazy(() => import('@/pages/WarehousePage'));
 
-
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
+  if (loading) return <PageLoader />;
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 };
 
-// Public Route Component (redirect if already logged in)
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-      </div>
-    );
-  }
-
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
+  if (loading) return <PageLoader />;
+  if (user) return <Navigate to="/dashboard" replace />;
   return children;
 };
 
+const LP = (C) => (
+  <Suspense fallback={<PageLoader />}><C /></Suspense>
+);
+
 function AppRoutes() {
-  // Prefetch routes on idle for instant navigation
-  useRoutePrefetch();
-  
   return (
     <Routes>
-      {/* Public Routes */}
       <Route path="/" element={<LandingPageModern />} />
-      
-      {/* Public Tracking Page - NO AUTH REQUIRED */}
       <Route path="/tracking" element={<TrackingPage />} />
       <Route path="/tracking/:tracking_id" element={<TrackingPage />} />
-      
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <RegisterPage />
-          </PublicRoute>
-        }
-      />
+      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
 
-      {/* Protected Routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={
-          <Suspense fallback={<PageLoader />}>
-            <AdminDashboardModern />
-          </Suspense>
-        } />
-        <Route path="orders" element={
-          <Suspense fallback={<PageLoader />}>
-            <OrdersPageAdvanced />
-          </Suspense>
-        } />
-        <Route path="products" element={
-          <Suspense fallback={<PageLoader />}>
-            <ProductsPage />
-          </Suspense>
-        } />
-        <Route path="customers" element={
-          <Suspense fallback={<PageLoader />}>
-            <CustomersPageAdvanced />
-          </Suspense>
-        } />
-        <Route path="whatsapp" element={
-          <Suspense fallback={<PageLoader />}>
-            <WhatsAppDashboard />
-          </Suspense>
-        } />
-        <Route path="subscriptions" element={
-          <Suspense fallback={<PageLoader />}>
-            <SubscriptionsPage />
-          </Suspense>
-        } />
-        <Route path="settings/integrations" element={
-          <Suspense fallback={<PageLoader />}>
-            <CarriersIntegrationPage />
-          </Suspense>
-        } />
-        <Route path="settings/pricing" element={
-          <Suspense fallback={<PageLoader />}>
-            <PricingManagementPage />
-          </Suspense>
-        } />
-        <Route path="finance/cod" element={
-          <Suspense fallback={<PageLoader />}>
-            <FinancialCODPage />
-          </Suspense>
-        } />
-        <Route path="orders/import" element={
-          <Suspense fallback={<PageLoader />}>
-            <BulkImportPage />
-          </Suspense>
-        } />
-        <Route path="users/drivers" element={
-          <Suspense fallback={<PageLoader />}>
-            <DriversManagementPage />
-          </Suspense>
-        } />
-        <Route path="whatsapp" element={
-          <Suspense fallback={<PageLoader />}>
-            <WhatsAppDashboard />
-          </Suspense>
-        } />
-        <Route path="settings/ai" element={
-          <Suspense fallback={<PageLoader />}>
-            <AIConfigPage />
-          </Suspense>
-        } />
-
-
-        <Route path="delivery-partners" element={<div className="p-8 text-center">Delivery Partners Page - Coming Soon</div>} />
-        <Route path="invoices" element={<div className="p-8 text-center">Invoices Page - Coming Soon</div>} />
-        <Route path="support" element={<div className="p-8 text-center">Support Page - Coming Soon</div>} />
-        <Route path="settings" element={<div className="p-8 text-center">Settings Page - Coming Soon</div>} />
+      {/* Protected dashboard */}
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+        <Route index element={LP(AdminDashboardModern)} />
+        <Route path="orders" element={LP(OrdersPageAdvanced)} />
+        <Route path="products" element={LP(ProductsPage)} />
+        <Route path="customers" element={LP(CustomersPageAdvanced)} />
+        <Route path="whatsapp" element={LP(WhatsAppDashboard)} />
+        <Route path="subscriptions" element={LP(SubscriptionsPage)} />
+        <Route path="settings/integrations" element={LP(CarriersIntegrationPage)} />
+        <Route path="settings/pricing" element={LP(PricingManagementPage)} />
+        <Route path="finance/cod" element={LP(FinancialCODPage)} />
+        <Route path="orders/import" element={LP(BulkImportPage)} />
+        <Route path="users/drivers" element={LP(DriversManagementPage)} />
+        <Route path="settings/ai" element={LP(AIConfigPage)} />
+        <Route path="returns" element={LP(ReturnsPage)} />
+        <Route path="warehouse" element={LP(WarehousePage)} />
       </Route>
 
-
-      {/* Driver Routes (Mobile PWA) */}
+      {/* Driver routes */}
       <Route path="/driver/login" element={<DriverLogin />} />
       <Route path="/driver" element={<DriverLayout />}>
-        <Route path="tasks" element={
-          <Suspense fallback={<PageLoader />}>
-            <DriverTasks />
-          </Suspense>
-        } />
+        <Route path="tasks" element={LP(DriverTasks)} />
       </Route>
 
-      {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -217,18 +101,13 @@ function AppRoutes() {
 
 function App() {
   useEffect(() => {
-    // Set document direction based on language
     const updateDirection = () => {
       const lang = localStorage.getItem('language') || 'fr';
       document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       document.documentElement.lang = lang;
     };
-
     updateDirection();
-    
-    // Listen for language changes
     window.addEventListener('storage', updateDirection);
-    
     return () => window.removeEventListener('storage', updateDirection);
   }, []);
 

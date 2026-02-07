@@ -2,333 +2,292 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Hacen Tunisia font from CDN */
-@import url('https://fonts.cdnfonts.com/css/hacen-tunisia-bd');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Fallback: Load font locally if CDN fails */
-@font-face {
-    font-family: 'Hacen Tunisia Bd';
-    font-style: normal;
-    font-weight: 700;
-    src: local('Hacen Tunisia Bd'), local('HacenTunisiaBd'),
-         url('https://fonts.cdnfonts.com/s/33502/HacenTunisiaBd.woff') format('woff');
-    font-display: swap;
-}
-
-body {
-    margin: 0;
-    font-family: 'Hacen Tunisia Bd', 'Hacen Tunisia', 'Arial', 'Helvetica', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-    font-family:
-        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
+/* ========================================
+   AURORA DESIGN SYSTEM
+   ======================================== */
 
 @layer base {
-    :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96.1%;
-        --secondary-foreground: 0 0% 9%;
-        --muted: 0 0% 96.1%;
-        --muted-foreground: 0 0% 45.1%;
-        --accent: 0 0% 96.1%;
-        --accent-foreground: 0 0% 9%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 89.8%;
-        
-        /* Logistics OS 2050 - Fluid Motion Variables */
-        --glass-bg: rgba(255, 255, 255, 0.08);
-        --glass-border: rgba(255, 255, 255, 0.18);
-        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-        --input: 0 0% 89.8%;
-        --ring: 0 0% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
-    }
-    .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-    }
-    
-    /* 🇩🇿 Independence Day Theme (5 Juillet) - Algerian Colors */
-    .independence {
-        --background: 0 0% 98%;
-        --foreground: 140 80% 25%;
-        --card: 0 0% 100%;
-        --card-foreground: 140 80% 25%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 140 80% 25%;
-        --primary: 140 80% 35%;  /* Algerian Green */
-        --primary-foreground: 0 0% 100%;
-        --secondary: 0 100% 45%;  /* Algerian Red */
-        --secondary-foreground: 0 0% 100%;
-        --muted: 0 0% 96%;
-        --muted-foreground: 140 40% 35%;
-        --accent: 0 100% 45%;  /* Red accent */
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 140 30% 85%;
-        --input: 140 20% 90%;
-        --ring: 140 80% 35%;
-        --chart-1: 140 76% 45%;  /* Green */
-        --chart-2: 0 100% 50%;   /* Red */
-        --chart-3: 0 0% 100%;    /* White */
-        --chart-4: 140 60% 60%;
-        --chart-5: 0 80% 60%;
-    }
-    
-    /* Independence Day special effects */
-    .independence body {
-        background: linear-gradient(135deg, rgba(0,128,0,0.03) 0%, rgba(255,255,255,1) 50%, rgba(220,20,60,0.03) 100%);
-    }
-    
-    /* Add subtle celebration glow to cards */
-    .independence [class*="bg-card"],
-    .independence [class*="bg-white"] {
-        box-shadow: 0 0 20px rgba(0,128,0,0.1), 0 0 40px rgba(220,20,60,0.05);
-    }
-    
-    /* Buttons get patriotic colors */
-    .independence button[class*="bg-"] {
-        transition: all 0.3s ease;
-    }
-    
-    .independence button[class*="bg-"]:hover {
-        box-shadow: 0 4px 15px rgba(140, 80, 35, 0.3);
-    }
+  :root {
+    --background: 220 14% 96%;
+    --foreground: 220 20% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 263 70% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 20% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.625rem;
+
+    /* Aurora palette tokens */
+    --aurora-primary: #3B82F6;
+    --aurora-secondary: #8B5CF6;
+    --aurora-success: #10B981;
+    --aurora-warning: #F59E0B;
+    --aurora-error: #EF4444;
+    --aurora-neutral: #6B7280;
+    --aurora-surface: rgba(255, 255, 255, 0.85);
+    --aurora-glass: rgba(255, 255, 255, 0.08);
+    --aurora-glass-border: rgba(255, 255, 255, 0.18);
+
+    --chart-1: 217 91% 60%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 263 70% 50%;
+    --chart-4: 43 96% 56%;
+    --chart-5: 0 84% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 263 70% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 218 11% 65%;
+    --accent: 223 47% 11%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 223 47% 15%;
+    --input: 223 47% 15%;
+    --ring: 217 91% 60%;
+  }
+
+  .independence {
+    --background: 0 0% 98%;
+    --foreground: 140 80% 25%;
+    --card: 0 0% 100%;
+    --card-foreground: 140 80% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 140 80% 25%;
+    --primary: 140 80% 35%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 100% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 140 40% 35%;
+    --accent: 0 100% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 140 30% 85%;
+    --input: 140 20% 90%;
+    --ring: 140 80% 35%;
+    --chart-1: 140 76% 45%;
+    --chart-2: 0 100% 50%;
+    --chart-3: 0 0% 100%;
+    --chart-4: 140 60% 60%;
+    --chart-5: 0 80% 60%;
+  }
 }
 
 /* ========================================
-   LOGISTICS OS 2050 - FLUID MOTION DESIGN
+   BASE STYLES
    ======================================== */
 
-/* Animated Gradient Background */
-@keyframes logisticFlow {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
 body {
-    background: linear-gradient(-45deg, #0f172a, #1e293b, #0c4a6e, #1e3a8a);
-    background-size: 400% 400%;
-    animation: logisticFlow 15s ease infinite;
-    min-height: 100vh;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: hsl(var(--background));
 }
 
-/* Glassmorphism 3.0 - Floating Cards */
-.glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 16px;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Micro-interactions - Smooth Transitions */
-button,
-a,
-.interactive-element {
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
-button:hover,
-a:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-}
-
-button:active,
-a:active {
-    transform: translateY(0);
-}
-
-/* Ripple Effect on Click */
-@keyframes ripple {
-    0% {
-        transform: scale(0);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-
-.ripple-effect {
-    position: relative;
-    overflow: hidden;
-}
-
-.ripple-effect::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%);
-    animation: ripple 0.6s ease-out;
-}
-
-/* Mobile Responsive Fixes */
-@media (max-width: 768px) {
-    /* Ensure cards stack properly */
-    .grid {
-        grid-template-columns: 1fr !important;
-    }
-    
-    /* Proper spacing on mobile */
-    .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    
-    /* Tables scroll horizontally */
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    
-    /* Buttons full width on mobile */
-    .mobile-full-width {
-        width: 100%;
-    }
-    
-    /* Touch-friendly minimum sizes */
-    button,
-    a {
-        min-height: 44px;
-        min-width: 44px;
-    }
-}
-
-/* Extra small devices (phones, less than 576px) */
-@media (max-width: 575.98px) {
-    body {
-        font-size: 14px;
-    }
-    
-    h1 {
-        font-size: 1.75rem;
-    }
-    
-    h2 {
-        font-size: 1.5rem;
-    }
-    
-    /* Reduce padding on cards for mobile */
-    .card {
-        padding: 0.75rem;
-    }
-}
-
-/* Tablet optimization */
-@media (min-width: 768px) and (max-width: 1024px) {
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Prevent horizontal scroll */
-html,
-body {
-    overflow-x: hidden;
-    max-width: 100vw;
-}
-
-/* Smooth scroll behavior */
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
+}
+
+/* ========================================
+   GLASSMORPHISM 3.0
+   ======================================== */
+
+.glass-card {
+  background: var(--aurora-glass);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid var(--aurora-glass-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.glass-surface {
+  background: var(--aurora-surface);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+   BUTTON STATES (ALL buttons)
+   ======================================== */
+
+button, a, [role="button"] {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+}
+
+button:hover:not(:disabled), [role="button"]:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+button:active:not(:disabled), [role="button"]:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:disabled, [role="button"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ========================================
+   MOBILE-FIRST RESPONSIVE
+   ======================================== */
+
+/* Touch targets minimum 44x44 */
+@media (max-width: 767px) {
+  button, a, [role="button"], input, select, textarea {
+    min-height: 44px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small phones */
+@media (max-width: 374px) {
+  body { font-size: 13px; }
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .grid-auto-tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ========================================
+   LOADING SPINNER
+   ======================================== */
+
+.aurora-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid hsl(var(--border));
+  border-top-color: var(--aurora-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   BOTTOM NAV (Mobile Only)
+   ======================================== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--aurora-surface);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  color: var(--aurora-neutral);
+  font-size: 10px;
+  font-weight: 500;
+  min-width: 56px;
+  min-height: 44px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.bottom-nav-item.active {
+  color: var(--aurora-primary);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* ========================================
+   SHADCN/BASE LAYER
+   ======================================== */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 @layer base {
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
-}
-
-@layer base {
-    [data-debug-wrapper="true"] {
-        display: contents !important;
-    }
-
-    [data-debug-wrapper="true"] > * {
-        margin-left: inherit;
-        margin-right: inherit;
-        margin-top: inherit;
-        margin-bottom: inherit;
-        padding-left: inherit;
-        padding-right: inherit;
-        padding-top: inherit;
-        padding-bottom: inherit;
-        column-gap: inherit;
-        row-gap: inherit;
-        gap: inherit;
-        border-left-width: inherit;
-        border-right-width: inherit;
-        border-top-width: inherit;
-        border-bottom-width: inherit;
-        border-left-style: inherit;
-        border-right-style: inherit;
-        border-top-style: inherit;
-        border-bottom-style: inherit;
-        border-left-color: inherit;
-        border-right-color: inherit;
-        border-top-color: inherit;
-        border-bottom-color: inherit;
-    }
+  [data-debug-wrapper="true"] {
+    display: contents !important;
+  }
+  [data-debug-wrapper="true"] > * {
+    margin-left: inherit; margin-right: inherit;
+    margin-top: inherit; margin-bottom: inherit;
+    padding-left: inherit; padding-right: inherit;
+    padding-top: inherit; padding-bottom: inherit;
+    column-gap: inherit; row-gap: inherit; gap: inherit;
+    border-left-width: inherit; border-right-width: inherit;
+    border-top-width: inherit; border-bottom-width: inherit;
+    border-left-style: inherit; border-right-style: inherit;
+    border-top-style: inherit; border-bottom-style: inherit;
+    border-left-color: inherit; border-right-color: inherit;
+    border-top-color: inherit; border-bottom-color: inherit;
+  }
 }

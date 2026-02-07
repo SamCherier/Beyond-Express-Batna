@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
@@ -7,26 +7,14 @@ import FeatureLock from '@/components/FeatureLock';
 import BeyondExpressLogo from '@/components/BeyondExpressLogo';
 import { Button } from '@/components/ui/button';
 import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
-  Truck,
-  FileText,
-  Settings,
-  LogOut,
-  MessageSquare,
-  MessageCircle,
-  Menu,
-  X,
-  Bot,
-  CreditCard,
-  DollarSign,
-  Upload,
-  ChevronDown
+  LayoutDashboard, Package, ShoppingCart, Users, Truck,
+  FileText, Settings, LogOut, MessageCircle, Menu, X,
+  Bot, CreditCard, DollarSign, Upload, ChevronDown,
+  RotateCcw, Warehouse, Home, ScanLine, ClipboardList, User
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import AIAssistant from '@/components/AIAssistant';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -34,280 +22,252 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [showLockModal, setShowLockModal] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth <= 1024);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth;
+      setIsMobile(w < 768);
+      setIsTablet(w >= 768 && w <= 1024);
+      if (w >= 1025) setSidebarOpen(true);
+      if (w < 768) setSidebarOpen(false);
+    };
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Close sidebar on nav in mobile
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [location.pathname, isMobile]);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
   };
 
+  const handleForceLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(';').forEach((c) => {
+      document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+    });
+    window.location.href = '/login';
+  };
+
   const menuItems = [
-    { path: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: t('dashboard'), roles: ['admin', 'ecommerce', 'delivery'] },
-    { path: '/dashboard/orders', icon: <Package className="w-5 h-5" />, label: t('orders'), roles: ['admin', 'ecommerce', 'delivery'] },
-    { path: '/dashboard/orders/import', icon: <Upload className="w-5 h-5" />, label: 'Import Masse', roles: ['admin', 'ecommerce'] },
-    { path: '/dashboard/products', icon: <ShoppingCart className="w-5 h-5" />, label: t('products'), roles: ['admin', 'ecommerce'] },
-    { path: '/dashboard/customers', icon: <Users className="w-5 h-5" />, label: t('customers'), roles: ['admin', 'ecommerce'] },
-    { path: '/dashboard/users/drivers', icon: <Truck className="w-5 h-5" />, label: 'Chauffeurs', roles: ['admin'] },
-    { path: '/dashboard/finance/cod', icon: <DollarSign className="w-5 h-5" />, label: 'Finance COD', roles: ['admin'] },
-    { path: '/dashboard/subscriptions', icon: <CreditCard className="w-5 h-5" />, label: 'Abonnements', roles: ['admin', 'ecommerce'] },
-    { path: '/dashboard/whatsapp', icon: <MessageCircle className="w-5 h-5" />, label: 'WhatsApp', roles: ['admin'] },
-    { path: '/dashboard/settings/ai', icon: <Bot className="w-5 h-5" />, label: 'Configuration IA', roles: ['admin'] },
-    { path: '/dashboard/settings/integrations', icon: <Truck className="w-5 h-5" />, label: 'Intégrations', roles: ['admin', 'ecommerce'] },
-    { path: '/dashboard/settings/pricing', icon: <Settings className="w-5 h-5" />, label: 'Tarifs Livraison', roles: ['admin'] },
-    { path: '/dashboard/invoices', icon: <FileText className="w-5 h-5" />, label: t('invoices'), roles: ['admin', 'ecommerce'] },
-    { path: '/dashboard/support', icon: <MessageSquare className="w-5 h-5" />, label: t('support'), roles: ['admin', 'ecommerce', 'delivery'] },
-    { path: '/dashboard/settings', icon: <Settings className="w-5 h-5" />, label: t('settings'), roles: ['admin', 'ecommerce', 'delivery'] },
+    { path: '/dashboard', icon: LayoutDashboard, label: t('dashboard'), roles: ['admin', 'ecommerce', 'delivery'] },
+    { path: '/dashboard/orders', icon: Package, label: t('orders'), roles: ['admin', 'ecommerce', 'delivery'] },
+    { path: '/dashboard/orders/import', icon: Upload, label: 'Import Masse', roles: ['admin', 'ecommerce'] },
+    { path: '/dashboard/products', icon: ShoppingCart, label: t('products'), roles: ['admin', 'ecommerce'] },
+    { path: '/dashboard/customers', icon: Users, label: t('customers'), roles: ['admin', 'ecommerce'] },
+    { path: '/dashboard/users/drivers', icon: Truck, label: 'Chauffeurs', roles: ['admin'] },
+    { path: '/dashboard/finance/cod', icon: DollarSign, label: 'Finance COD', roles: ['admin'] },
+    { path: '/dashboard/returns', icon: RotateCcw, label: 'Retours RMA', roles: ['admin', 'ecommerce'] },
+    { path: '/dashboard/warehouse', icon: Warehouse, label: 'Entrepôt', roles: ['admin'] },
+    { path: '/dashboard/subscriptions', icon: CreditCard, label: 'Abonnements', roles: ['admin', 'ecommerce'] },
+    { path: '/dashboard/whatsapp', icon: MessageCircle, label: 'WhatsApp', roles: ['admin'] },
+    { path: '/dashboard/settings/ai', icon: Bot, label: 'Configuration IA', roles: ['admin'] },
+    { path: '/dashboard/settings/integrations', icon: Truck, label: 'Intégrations', roles: ['admin', 'ecommerce'] },
+    { path: '/dashboard/settings/pricing', icon: Settings, label: 'Tarifs Livraison', roles: ['admin'] },
+  ];
+
+  const bottomNavItems = [
+    { path: '/dashboard', icon: Home, label: 'Accueil' },
+    { path: '/dashboard/orders', icon: Package, label: 'Colis' },
+    { path: '/dashboard/returns', icon: RotateCcw, label: 'Retours' },
+    { path: '/dashboard/settings/integrations', icon: Settings, label: 'Config' },
   ];
 
   const filteredMenuItems = menuItems.filter(item => item.roles.includes(user?.role));
 
+  const isActive = (path) => {
+    if (path === '/dashboard') return location.pathname === '/dashboard';
+    return location.pathname.startsWith(path);
+  };
+
+  const sidebarWidth = isTablet && !sidebarOpen ? 72 : 256;
+  const showSidebar = !isMobile;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100" data-testid="dashboard-layout">
-      {/* Top Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-40">
-        <div className="h-full px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden"
-              data-testid="sidebar-toggle"
-            >
-              {sidebarOpen ? <X /> : <Menu />}
+    <div className="min-h-screen bg-background" data-testid="dashboard-layout">
+      {/* ===== TOP HEADER ===== */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-card border-b border-border z-40 flex items-center px-4" data-testid="top-header">
+        <div className="flex items-center gap-3 flex-1">
+          {!isMobile && (
+            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="shrink-0" data-testid="sidebar-toggle">
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
-            
-            <div className="flex items-center gap-3">
-              <BeyondExpressLogo size="sm" />
-              <span className="text-xl font-bold text-gray-900 hidden sm:block" style={{ fontFamily: 'Brockmann, sans-serif' }}>
-                Beyond Express
-              </span>
-            </div>
+          )}
+          {isMobile && (
+            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} data-testid="mobile-menu-btn">
+              <Menu className="w-5 h-5" />
+            </Button>
+          )}
+          <BeyondExpressLogo size="sm" />
+          <span className="text-base font-bold text-foreground hidden sm:block">Beyond Express</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <div className="hidden md:flex gap-1">
+            {['fr', 'ar', 'en'].map(lng => (
+              <button key={lng} onClick={() => changeLanguage(lng)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${i18n.language === lng ? 'bg-[var(--aurora-primary)] text-white' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
+                data-testid={`lang-${lng}`}
+              >{lng.toUpperCase()}</button>
+            ))}
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Theme Toggle */}
-            <ThemeToggle />
-            
-            {/* Language Switcher */}
-            <div className="hidden md:flex gap-2">
-              <button
-                onClick={() => changeLanguage('fr')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-                  i18n.language === 'fr' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                FR
-              </button>
-              <button
-                onClick={() => changeLanguage('ar')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-                  i18n.language === 'ar' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                AR
-              </button>
-              <button
-                onClick={() => changeLanguage('en')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-                  i18n.language === 'en' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                EN
-              </button>
-            </div>
+          {/* Profile */}
+          <div className="relative z-50">
+            <button onClick={(e) => { e.stopPropagation(); setProfileMenuOpen(!profileMenuOpen); }}
+              className="flex items-center gap-2 p-1.5 hover:bg-accent rounded-lg transition-colors"
+              data-testid="profile-menu-button"
+            >
+              <div className="w-8 h-8 rounded-full bg-[var(--aurora-primary)] flex items-center justify-center text-white font-bold text-sm">
+                {user?.name?.[0]?.toUpperCase()}
+              </div>
+              <div className="hidden lg:block text-left">
+                <p className="text-sm font-medium text-foreground leading-tight">{user?.name}</p>
+                <p className="text-[10px] text-muted-foreground">{t(user?.role)}</p>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            {/* User Profile Menu - Fixed z-index and click handling */}
-            <div className="relative z-50">
-              <button 
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProfileMenuOpen(!profileMenuOpen);
-                }} 
-                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer select-none"
-                data-testid="profile-menu-button"
-              >
-                {user?.picture ? (
-                  <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full pointer-events-none" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white font-bold pointer-events-none">
-                    {user?.name?.[0]?.toUpperCase()}
+            {profileMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-[60]" onClick={() => setProfileMenuOpen(false)} />
+                <div className="absolute right-0 mt-1 w-52 bg-card rounded-xl shadow-xl border border-border z-[70] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-bold text-foreground">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
-                )}
-                <div className="hidden md:block text-left pointer-events-none">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{t(user?.role)}</p>
+                  <button onClick={handleForceLogout}
+                    className="w-full text-left px-4 py-3 text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2 font-medium"
+                    data-testid="logout-dropdown-btn"
+                  >
+                    <LogOut className="w-4 h-4" /> Déconnexion
+                  </button>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform pointer-events-none ${profileMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {profileMenuOpen && (
-                <>
-                  {/* Backdrop to close menu when clicking outside */}
-                  <div 
-                    className="fixed inset-0 z-[60]" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setProfileMenuOpen(false);
-                    }}
-                  />
-                  
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-[70]">
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-bold text-gray-900">{user?.name}</p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
-                      <p className="text-xs text-gray-400 mt-1">{t(user?.role)}</p>
-                    </div>
-                    
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        document.cookie.split(";").forEach((c) => {
-                          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                        });
-                        window.location.href = '/login';
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium rounded-b-lg"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
-                      <span>Déconnexion</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Sidebar */}
+      {/* ===== MOBILE OVERLAY ===== */}
+      <AnimatePresence>
+        {isMobile && sidebarOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 z-30" onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ===== SIDEBAR ===== */}
       <aside
-        className={`fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-gray-200 transition-transform duration-300 z-30 flex flex-col ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+        className={`fixed top-14 bottom-0 bg-card border-r border-border z-30 flex flex-col transition-all duration-300 ${
+          isMobile
+            ? `w-64 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+            : showSidebar ? '' : 'hidden'
+        }`}
+        style={!isMobile ? { width: sidebarWidth } : undefined}
         data-testid="sidebar"
       >
-        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
           {filteredMenuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            const collapsed = isTablet && !sidebarOpen;
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive
-                    ? 'bg-red-500 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-red-50 hover:text-red-600'
-                }`}
-                data-testid={`nav-${item.path}`}
+              <Link key={item.path} to={item.path}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+                  active
+                    ? 'bg-[var(--aurora-primary)] text-white shadow-sm'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                } ${collapsed ? 'justify-center px-2' : ''}`}
+                title={collapsed ? item.label : undefined}
+                data-testid={`nav-${item.path.replace(/\//g, '-')}`}
               >
-                {item.icon}
-                <span className="font-medium">{item.label}</span>
+                <Icon className="w-[18px] h-[18px] shrink-0" />
+                {!collapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
-        {/* LOGOUT BUTTON - HARDCODED INLINE */}
-        <div className="mt-auto border-t border-gray-200 dark:border-gray-700 p-4">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              // 1. Nettoyage Brutal (Directement ici, pas d'import)
-              localStorage.clear();
-              sessionStorage.clear();
-              
-              // 2. Destruction Cookies
-              document.cookie.split(";").forEach((c) => {
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-              });
-
-              // 3. Redirection Force (Pas de React Router)
-              window.location.href = '/login'; 
-            }}
-            className="flex w-full items-center rounded-lg bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-red-700 transition-colors"
+        <div className="border-t border-border p-2">
+          <button onClick={handleForceLogout}
+            className={`flex w-full items-center gap-3 rounded-lg bg-destructive px-3 py-2.5 text-sm font-bold text-destructive-foreground hover:bg-destructive/90 transition-colors ${isTablet && !sidebarOpen ? 'justify-center px-2' : ''}`}
             data-testid="logout-button"
           >
-            {/* Icône SVG Hardcodée pour éviter les erreurs d'import d'icônes */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            DÉCONNEXION
+            <LogOut className="w-[18px] h-[18px] shrink-0" />
+            {!(isTablet && !sidebarOpen) && <span>DÉCONNEXION</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ===== MAIN CONTENT ===== */}
       <main
-        className={`pt-16 transition-all duration-300 ${
-          sidebarOpen ? 'lg:pl-64' : 'pl-0'
-        }`}
+        className="pt-14 transition-all duration-300"
+        style={{ paddingLeft: isMobile ? 0 : sidebarWidth, paddingBottom: isMobile ? 72 : 0 }}
       >
-        <div className="p-6">
-          <Outlet />
+        <div className="p-4 md:p-6">
+          <AnimatePresence mode="wait">
+            <motion.div key={location.pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 
-      {/* AI Assistant Button */}
+      {/* ===== MOBILE BOTTOM NAV ===== */}
+      {isMobile && (
+        <nav className="bottom-nav" data-testid="bottom-nav">
+          {bottomNavItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link key={item.path} to={item.path}
+                className={`bottom-nav-item ${active ? 'active' : ''}`}
+                data-testid={`bottom-nav-${item.label.toLowerCase()}`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+
+      {/* ===== AI ASSISTANT ===== */}
       <button
-        onClick={() => {
-          if (checkAccess('ai_content_generator')) {
-            setAiOpen(true);
-          } else {
-            setShowLockModal(true);
-          }
-        }}
-        className={`fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center transition-all z-50 ${
-          checkAccess('ai_content_generator')
-            ? 'bg-red-500 hover:bg-red-600 hover:scale-110'
-            : 'bg-gray-400 cursor-not-allowed opacity-60'
-        }`}
+        onClick={() => checkAccess('ai_content_generator') ? setAiOpen(true) : setShowLockModal(true)}
+        className={`fixed z-50 w-12 h-12 text-white rounded-full shadow-lg flex items-center justify-center transition-all ${
+          isMobile ? 'bottom-[76px] right-4' : 'bottom-6 right-6'
+        } ${checkAccess('ai_content_generator') ? 'bg-[var(--aurora-primary)] hover:bg-[var(--aurora-primary)]/90' : 'bg-muted-foreground/50 cursor-not-allowed'}`}
         data-testid="ai-assistant-button"
-        title={checkAccess('ai_content_generator') 
-          ? 'Ouvrir l\'Assistant IA' 
-          : 'Plan PRO requis pour l\'Assistant IA'
-        }
       >
-        <Bot className="w-6 h-6" />
-        {!checkAccess('ai_content_generator') && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">🔒</span>
-          </div>
-        )}
+        <Bot className="w-5 h-5" />
       </button>
 
-      {/* AI Assistant Modal */}
       {aiOpen && checkAccess('ai_content_generator') && <AIAssistant onClose={() => setAiOpen(false)} />}
-
-      {/* Feature Lock Modal */}
       {showLockModal && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setShowLockModal(false)}
-        >
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowLockModal(false)}>
           <div onClick={(e) => e.stopPropagation()}>
-            <FeatureLock
-              feature="ai_content_generator"
-              message={getUpgradeMessage('ai_content_generator')}
-              requiredPlan="pro"
-              variant="card"
-            />
+            <FeatureLock feature="ai_content_generator" message={getUpgradeMessage('ai_content_generator')} requiredPlan="pro" variant="card" />
           </div>
         </div>
       )}
