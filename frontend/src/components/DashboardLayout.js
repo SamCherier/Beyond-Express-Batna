@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, Truck,
   Settings, LogOut, Menu, X, Bot, CreditCard, DollarSign,
   Upload, ChevronDown, RotateCcw, Warehouse, MessageCircle,
-  Search, Monitor
+  Search, Monitor, Brain
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import AIAssistant from '@/components/AIAssistant';
