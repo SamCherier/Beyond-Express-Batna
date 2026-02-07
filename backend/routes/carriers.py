@@ -659,36 +659,3 @@ async def delete_generic_carrier(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# Pre-configured carriers available for quick setup
-@router.get("/preconfigured")
-async def get_preconfigured_carriers():
-    """
-    Get list of pre-configured carriers that can be quickly added
-    """
-    return {
-        "carriers": [
-            {
-                "id": "anderson",
-                "name": "Anderson Logistics",
-                "description": "Service logistique algérien premium",
-                "logo_color": "#1E3A8A",
-                "requires": ["api_key", "secret_key"]
-            },
-            {
-                "id": "speedz",
-                "name": "SpeedZ Express",
-                "description": "Livraison express Algérie",
-                "logo_color": "#10B981",
-                "requires": ["api_key"]
-            },
-            {
-                "id": "ecotrack",
-                "name": "EcoTrack",
-                "description": "Livraison écologique",
-                "logo_color": "#059669",
-                "requires": ["api_key", "api_token"]
-            }
-        ]
-    }
