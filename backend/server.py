@@ -1397,6 +1397,10 @@ app.include_router(returns_router.router, prefix="/api/returns", tags=["returns"
 from routes import smart_routing as smart_routing_router
 app.include_router(smart_routing_router.router, prefix="/api/routing", tags=["routing"])
 
+# Include Warehouse routes
+from routes import warehouse as warehouse_router
+app.include_router(warehouse_router.router, prefix="/api/warehouse", tags=["warehouse"])
+
 # Include Shipping routes (Smart Router)
 app.include_router(shipping_router.router, prefix="/api/shipping", tags=["shipping"])
 
