@@ -4,428 +4,273 @@ import { useAuth } from '@/contexts/AuthContext';
 import useFeatureAccess from '@/hooks/useFeatureAccess';
 import FeatureLock from '@/components/FeatureLock';
 import PlanLimitBanner from '@/components/PlanLimitBanner';
-import { 
-  getDashboardStats, 
-  getOrdersByStatus, 
-  getRevenueEvolution, 
-  getTopWilayas 
+import {
+  getDashboardStats,
+  getOrdersByStatus,
+  getRevenueEvolution,
+  getTopWilayas
 } from '@/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
-import { 
-  Package, TrendingUp, DollarSign, ShoppingBag, 
-  TrendingDown, MapPin, Clock, CheckCircle 
+import {
+  Package, TrendingUp, DollarSign, Clock, CheckCircle,
+  MapPin, ShoppingBag, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
+};
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+};
+
+const STATUS_COLORS = ['#3B82F6', '#8B5CF6', '#F59E0B', '#FF8A3D', '#10B981', '#EF4444'];
+
+const tooltipStyle = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '10px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+  fontSize: '13px',
+};
 
 const AdminDashboardModern = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { checkAccess, getUpgradeMessage, currentPlan } = useFeatureAccess();
+  const { checkAccess, getUpgradeMessage } = useFeatureAccess();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    totalUsers: 0,
-    totalProducts: 0,
-    inTransit: 0
-  });
+  const [stats, setStats] = useState({ totalOrders: 0, totalUsers: 0, totalProducts: 0, inTransit: 0 });
   const [ordersByStatus, setOrdersByStatus] = useState([]);
   const [revenueData, setRevenueData] = useState([]);
   const [topWilayas, setTopWilayas] = useState([]);
 
-  useEffect(() => {
-    // Only fetch data if user is authenticated
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
+  useEffect(() => { if (user) fetchData(); }, [user]);
 
   const fetchData = async () => {
-    // Guard clause: don't fetch if user is not authenticated
-    if (!user) {
-      console.log('❌ AdminDashboard: No user authenticated, skipping data fetch');
-      setLoading(false);
-      return;
-    }
-
-    console.log('✅ AdminDashboard: User authenticated, fetching dashboard data...', user);
+    if (!user) { setLoading(false); return; }
     setError(null);
-
     try {
-      // Fetch all dashboard data in parallel
-      console.log('📊 Fetching dashboard endpoints...');
       const [statsRes, statusRes, revenueRes, wilayasRes] = await Promise.all([
-        getDashboardStats(),
-        getOrdersByStatus(),
-        getRevenueEvolution(),
-        getTopWilayas()
+        getDashboardStats(), getOrdersByStatus(), getRevenueEvolution(), getTopWilayas()
       ]);
-
-      console.log('✅ Dashboard data received:', {
-        stats: statsRes.data,
-        ordersByStatus: statusRes.data,
-        revenueData: revenueRes.data,
-        topWilayas: wilayasRes.data
-      });
-
       setStats({
         totalOrders: statsRes.data.total_orders || 0,
         totalUsers: statsRes.data.total_users || 0,
         totalProducts: statsRes.data.total_products || 0,
-        inTransit: statsRes.data.in_transit || 0
+        inTransit: statsRes.data.in_transit || 0,
       });
       setOrdersByStatus(statusRes.data || []);
       setRevenueData(revenueRes.data || []);
       setTopWilayas(wilayasRes.data || []);
-    } catch (error) {
-      console.error('❌ Error fetching dashboard data:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      setError(`Erreur de chargement des données: ${error.response?.status || error.message}`);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) {
+      setError(err.response?.status ? `Erreur ${err.response.status}` : err.message);
+    } finally { setLoading(false); }
   };
 
-  // Calculate derived stats for KPI cards
-  const calculateDerivedStats = () => {
-    const totalRevenue = revenueData.reduce((sum, day) => sum + (day.revenus || 0), 0);
-    const deliveredCount = ordersByStatus.find(s => s.name === 'Livré')?.value || 0;
-    const deliveryRate = stats.totalOrders > 0 
-      ? ((deliveredCount / stats.totalOrders) * 100).toFixed(1) 
-      : 0;
-    const pendingCount = ordersByStatus
-      .filter(s => ['En stock', 'Préparation', 'Prêt'].includes(s.name))
-      .reduce((sum, s) => sum + s.value, 0);
+  const totalRevenue = revenueData.reduce((s, d) => s + (d.revenus || 0), 0);
+  const deliveredCount = ordersByStatus.find(s => s.name === 'Livré')?.value || 0;
+  const deliveryRate = stats.totalOrders > 0 ? ((deliveredCount / stats.totalOrders) * 100).toFixed(1) : 0;
+  const pendingCount = ordersByStatus.filter(s => ['En stock', 'Préparation', 'Prêt'].includes(s.name)).reduce((s, x) => s + x.value, 0);
 
-    return {
-      totalRevenue,
-      deliveryRate,
-      pendingCount
-    };
-  };
-
-  const derivedStats = calculateDerivedStats();
-
-  // Couleurs pour les graphiques
-  const COLORS = {
-    primary: '#FF5757',
-    secondary: '#FF8A3D',
-    blue: '#3B82F6',
-    green: '#10B981',
-    purple: '#8B5CF6',
-    yellow: '#F59E0B',
-    red: '#EF4444'
-  };
-
-  const STATUS_COLORS = ['#3B82F6', '#8B5CF6', '#F59E0B', '#FF8A3D', '#10B981', '#EF4444'];
-
-  // KPI Cards
   const kpiCards = [
-    {
-      title: 'Total Commandes',
-      value: stats.totalOrders,
-      icon: <Package className="w-8 h-8" />,
-      gradient: 'from-blue-500 to-cyan-500',
-      change: '+12%',
-      changeType: 'positive'
-    },
-    {
-      title: 'Revenus du Mois',
-      value: `${derivedStats.totalRevenue.toLocaleString()} DA`,
-      icon: <DollarSign className="w-8 h-8" />,
-      gradient: 'from-green-500 to-emerald-500',
-      change: '+23%',
-      changeType: 'positive'
-    },
-    {
-      title: 'Taux de Livraison',
-      value: `${derivedStats.deliveryRate}%`,
-      icon: <CheckCircle className="w-8 h-8" />,
-      gradient: 'from-purple-500 to-pink-500',
-      change: '+5%',
-      changeType: 'positive'
-    },
-    {
-      title: 'En Attente',
-      value: derivedStats.pendingCount,
-      icon: <Clock className="w-8 h-8" />,
-      gradient: 'from-orange-500 to-red-500',
-      change: '-8%',
-      changeType: 'negative'
-    }
+    { title: 'Colis Actifs', value: stats.totalOrders, icon: Package, gradient: 'from-blue-500 to-blue-600', change: '+12%', up: true },
+    { title: 'Revenus', value: `${totalRevenue.toLocaleString()} DA`, icon: DollarSign, gradient: 'from-emerald-500 to-emerald-600', change: '+23%', up: true },
+    { title: 'Taux Livraison', value: `${deliveryRate}%`, icon: CheckCircle, gradient: 'from-violet-500 to-violet-600', change: '+5%', up: true },
+    { title: 'En Attente', value: pendingCount, icon: Clock, gradient: 'from-amber-500 to-amber-600', change: '-8%', up: false },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-500"></div>
-        <p className="text-gray-600">Chargement du tableau de bord...</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-[70vh] gap-4">
+      <div className="quantum-spinner" />
+      <p className="text-muted-foreground text-sm font-medium animate-pulse">Chargement du tableau de bord...</p>
+    </div>
+  );
 
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <div className="p-4 bg-yellow-50 border-2 border-yellow-500 rounded-xl">
-          <p className="text-yellow-900 font-semibold">⚠️ Vous devez être connecté pour accéder au dashboard</p>
-          <p className="text-yellow-700 text-sm mt-2">Veuillez vous connecter pour voir vos données.</p>
-        </div>
+  if (!user) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="p-6 bg-amber-50 border border-amber-200 rounded-xl max-w-md text-center">
+        <p className="text-amber-900 font-semibold">Connexion requise</p>
+        <p className="text-amber-700 text-sm mt-1">Veuillez vous connecter pour voir vos données.</p>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
-    <div className="space-y-8 p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'EB Garamond, serif' }}>
+    <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-6" data-testid="admin-dashboard">
+      {/* ── Header ── */}
+      <motion.div variants={fadeUp}>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight" data-testid="dashboard-title">
           Tableau de Bord
         </h1>
-        <p className="text-gray-600">
-          Bienvenue, <span className="font-semibold text-red-500">{user?.name}</span> 👋
+        <p className="text-muted-foreground text-sm mt-1">
+          Bienvenue, <span className="font-semibold text-[var(--primary-500)]">{user?.name}</span>
         </p>
-      </div>
+      </motion.div>
 
-      {/* Plan Limit Banner */}
       <PlanLimitBanner />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpiCards.map((card, index) => (
-          <Card 
-            key={index} 
-            className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-          >
-            {/* Gradient Background */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-10`}></div>
-            
-            <CardContent className="p-6 relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} text-white shadow-lg`}>
-                  {card.icon}
-                </div>
-                <div className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                  card.changeType === 'positive' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {card.change}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* ── KPI Cards ── */}
+      <motion.div variants={stagger} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpiCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <motion.div key={i} variants={fadeUp}>
+              <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow group" data-testid={`kpi-${i}`}>
+                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-[0.06] group-hover:opacity-[0.1] transition-opacity`} />
+                <CardContent className="p-4 sm:p-5 relative z-10">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${card.gradient} text-white shadow-md`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full
+                      ${card.up ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                      {card.up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                      {card.change}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium">{card.title}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground mt-0.5 tabular-nums">{card.value}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </motion.div>
 
-      {/* Error Display */}
+      {/* ── Error ── */}
       {error && (
-        <div className="bg-red-50 border-2 border-red-500 rounded-xl p-6 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-500 rounded-full">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-bold text-red-900 text-lg">Erreur de Chargement</h3>
-              <p className="text-red-700">{error}</p>
-              <p className="text-sm text-red-600 mt-2">Veuillez vérifier votre connexion et réessayer. Si le problème persiste, contactez le support.</p>
-            </div>
-          </div>
-        </div>
+        <motion.div variants={fadeUp} className="p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+          <p className="text-destructive text-sm font-semibold">Erreur: {error}</p>
+        </motion.div>
       )}
 
-      {/* Charts Row 1 */}
+      {/* ── Charts Row 1 ── */}
       {checkAccess('pro_dashboard') ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Graphique Commandes par Statut */}
-          <Card className="border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-red-500" />
-                Commandes par Statut
-              </CardTitle>
-              <CardDescription>Répartition des commandes selon leur état actuel</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={ordersByStatus}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" style={{ fontSize: '12px' }} />
-                  <YAxis style={{ fontSize: '12px' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                    {ordersByStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <motion.div variants={stagger} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div variants={fadeUp}>
+            <Card className="border shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <ShoppingBag className="w-4 h-4 text-[var(--primary-500)]" />
+                  Commandes par Statut
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={ordersByStatus} barCategoryGap="20%">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                      {ordersByStatus.map((_, i) => <Cell key={i} fill={STATUS_COLORS[i % STATUS_COLORS.length]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* Graphique Évolution Revenus */}
-          <Card className="border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-500" />
-                Évolution des Revenus
-              </CardTitle>
-              <CardDescription>Revenus générés sur les 7 derniers jours</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" style={{ fontSize: '12px' }} />
-                  <YAxis style={{ fontSize: '12px' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}
-                    formatter={(value) => `${value.toLocaleString()} DA`}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="revenus" 
-                    stroke={COLORS.green} 
-                    strokeWidth={3}
-                    dot={{ fill: COLORS.green, r: 5 }}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+          <motion.div variants={fadeUp}>
+            <Card className="border shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <TrendingUp className="w-4 h-4 text-[var(--accent-success)]" />
+                  Évolution des Revenus
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} formatter={(v) => `${v.toLocaleString()} DA`} />
+                    <Line type="monotone" dataKey="revenus" stroke="var(--accent-success)" strokeWidth={2.5}
+                      dot={{ fill: 'var(--accent-success)', r: 4, strokeWidth: 2, stroke: 'hsl(var(--card))' }}
+                      activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
       ) : (
-        <FeatureLock
-          feature="pro_dashboard"
-          message={getUpgradeMessage('pro_dashboard')}
-          requiredPlan="pro"
-          variant="card"
-        />
+        <FeatureLock feature="pro_dashboard" message={getUpgradeMessage('pro_dashboard')} requiredPlan="pro" variant="card" />
       )}
 
-      {/* Charts Row 2 */}
+      {/* ── Charts Row 2 ── */}
       {checkAccess('pro_dashboard') ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top 5 Wilayas */}
-          <Card className="border-0 shadow-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-blue-500" />
-                Top 5 Wilayas
-              </CardTitle>
-              <CardDescription>Wilayas avec le plus grand nombre de commandes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topWilayas} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis type="number" style={{ fontSize: '12px' }} />
-                  <YAxis dataKey="name" type="category" style={{ fontSize: '12px' }} width={100} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                    {topWilayas.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[index]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <motion.div variants={stagger} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div variants={fadeUp}>
+            <Card className="border shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MapPin className="w-4 h-4 text-[var(--primary-500)]" />
+                  Top 5 Wilayas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={topWilayas} layout="vertical" barCategoryGap="20%">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--neutral-500)' }} axisLine={false} tickLine={false} />
+                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: 'var(--neutral-500)' }} width={85} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Bar dataKey="value" radius={[0, 6, 6, 0]}>
+                      {topWilayas.map((_, i) => <Cell key={i} fill={STATUS_COLORS[i]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* Statistiques Rapides */}
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-red-50 to-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-red-500" />
-              Statistiques Rapides
-            </CardTitle>
-            <CardDescription>Aperçu des performances clés</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Package className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <span className="font-medium text-gray-700">Total Commandes</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-900">{stats.totalOrders}</span>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <span className="font-medium text-gray-700">Livraisons Réussies</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-900">
-                  {ordersByStatus.find(s => s.name === 'Livré')?.value || 0}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <Clock className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <span className="font-medium text-gray-700">En Transit</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-900">{stats.inTransit}</span>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                  </div>
-                  <span className="font-medium text-gray-700">Retours</span>
-                </div>
-                <span className="text-2xl font-bold text-gray-900">
-                  {ordersByStatus.find(s => s.name === 'Retourné')?.value || 0}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        </div>
+          <motion.div variants={fadeUp}>
+            <Card className="border shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <TrendingUp className="w-4 h-4 text-[var(--accent-info)]" />
+                  Performances Clés
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { icon: Package, label: 'Total Commandes', value: stats.totalOrders, color: 'blue' },
+                  { icon: CheckCircle, label: 'Livraisons Réussies', value: deliveredCount, color: 'emerald' },
+                  { icon: Clock, label: 'En Transit', value: stats.inTransit, color: 'amber' },
+                  { icon: TrendingUp, label: 'Retours', value: ordersByStatus.find(s => s.name === 'Retourné')?.value || 0, color: 'red' },
+                ].map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div key={idx} variants={fadeUp}
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-accent/50 hover:bg-accent transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg bg-${item.color}-100`}>
+                          <Icon className={`w-4 h-4 text-${item.color}-600`} />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{item.label}</span>
+                      </div>
+                      <span className="text-lg font-bold text-foreground tabular-nums">{item.value}</span>
+                    </motion.div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
       ) : (
-        <FeatureLock
-          feature="pro_dashboard"
-          message="Passez au plan PRO pour accéder au Dashboard Analytics avec graphiques détaillés"
-          requiredPlan="pro"
-          variant="card"
-        />
+        <FeatureLock feature="pro_dashboard" message="Plan PRO requis pour le Dashboard Analytics" requiredPlan="pro" variant="card" />
       )}
-    </div>
+    </motion.div>
   );
 };
 
