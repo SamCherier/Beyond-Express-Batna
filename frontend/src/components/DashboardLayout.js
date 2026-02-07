@@ -9,26 +9,28 @@ import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Truck,
   Settings, LogOut, Menu, X, Bot, CreditCard, DollarSign,
-  Upload, ChevronDown, RotateCcw, Warehouse, Home, ScanLine,
-  MessageCircle, User
+  Upload, ChevronDown, RotateCcw, Warehouse, MessageCircle,
+  Search, Monitor
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import AIAssistant from '@/components/AIAssistant';
+import CommandBar from '@/components/CommandBar';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const SIDEBAR_FULL = 264;
 const SIDEBAR_ICON = 68;
 
 const DashboardLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, forceLogout, logoutAllDevices, sessionWarning, setSessionWarning } = useAuth();
   const { checkAccess, getUpgradeMessage } = useFeatureAccess();
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [showLockModal, setShowLockModal] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [cmdkOpen, setCmdkOpen] = useState(false);
 
   const getBreakpoint = useCallback(() => {
     const w = window.innerWidth;
@@ -45,8 +47,20 @@ const DashboardLayout = () => {
     return () => window.removeEventListener('resize', onResize);
   }, [getBreakpoint]);
 
-  // Close mobile menu on navigation
-  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+  // Close drawer on nav
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+
+  // Cmd+K shortcut
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdkOpen(o => !o);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   const isMobile = bp === 'mobile';
   const isTablet = bp === 'tablet';
@@ -56,15 +70,6 @@ const DashboardLayout = () => {
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
-  };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    document.cookie.split(';').forEach((c) => {
-      document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-    });
-    window.location.href = '/login';
   };
 
   const navItems = [
@@ -84,13 +89,6 @@ const DashboardLayout = () => {
     { path: '/dashboard/settings/pricing', icon: Settings, label: 'Tarifs', roles: ['admin'] },
   ];
 
-  const bottomItems = [
-    { path: '/dashboard', icon: Home, label: 'Accueil' },
-    { path: '/dashboard/orders', icon: ScanLine, label: 'Colis' },
-    { path: '/dashboard/returns', icon: Package, label: 'Retours' },
-    { path: '/dashboard/settings/integrations', icon: User, label: 'Profil' },
-  ];
-
   const filteredNav = navItems.filter(item => item.roles.includes(user?.role));
 
   const isActive = (path) => {
@@ -98,47 +96,67 @@ const DashboardLayout = () => {
     return location.pathname.startsWith(path);
   };
 
-  // ── Sidebar link component ──
-  const NavLink = ({ item }) => {
+  const NavLink = ({ item, mobile }) => {
     const Icon = item.icon;
     const active = isActive(item.path);
+    const iconOnly = !mobile && isIconOnly;
     return (
-      <Link
-        to={item.path}
+      <Link to={item.path}
         className={`group flex items-center gap-3 rounded-lg transition-all text-sm font-medium
-          ${isIconOnly ? 'justify-center p-2.5' : 'px-3 py-2.5'}
+          ${iconOnly ? 'justify-center p-2.5' : 'px-3 py-2.5'}
           ${active
             ? 'bg-[var(--primary-500)] text-white shadow-md shadow-blue-500/20'
             : 'text-muted-foreground hover:bg-accent hover:text-foreground'
           }`}
-        title={isIconOnly ? item.label : undefined}
+        title={iconOnly ? item.label : undefined}
         data-testid={`nav-${item.path.replace(/\//g, '-')}`}
       >
-        <Icon className={`shrink-0 ${isIconOnly ? 'w-5 h-5' : 'w-[18px] h-[18px]'}`} />
-        {!isIconOnly && <span className="truncate">{item.label}</span>}
+        <Icon className={`shrink-0 ${iconOnly ? 'w-5 h-5' : 'w-[18px] h-[18px]'}`} />
+        {!iconOnly && <span className="truncate">{item.label}</span>}
       </Link>
     );
   };
 
   return (
     <div className="min-h-screen bg-background" data-testid="dashboard-layout">
-      {/* ═══════ TOP BAR ═══════ */}
-      <header
-        className="fixed top-0 left-0 right-0 h-14 bg-card/80 backdrop-blur-xl border-b border-border z-40 flex items-center px-4 gap-3"
-        style={{ paddingLeft: isMobile ? 16 : sidebarWidth + 16 }}
-        data-testid="top-header"
+      {/* ═══ Session timeout warning ═══ */}
+      <AnimatePresence>
+        {sessionWarning && (
+          <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+            className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white px-4 py-2.5 flex items-center justify-center gap-3 text-sm font-semibold"
+          >
+            <span>Votre session expire dans 2 minutes</span>
+            <Button size="sm" variant="secondary" onClick={() => { setSessionWarning(false); }}
+              className="bg-white text-amber-600 hover:bg-amber-50 h-7 px-3 text-xs font-bold"
+            >Rester connecté</Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ TOP BAR ═══ */}
+      <header className="fixed top-0 left-0 right-0 h-14 bg-card/80 backdrop-blur-xl border-b border-border z-40 flex items-center px-4 gap-3"
+        style={{ paddingLeft: isMobile ? 16 : sidebarWidth + 16 }} data-testid="top-header"
       >
         {isMobile && (
-          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)} data-testid="mobile-menu-btn" className="shrink-0">
+          <Button variant="ghost" size="icon" onClick={() => setDrawerOpen(true)} data-testid="mobile-menu-btn" className="shrink-0">
             <Menu className="w-5 h-5" />
           </Button>
         )}
-
         {!isMobile && (
           <Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="shrink-0 hidden lg:flex" data-testid="sidebar-toggle">
             {sidebarCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
           </Button>
         )}
+
+        {/* Cmd+K trigger */}
+        <button onClick={() => setCmdkOpen(true)}
+          className="no-fx hidden sm:flex items-center gap-2 h-8 px-3 rounded-lg border border-border bg-muted/50 text-muted-foreground text-xs hover:bg-accent transition-colors"
+          data-testid="cmdk-trigger"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>Rechercher...</span>
+          <kbd className="ml-2 pointer-events-none text-[10px] font-mono bg-background px-1.5 py-0.5 rounded border border-border">⌘K</kbd>
+        </button>
 
         <div className="flex-1" />
 
@@ -157,8 +175,7 @@ const DashboardLayout = () => {
         {/* Profile */}
         <div className="relative z-50">
           <button onClick={(e) => { e.stopPropagation(); setProfileOpen(!profileOpen); }}
-            className="no-fx flex items-center gap-2 p-1.5 hover:bg-accent rounded-lg transition-colors"
-            data-testid="profile-menu-button"
+            className="no-fx flex items-center gap-2 p-1.5 hover:bg-accent rounded-lg transition-colors" data-testid="profile-menu-button"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--accent-info)] flex items-center justify-center text-white font-bold text-sm">
               {user?.name?.[0]?.toUpperCase()}
@@ -172,49 +189,49 @@ const DashboardLayout = () => {
           {profileOpen && (
             <>
               <div className="fixed inset-0 z-[60]" onClick={() => setProfileOpen(false)} />
-              <div className="absolute right-0 mt-1 w-52 bg-card rounded-xl shadow-2xl border border-border z-[70] overflow-hidden">
+              <div className="absolute right-0 mt-1 w-56 bg-card rounded-xl shadow-2xl border border-border z-[70] overflow-hidden">
                 <div className="px-4 py-3 border-b border-border">
                   <p className="text-sm font-bold text-foreground">{user?.name}</p>
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
-                <button onClick={handleLogout}
-                  className="no-fx w-full text-left px-4 py-3 text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2 font-semibold"
+                <button onClick={forceLogout}
+                  className="no-fx w-full text-left px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2 font-semibold"
                   data-testid="logout-dropdown-btn"
                 ><LogOut className="w-4 h-4" /> Déconnexion</button>
+                <button onClick={logoutAllDevices}
+                  className="no-fx w-full text-left px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent flex items-center gap-2 font-medium border-t border-border"
+                  data-testid="logout-all-btn"
+                ><Monitor className="w-4 h-4" /> Déconnecter tous les appareils</button>
               </div>
             </>
           )}
         </div>
       </header>
 
-      {/* ═══════ MOBILE OVERLAY ═══════ */}
+      {/* ═══ MOBILE DRAWER OVERLAY ═══ */}
       <AnimatePresence>
-        {isMobile && mobileMenuOpen && (
+        {isMobile && drawerOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30" onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30" onClick={() => setDrawerOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* ═══════ SIDEBAR ═══════ */}
-      {/* Desktop/Tablet sidebar */}
+      {/* ═══ DESKTOP/TABLET SIDEBAR ═══ */}
       {!isMobile && (
-        <aside
-          className="fixed top-0 bottom-0 bg-card border-r border-border z-30 flex flex-col transition-all duration-300"
-          style={{ width: sidebarWidth }}
-          data-testid="sidebar"
+        <aside className="fixed top-0 bottom-0 bg-card border-r border-border z-30 flex flex-col transition-all duration-300"
+          style={{ width: sidebarWidth }} data-testid="sidebar"
         >
-          {/* Logo */}
           <div className={`h-14 flex items-center border-b border-border shrink-0 ${isIconOnly ? 'justify-center px-2' : 'px-4 gap-3'}`}>
             <BeyondExpressLogo size="sm" />
             {!isIconOnly && <span className="text-base font-bold text-foreground tracking-tight">Beyond Express</span>}
           </div>
           <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-            {filteredNav.map((item) => <NavLink key={item.path} item={item} />)}
+            {filteredNav.map(item => <NavLink key={item.path} item={item} />)}
           </nav>
           <div className="border-t border-border p-2">
-            <button onClick={handleLogout}
-              className={`no-fx flex w-full items-center gap-3 rounded-lg bg-destructive/90 text-destructive-foreground font-bold text-sm transition-colors hover:bg-destructive
+            <button onClick={forceLogout}
+              className={`no-fx flex w-full items-center gap-3 rounded-lg bg-destructive/90 text-destructive-foreground font-bold text-sm hover:bg-destructive transition-colors
                 ${isIconOnly ? 'justify-center p-2.5' : 'px-3 py-2.5'}`}
               data-testid="logout-button"
             >
@@ -225,53 +242,49 @@ const DashboardLayout = () => {
         </aside>
       )}
 
-      {/* Mobile drawer */}
+      {/* ═══ MOBILE SIDE DRAWER ═══ */}
       <AnimatePresence>
-        {isMobile && mobileMenuOpen && (
+        {isMobile && drawerOpen && (
           <motion.aside
             initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 bottom-0 w-[264px] bg-card border-r border-border z-40 flex flex-col"
+            className="fixed top-0 bottom-0 w-[280px] bg-card border-r border-border z-40 flex flex-col"
+            data-testid="mobile-drawer"
           >
-            <div className="h-14 flex items-center px-4 gap-3 border-b border-border shrink-0">
-              <BeyondExpressLogo size="sm" />
-              <span className="text-base font-bold text-foreground tracking-tight">Beyond Express</span>
-              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)} className="ml-auto">
-                <X className="w-5 h-5" />
-              </Button>
+            {/* Drawer header with user info */}
+            <div className="p-5 border-b border-border bg-gradient-to-br from-[var(--primary-500)]/10 to-[var(--accent-info)]/5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--accent-info)] flex items-center justify-center text-white font-bold text-lg">
+                  {user?.name?.[0]?.toUpperCase()}
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setDrawerOpen(false)} className="shrink-0">
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <p className="text-sm font-bold text-foreground">{user?.name}</p>
+              <p className="text-xs text-muted-foreground">{t(user?.role)}</p>
             </div>
+
             <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-              {filteredNav.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                return (
-                  <Link key={item.path} to={item.path}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                      ${active ? 'bg-[var(--primary-500)] text-white shadow-md' : 'text-muted-foreground hover:bg-accent hover:text-foreground'}`}
-                    data-testid={`mobile-nav-${item.path.replace(/\//g, '-')}`}
-                  >
-                    <Icon className="w-[18px] h-[18px] shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
+              {filteredNav.map(item => <NavLink key={item.path} item={item} mobile />)}
             </nav>
-            <div className="border-t border-border p-2">
-              <button onClick={handleLogout}
-                className="no-fx flex w-full items-center gap-3 rounded-lg bg-destructive/90 text-destructive-foreground font-bold text-sm px-3 py-2.5 hover:bg-destructive"
+
+            <div className="border-t border-border p-3 space-y-1.5">
+              <button onClick={forceLogout}
+                className="no-fx flex w-full items-center gap-3 rounded-lg bg-destructive/90 text-destructive-foreground font-bold text-sm px-3 py-2.5 hover:bg-destructive transition-colors"
+                data-testid="drawer-logout-btn"
               ><LogOut className="w-[18px] h-[18px]" /> DÉCONNEXION</button>
+              <button onClick={logoutAllDevices}
+                className="no-fx flex w-full items-center gap-3 rounded-lg border border-border text-muted-foreground text-xs px-3 py-2 hover:bg-accent transition-colors font-medium"
+              ><Monitor className="w-4 h-4" /> Tous les appareils</button>
             </div>
           </motion.aside>
         )}
       </AnimatePresence>
 
-      {/* ═══════ MAIN CONTENT ═══════ */}
-      <main
-        className="pt-14 transition-all duration-300 min-h-screen"
-        style={{
-          paddingLeft: isMobile ? 0 : sidebarWidth,
-          paddingBottom: isMobile ? 72 : 0,
-        }}
+      {/* ═══ MAIN CONTENT ═══ */}
+      <main className="pt-14 transition-all duration-300 min-h-screen"
+        style={{ paddingLeft: isMobile ? 0 : sidebarWidth }}
       >
         <div className="p-4 md:p-6 lg:p-8">
           <AnimatePresence mode="wait">
@@ -287,40 +300,21 @@ const DashboardLayout = () => {
         </div>
       </main>
 
-      {/* ═══════ MOBILE BOTTOM NAV ═══════ */}
-      {isMobile && (
-        <nav className="bottom-nav" data-testid="bottom-nav">
-          {bottomItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <Link key={item.path} to={item.path}
-                className={`bottom-nav-item ${active ? 'active' : ''}`}
-                data-testid={`bottom-nav-${item.label.toLowerCase()}`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      )}
+      {/* ═══ COMMAND BAR ═══ */}
+      <CommandBar open={cmdkOpen} onOpenChange={setCmdkOpen} navItems={filteredNav} />
 
-      {/* ═══════ AI FAB ═══════ */}
+      {/* ═══ AI FAB ═══ */}
       <button
         onClick={() => checkAccess('ai_content_generator') ? setAiOpen(true) : setShowLockModal(true)}
-        className={`no-fx fixed z-50 w-12 h-12 text-white rounded-full shadow-lg flex items-center justify-center
-          ${isMobile ? 'bottom-[76px] right-4' : 'bottom-6 right-6'}
+        className={`no-fx fixed z-50 w-12 h-12 text-white rounded-full shadow-lg flex items-center justify-center bottom-6 right-6
           ${checkAccess('ai_content_generator') ? 'bg-gradient-to-br from-[var(--primary-500)] to-[var(--accent-info)] hover:shadow-xl' : 'bg-neutral-400 cursor-not-allowed'}`}
         data-testid="ai-assistant-button"
-      >
-        <Bot className="w-5 h-5" />
-      </button>
+      ><Bot className="w-5 h-5" /></button>
 
       {aiOpen && checkAccess('ai_content_generator') && <AIAssistant onClose={() => setAiOpen(false)} />}
       {showLockModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowLockModal(false)}>
-          <div onClick={(e) => e.stopPropagation()}>
+          <div onClick={e => e.stopPropagation()}>
             <FeatureLock feature="ai_content_generator" message={getUpgradeMessage('ai_content_generator')} requiredPlan="pro" variant="card" />
           </div>
         </div>
