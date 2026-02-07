@@ -140,8 +140,8 @@ const AIBrainPage = () => {
                 <select value={model} onChange={e => setModel(e.target.value)}
                   className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm" data-testid="model-select"
                 >
-                  <option value="qwen-2.5-72b">Qwen 2.5 72B</option>
-                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Recommandé)</option>
+                  <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
                   <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
                   <option value="gemma2-9b-it">Gemma 2 9B</option>
                 </select>
