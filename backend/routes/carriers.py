@@ -28,14 +28,35 @@ db_name = os.environ.get('DB_NAME', 'beyond_express_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-# Auth dependency - will be injected from server.py
-get_current_user_dependency = None
+# Auth dependency - direct auth extraction (same as returns.py)
+async def _auth_carrier(request):
+    from auth_utils import verify_token
+    token = request.cookies.get("session_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    session_doc = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+    if session_doc:
+        from datetime import datetime, timezone
+        if datetime.fromisoformat(session_doc['expires_at']) > datetime.now(timezone.utc):
+            user_doc = await db.users.find_one({"id": session_doc['user_id']}, {"_id": 0})
+            if user_doc:
+                return User(**user_doc)
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_doc = await db.users.find_one({"id": payload.get("sub")}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user_doc)
 
 def get_current_user():
-    """Get dependency - will be replaced by server.py"""
-    if get_current_user_dependency is None:
-        raise HTTPException(status_code=500, detail="Auth not configured")
-    return get_current_user_dependency
+    """Legacy wrapper - used by Depends() in route definitions"""
+    from server import get_current_user as _gcu
+    return _gcu
 
 # ===== TEST CONNECTION ENDPOINT =====
 
