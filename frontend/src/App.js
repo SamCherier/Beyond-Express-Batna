@@ -42,6 +42,7 @@ const DriversManagementPage = lazy(() => import('@/pages/DriversManagementPage')
 const AIConfigPage = lazy(() => import('@/pages/AIConfigPage'));
 const ReturnsPage = lazy(() => import('@/pages/ReturnsPage'));
 const WarehousePage = lazy(() => import('@/pages/WarehousePage'));
+const AIBrainPage = lazy(() => import('@/pages/AIBrainPage'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
