@@ -28,7 +28,7 @@ class ReturnStatus(str, Enum):
     DISCARDED = "discarded"
 
 class ReturnCreate(BaseModel):
-    order_id: str
+    order_id: Optional[str] = ""
     tracking_id: str
     customer_name: str
     wilaya: str
@@ -43,7 +43,6 @@ class ReturnUpdate(BaseModel):
 
 RESTOCK_REASONS = {ReturnReason.ABSENT, ReturnReason.CUSTOMER_REQUEST, ReturnReason.REFUSED_PRICE, ReturnReason.WRONG_ADDRESS}
 DISCARD_REASONS = {ReturnReason.DAMAGED}
-INSPECT_REASONS = {ReturnReason.WRONG_ITEM}
 
 def decide_return_action(reason: ReturnReason) -> dict:
     if reason in RESTOCK_REASONS:
@@ -53,53 +52,41 @@ def decide_return_action(reason: ReturnReason) -> dict:
     else:
         return {"decision": "inspect", "label": "Controle Qualite", "icon": "clipboard"}
 
-
-def get_db():
-    from server import db
-    return db
-
-def get_current_user_dep():
-    from server import get_current_user
-    return get_current_user
-
-def get_audit_logger():
-    from server import audit_logger
-    return audit_logger
-
+# Lazy imports to avoid circular dependency
+def _get_deps():
+    from server import db, get_current_user, audit_logger
+    return db, get_current_user, audit_logger
 
 # ===== ROUTES =====
 
 @router.get("")
 async def get_returns(request: Request):
-    from server import get_current_user, db
+    db, get_current_user, _ = _get_deps()
     user = await get_current_user(request)
-    
+
     query = {} if user.role == "admin" else {"user_id": user.id}
     returns_list = await db.returns.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
-    
-    # Ensure datetime fields are strings
+
     for r in returns_list:
         for k in ["created_at", "updated_at"]:
             if k in r and isinstance(r[k], datetime):
                 r[k] = r[k].isoformat()
-    
     return returns_list
 
 
 @router.get("/stats")
 async def get_returns_stats(request: Request):
-    from server import get_current_user, db
+    db, get_current_user, _ = _get_deps()
     user = await get_current_user(request)
-    
+
     match_stage = {} if user.role == "admin" else {"user_id": user.id}
-    
+
     total = await db.returns.count_documents(match_stage)
     restocked = await db.returns.count_documents({**match_stage, "status": ReturnStatus.RESTOCKED})
     discarded = await db.returns.count_documents({**match_stage, "status": ReturnStatus.DISCARDED})
     pending = await db.returns.count_documents({**match_stage, "status": ReturnStatus.PENDING})
     approved = await db.returns.count_documents({**match_stage, "status": ReturnStatus.APPROVED})
-    
-    # Reason breakdown
+
     pipeline = []
     if match_stage:
         pipeline.append({"$match": match_stage})
@@ -107,11 +94,10 @@ async def get_returns_stats(request: Request):
         {"$group": {"_id": "$reason", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}}
     ])
-    reason_cursor = db.returns.aggregate(pipeline)
     reason_breakdown = []
-    async for doc in reason_cursor:
+    async for doc in db.returns.aggregate(pipeline):
         reason_breakdown.append({"reason": doc["_id"], "count": doc["count"]})
-    
+
     return {
         "total": total,
         "restocked": restocked,
@@ -124,22 +110,15 @@ async def get_returns_stats(request: Request):
 
 @router.post("")
 async def create_return(data: ReturnCreate, request: Request):
-    from server import get_current_user, db, audit_logger
+    db, get_current_user, audit_logger = _get_deps()
     from audit_logger import AuditAction
     user = await get_current_user(request)
-    
-    # Verify order exists
-    order = await db.orders.find_one({"id": data.order_id}, {"_id": 0})
-    if not order:
-        # Also try tracking_id
-        order = await db.orders.find_one({"tracking_id": data.tracking_id}, {"_id": 0})
-    
-    # Build the return record with AI decision
+
     action = decide_return_action(data.reason)
-    
+
     return_doc = {
         "id": str(uuid.uuid4()),
-        "order_id": data.order_id,
+        "order_id": data.order_id or "",
         "tracking_id": data.tracking_id,
         "customer_name": data.customer_name,
         "wilaya": data.wilaya,
@@ -154,17 +133,16 @@ async def create_return(data: ReturnCreate, request: Request):
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
-    
+
     await db.returns.insert_one(return_doc)
-    
-    # Update order status to RETURNED if it exists
-    if order:
+
+    # Update linked order if exists
+    if data.order_id:
         await db.orders.update_one(
-            {"id": order["id"]},
+            {"id": data.order_id},
             {"$set": {"status": "returned", "updated_at": datetime.now(timezone.utc).isoformat()}}
         )
-    
-    # Audit log
+
     await audit_logger.log_action(
         action=AuditAction.STATUS_CHANGE,
         user_id=user.id,
@@ -173,36 +151,28 @@ async def create_return(data: ReturnCreate, request: Request):
         ip_address=request.client.host if request.client else None,
         status="success"
     )
-    
-    # Remove _id before returning
+
     return_doc.pop("_id", None)
     return return_doc
 
 
 @router.patch("/{return_id}")
 async def update_return(return_id: str, data: ReturnUpdate, request: Request):
-    from server import get_current_user, db
+    db, get_current_user, _ = _get_deps()
     user = await get_current_user(request)
-    
+
     ret = await db.returns.find_one({"id": return_id}, {"_id": 0})
     if not ret:
         raise HTTPException(status_code=404, detail="Return not found")
-    
+
     update_dict = {"updated_at": datetime.now(timezone.utc).isoformat()}
     if data.status:
         update_dict["status"] = data.status.value
     if data.notes is not None:
         update_dict["notes"] = data.notes
-    
+
     await db.returns.update_one({"id": return_id}, {"$set": update_dict})
-    
-    # If approved & stock_impact, update product stock
-    if data.status == ReturnStatus.RESTOCKED and ret.get("stock_impact"):
-        # Find product linked to order and increment stock
-        order = await db.orders.find_one({"id": ret.get("order_id")}, {"_id": 0})
-        if order:
-            logger.info(f"Return {return_id} restocked - order {order.get('id')} stock updated")
-    
+
     updated = await db.returns.find_one({"id": return_id}, {"_id": 0})
     for k in ["created_at", "updated_at"]:
         if k in updated and isinstance(updated[k], datetime):
@@ -212,14 +182,14 @@ async def update_return(return_id: str, data: ReturnUpdate, request: Request):
 
 @router.delete("/{return_id}")
 async def delete_return(return_id: str, request: Request):
-    from server import get_current_user, db
+    db, get_current_user, _ = _get_deps()
     user = await get_current_user(request)
-    
+
     if user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin only")
-    
+
     result = await db.returns.delete_one({"id": return_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Return not found")
-    
+
     return {"message": "Return deleted"}
