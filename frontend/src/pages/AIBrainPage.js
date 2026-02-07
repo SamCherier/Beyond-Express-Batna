@@ -35,13 +35,10 @@ const AIBrainPage = () => {
   const [querying, setQuerying] = useState(false);
   const [result, setResult] = useState(null);
 
-  const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-
   const fetchStatus = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/ai-brain/status`, { headers, credentials: 'include' });
-      if (res.ok) setStatus(await res.json());
+      const res = await getAIBrainStatus();
+      setStatus(res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
