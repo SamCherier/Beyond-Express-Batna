@@ -48,6 +48,11 @@ code {
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
         --border: 0 0% 89.8%;
+        
+        /* Logistics OS 2050 - Fluid Motion Variables */
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         --input: 0 0% 89.8%;
         --ring: 0 0% 3.9%;
         --chart-1: 12 76% 61%;
