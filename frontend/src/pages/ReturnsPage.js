@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-
-const API = process.env.REACT_APP_BACKEND_URL;
+import { getReturns, getReturnsStats, createReturn, updateReturnStatus } from '@/api';
 
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } };
 const fadeUp = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } } };
@@ -36,17 +35,14 @@ const ReturnsPage = () => {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ order_id: '', tracking_id: '', customer_name: '', wilaya: '', reason: 'absent', notes: '' });
 
-  const token = localStorage.getItem('token') || document.cookie.split(';').find(c => c.trim().startsWith('session_token='))?.split('=')?.[1];
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-
   const fetchData = useCallback(async () => {
     try {
-      const [rRes, sRes] = await Promise.all([
-        fetch(`${API}/api/returns`, { headers, credentials: 'include' }),
-        fetch(`${API}/api/returns/stats`, { headers, credentials: 'include' }),
+      const [rRes, sRes] = await Promise.allSettled([
+        getReturns(),
+        getReturnsStats(),
       ]);
-      if (rRes.ok) setReturns(await rRes.json());
-      if (sRes.ok) setStats(await sRes.json());
+      if (rRes.status === 'fulfilled') setReturns(rRes.value.data);
+      if (sRes.status === 'fulfilled') setStats(sRes.value.data);
     } catch (e) { console.error(e); } finally { setLoading(false); }
   }, []);
 
@@ -57,16 +53,21 @@ const ReturnsPage = () => {
     if (!form.tracking_id || !form.customer_name || !form.wilaya) { toast.error('Champs obligatoires manquants'); return; }
     setCreating(true);
     try {
-      const res = await fetch(`${API}/api/returns`, { method: 'POST', headers, credentials: 'include', body: JSON.stringify(form) });
-      if (res.ok) { toast.success('Retour créé'); setShowCreate(false); setForm({ order_id: '', tracking_id: '', customer_name: '', wilaya: '', reason: 'absent', notes: '' }); fetchData(); }
-      else { const err = await res.json(); toast.error(err.detail || 'Erreur'); }
-    } catch { toast.error('Erreur réseau'); } finally { setCreating(false); }
+      await createReturn(form);
+      toast.success('Retour créé');
+      setShowCreate(false);
+      setForm({ order_id: '', tracking_id: '', customer_name: '', wilaya: '', reason: 'absent', notes: '' });
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Erreur');
+    } finally { setCreating(false); }
   };
 
   const handleStatus = async (id, status) => {
     try {
-      const res = await fetch(`${API}/api/returns/${id}`, { method: 'PATCH', headers, credentials: 'include', body: JSON.stringify({ status }) });
-      if (res.ok) { toast.success('Statut mis à jour'); fetchData(); }
+      await updateReturnStatus(id, status);
+      toast.success('Statut mis à jour');
+      fetchData();
     } catch { toast.error('Erreur'); }
   };
 
