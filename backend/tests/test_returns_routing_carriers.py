@@ -7,7 +7,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://beyond-express-next.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://logistics-saas-2.preview.emergentagent.com')
 
 # Test credentials
 ADMIN_EMAIL = "cherier.sam@beyondexpress-batna.com"

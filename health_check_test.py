@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Configuration
-BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://beyond-express-next.preview.emergentagent.com')
+BASE_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://logistics-saas-2.preview.emergentagent.com')
 API_BASE = f"{BASE_URL}/api"
 
 # Credentials from review request
