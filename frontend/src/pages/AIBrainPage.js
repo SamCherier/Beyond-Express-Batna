@@ -28,7 +28,7 @@ const AIBrainPage = () => {
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState('');
   const [provider, setProvider] = useState('groq');
-  const [model, setModel] = useState('qwen-2.5-72b');
+  const [model, setModel] = useState('llama-3.3-70b-versatile');
   const [saving, setSaving] = useState(false);
   const [queryAgent, setQueryAgent] = useState(null);
   const [queryTask, setQueryTask] = useState('');
