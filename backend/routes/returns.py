@@ -54,7 +54,8 @@ def decide_return_action(reason: ReturnReason) -> dict:
 
 # Auth helper - extracts user from request directly
 async def _auth(request: Request):
-    from server import db, verify_token
+    from server import db
+    from auth_utils import verify_token
     from models import User
     # Try cookie
     token = request.cookies.get("session_token")
