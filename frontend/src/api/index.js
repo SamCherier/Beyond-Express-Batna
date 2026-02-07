@@ -5,32 +5,56 @@ export const API = `${API_URL}/api`;
 
 const api = axios.create({
   baseURL: API,
-  withCredentials: true
+  withCredentials: true,
+  timeout: 15000,
 });
 
-// Add auth token to all requests (backup for cross-origin cookie issues)
+// Add auth token to all requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+}, (error) => Promise.reject(error));
 
-// Handle 401 responses - redirect to login
+// Retry logic with exponential backoff
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE = 1000;
+
+function isRetryable(error) {
+  if (!error.response) return true; // Network error / timeout
+  const s = error.response.status;
+  return s === 429 || s >= 500;
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
+    if (!config) return Promise.reject(error);
+
+    config.__retryCount = config.__retryCount || 0;
+
+    // 401 — session expired
     if (error.response?.status === 401) {
-      // Don't redirect if already on login page or during initial auth check
-      const isAuthEndpoint = error.config?.url?.includes('/auth/');
+      const isAuthEndpoint = config.url?.includes('/auth/');
       if (!isAuthEndpoint && !window.location.pathname.includes('/login')) {
-        console.warn('Session expired, redirecting to login...');
-        // Don't immediately redirect - let the component handle it
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
       }
+      return Promise.reject(error);
     }
+
+    // Retry on 5xx / 429 / network errors
+    if (config.__retryCount < MAX_RETRIES && isRetryable(error)) {
+      config.__retryCount += 1;
+      const delay = RETRY_DELAY_BASE * Math.pow(2, config.__retryCount - 1);
+      await new Promise(r => setTimeout(r, delay));
+      return api(config);
+    }
+
     return Promise.reject(error);
   }
 );
