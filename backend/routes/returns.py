@@ -52,17 +52,45 @@ def decide_return_action(reason: ReturnReason) -> dict:
     else:
         return {"decision": "inspect", "label": "Controle Qualite", "icon": "clipboard"}
 
-# Lazy imports to avoid circular dependency
-def _get_deps():
-    from server import db, get_current_user, audit_logger
-    return db, get_current_user, audit_logger
+# Auth helper - extracts user from request directly
+async def _auth(request: Request):
+    from server import db, verify_token
+    from models import User
+    # Try cookie
+    token = request.cookies.get("session_token")
+    # Fallback to Authorization header
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    # Try session token
+    session_doc = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+    if session_doc:
+        if datetime.fromisoformat(session_doc['expires_at']) > datetime.now(timezone.utc):
+            user_doc = await db.users.find_one({"id": session_doc['user_id']}, {"_id": 0})
+            if user_doc:
+                return User(**user_doc)
+    # Try JWT
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_doc = await db.users.find_one({"id": payload.get("sub")}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user_doc)
+
+def _db():
+    from server import db
+    return db
 
 # ===== ROUTES =====
 
 @router.get("")
 async def get_returns(request: Request):
-    db, get_current_user, _ = _get_deps()
-    user = await get_current_user(request)
+    db = _db()
+    user = await _auth(request)
 
     query = {} if user.role == "admin" else {"user_id": user.id}
     returns_list = await db.returns.find(query, {"_id": 0}).sort("created_at", -1).to_list(500)
@@ -76,8 +104,8 @@ async def get_returns(request: Request):
 
 @router.get("/stats")
 async def get_returns_stats(request: Request):
-    db, get_current_user, _ = _get_deps()
-    user = await get_current_user(request)
+    db = _db()
+    user = await _auth(request)
 
     match_stage = {} if user.role == "admin" else {"user_id": user.id}
 
@@ -110,9 +138,10 @@ async def get_returns_stats(request: Request):
 
 @router.post("")
 async def create_return(data: ReturnCreate, request: Request):
-    db, get_current_user, audit_logger = _get_deps()
+    db = _db()
+    from server import audit_logger
     from audit_logger import AuditAction
-    user = await get_current_user(request)
+    user = await _auth(request)
 
     action = decide_return_action(data.reason)
 
@@ -158,8 +187,8 @@ async def create_return(data: ReturnCreate, request: Request):
 
 @router.patch("/{return_id}")
 async def update_return(return_id: str, data: ReturnUpdate, request: Request):
-    db, get_current_user, _ = _get_deps()
-    user = await get_current_user(request)
+    db = _db()
+    user = await _auth(request)
 
     ret = await db.returns.find_one({"id": return_id}, {"_id": 0})
     if not ret:
@@ -182,8 +211,8 @@ async def update_return(return_id: str, data: ReturnUpdate, request: Request):
 
 @router.delete("/{return_id}")
 async def delete_return(return_id: str, request: Request):
-    db, get_current_user, _ = _get_deps()
-    user = await get_current_user(request)
+    db = _db()
+    user = await _auth(request)
 
     if user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin only")
