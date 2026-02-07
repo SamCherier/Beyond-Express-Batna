@@ -1,16 +1,29 @@
 """
 AI Orchestrator — Multi-Agent Brain Center
-Modular architecture ready for Groq/Qwen/Llama or any LLM provider.
-When no API key is set, agents produce realistic simulated responses.
+Uses Groq SDK (AsyncGroq) for ultra-fast LPU inference.
+Falls back to realistic simulation when no API key is set.
 """
 
 import os
 import logging
-import random
 from datetime import datetime, timezone
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+# ── Master System Prompt ──
+
+MASTER_SYSTEM_PROMPT = (
+    "Tu es un Senior Logistics Analyst chez Beyond Express, "
+    "expert en optimisation de stock, routage de livraisons et analyse "
+    "opérationnelle pour le marché algérien (58 wilayas). "
+    "Tu fournis des recommandations chiffrées, actionnables et en français. "
+    "Tu connais les spécificités géographiques de l'Algérie (distance, terrain, "
+    "zones urbaines vs rurales) et les contraintes des transporteurs locaux "
+    "(Yalidine, ZR Express, DHD). "
+    "Tes réponses doivent toujours inclure des métriques, des pourcentages "
+    "et des actions concrètes."
+)
 
 # ── Agent Definitions ──
 
@@ -23,40 +36,38 @@ AGENTS = {
         "color": "#3B82F6",
         "description": "Optimisation des routes, packaging et capacité entrepôt",
         "system_prompt": (
-            "Tu es un expert logistique algérien spécialisé dans l'optimisation "
-            "des routes de livraison, le bin-packing 3D et la gestion de capacité "
-            "d'entrepôt. Tu réponds toujours avec des chiffres précis et des "
-            "recommandations actionnables. Langue: Français."
+            f"{MASTER_SYSTEM_PROMPT}\n\n"
+            "Spécialisation : optimisation des routes de livraison, "
+            "bin-packing 3D et gestion de capacité d'entrepôt."
         ),
     },
     "analyst": {
         "id": "analyst",
         "name": "L'Analyste",
-        "model_hint": "Kimi",
+        "model_hint": "Llama 3.3",
         "icon": "bar-chart",
         "color": "#8B5CF6",
         "description": "Analyse de données, documents, tendances et prévisions",
         "system_prompt": (
-            "Tu es un analyste de données logistiques. Tu lis des documents, "
-            "factures PDF, et des métriques opérationnelles pour produire des "
-            "insights chiffrés et des recommandations stratégiques. Langue: Français."
+            f"{MASTER_SYSTEM_PROMPT}\n\n"
+            "Spécialisation : analyse de données logistiques, lecture de documents/"
+            "factures, production d'insights chiffrés et recommandations stratégiques."
         ),
     },
     "monitor": {
         "id": "monitor",
         "name": "Le Moniteur",
-        "model_hint": "Manus",
+        "model_hint": "Mixtral",
         "icon": "terminal",
         "color": "#10B981",
         "description": "Surveillance des erreurs, alertes système et santé plateforme",
         "system_prompt": (
-            "Tu es un ingénieur DevOps/SRE qui surveille les logs d'erreurs, "
-            "la santé du système et les métriques de performance. Tu identifies "
-            "les anomalies et proposes des corrections. Langue: Français."
+            f"{MASTER_SYSTEM_PROMPT}\n\n"
+            "Spécialisation : ingénierie DevOps/SRE — surveillance des logs d'erreurs, "
+            "santé du système, métriques de performance, détection d'anomalies."
         ),
     },
 }
-
 
 # ── Simulated Responses (demo mode) ──
 
@@ -142,30 +153,50 @@ SIMULATED_RESPONSES = {
 
 
 class AIOrchestrator:
-    """Central brain that routes requests to the appropriate agent."""
+    """Central brain that routes requests to the appropriate agent via Groq SDK."""
 
     def __init__(self):
         self.api_key: Optional[str] = None
-        self.provider: str = "simulation"  # simulation | groq | openai | custom
+        self.provider: str = "simulation"
         self.enabled: bool = True
-        self.model: str = "qwen-2.5-72b"
+        self.model: str = "llama-3.3-70b-versatile"
+        self._groq_client = None
         self._load_config()
 
     def _load_config(self):
-        self.api_key = os.environ.get("GROQ_API_KEY") or os.environ.get("AI_BRAIN_API_KEY")
+        self.api_key = os.environ.get("GROQ_API_KEY")
         if self.api_key:
             self.provider = "groq"
+            self._init_groq_client()
+
+    def _init_groq_client(self):
+        """Initialize the AsyncGroq client."""
+        if not self.api_key:
+            self._groq_client = None
+            return
+        try:
+            from groq import AsyncGroq
+            self._groq_client = AsyncGroq(api_key=self.api_key)
+            logger.info(f"✅ Groq client initialized (model: {self.model})")
+        except Exception as e:
+            logger.error(f"❌ Failed to init Groq client: {e}")
+            self._groq_client = None
 
     def configure(self, api_key: Optional[str] = None, provider: str = "groq",
-                  model: str = "qwen-2.5-72b", enabled: bool = True):
-        self.api_key = api_key
-        self.provider = provider if api_key else "simulation"
+                  model: str = "llama-3.3-70b-versatile", enabled: bool = True):
+        if api_key:
+            self.api_key = api_key
+        self.provider = provider if self.api_key else "simulation"
         self.model = model
         self.enabled = enabled
+        if self.api_key:
+            self._init_groq_client()
+        else:
+            self._groq_client = None
 
     @property
     def is_live(self) -> bool:
-        return bool(self.api_key) and self.provider != "simulation"
+        return bool(self.api_key) and self.provider != "simulation" and self._groq_client is not None
 
     def get_status(self) -> dict:
         return {
@@ -184,7 +215,7 @@ class AIOrchestrator:
         agent = AGENTS[agent_id]
 
         if self.is_live:
-            return await self._query_live(agent, task, context)
+            return await self._query_groq(agent, task, context)
         else:
             return self._query_simulated(agent, task, context)
 
@@ -192,14 +223,12 @@ class AIOrchestrator:
         agent_id = agent["id"]
         responses = SIMULATED_RESPONSES.get(agent_id, {})
 
-        # Match task to a known response key
         task_lower = task.lower()
         matched_key = "default"
         for key in responses:
             if key != "default" and key.replace("_", " ") in task_lower:
                 matched_key = key
                 break
-        # Also match partial keywords
         if matched_key == "default":
             if any(w in task_lower for w in ["stock", "entrepôt", "warehouse", "capacité", "espace"]):
                 matched_key = "stock_analysis"
@@ -222,56 +251,36 @@ class AIOrchestrator:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    async def _query_live(self, agent: dict, task: str, context: dict = None) -> dict:
-        """
-        Live query to Groq/Qwen API.
-        Ready for integration — just needs the HTTP call.
-        """
+    async def _query_groq(self, agent: dict, task: str, context: dict = None) -> dict:
+        """Live query using the Groq SDK (AsyncGroq)."""
         try:
-            # GROQ API integration point
-            if self.provider == "groq":
-                import httpx
-                async with httpx.AsyncClient(timeout=30) as client:
-                    resp = await client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {self.api_key}",
-                            "Content-Type": "application/json",
-                        },
-                        json={
-                            "model": self.model,
-                            "messages": [
-                                {"role": "system", "content": agent["system_prompt"]},
-                                {"role": "user", "content": task},
-                            ],
-                            "temperature": 0.7,
-                            "max_tokens": 1024,
-                        },
-                    )
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        return {
-                            "agent": agent["name"],
-                            "agent_id": agent["id"],
-                            "model": self.model,
-                            "response": data["choices"][0]["message"]["content"],
-                            "is_simulated": False,
-                            "task": task,
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
-                        }
-                    else:
-                        logger.error(f"Groq API error: {resp.status_code} {resp.text}")
-                        # Fallback to simulation
-                        result = self._query_simulated(agent, task, context)
-                        result["fallback"] = True
-                        result["error"] = f"API error {resp.status_code}"
-                        return result
+            completion = await self._groq_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": agent["system_prompt"]},
+                    {"role": "user", "content": task},
+                ],
+                temperature=0.7,
+                max_tokens=1024,
+            )
 
-            # Fallback for unknown providers
-            return self._query_simulated(agent, task, context)
+            return {
+                "agent": agent["name"],
+                "agent_id": agent["id"],
+                "model": self.model,
+                "response": completion.choices[0].message.content,
+                "is_simulated": False,
+                "task": task,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "usage": {
+                    "prompt_tokens": completion.usage.prompt_tokens if completion.usage else 0,
+                    "completion_tokens": completion.usage.completion_tokens if completion.usage else 0,
+                    "total_tokens": completion.usage.total_tokens if completion.usage else 0,
+                },
+            }
 
         except Exception as e:
-            logger.error(f"AI Orchestrator error: {e}")
+            logger.error(f"Groq API error: {e}")
             result = self._query_simulated(agent, task, context)
             result["fallback"] = True
             result["error"] = str(e)
