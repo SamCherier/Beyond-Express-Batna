@@ -211,4 +211,20 @@ export const bulkSyncStatus = (orderIds, forceAdvance = false) =>
 export const getOrderTimeline = (orderId) =>
   api.get(`/shipping/timeline/${orderId}`);
 
+// Warehouse
+export const getWarehouseZones = () => api.get('/warehouse/zones');
+export const getWarehouseDepots = () => api.get('/warehouse/depots');
+
+// Returns / RMA
+export const getReturns = () => api.get('/returns');
+export const getReturnsStats = () => api.get('/returns/stats');
+export const createReturn = (data) => api.post('/returns', data);
+export const updateReturnStatus = (id, status) => api.patch(`/returns/${id}`, { status });
+
+// AI Brain Center
+export const getAIBrainStatus = () => api.get('/ai-brain/status');
+export const configureAIBrain = (data) => api.post('/ai-brain/configure', data);
+export const queryAIBrain = (agentId, task) => api.post('/ai-brain/query', { agent_id: agentId, task });
+export const getAIBrainLogs = () => api.get('/ai-brain/logs');
+
 export default api;
