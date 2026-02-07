@@ -174,7 +174,7 @@ async def create_return(data: ReturnCreate, request: Request):
         )
 
     await audit_logger.log_action(
-        action=AuditAction.STATUS_CHANGE,
+        action=AuditAction.UPDATE_ORDER,
         user_id=user.id,
         user_email=user.email,
         details={"return_id": return_doc["id"], "reason": data.reason.value, "decision": action["decision"]},
