@@ -3,8 +3,7 @@ import { Warehouse as WarehouseIcon, TrendingUp, AlertTriangle, Package, Thermom
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-
-const API = process.env.REACT_APP_BACKEND_URL;
+import { getWarehouseZones, getWarehouseDepots, getReturnsStats } from '@/api';
 
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } } };
@@ -18,20 +17,17 @@ const WarehousePage = () => {
   const [returnsStats, setReturnsStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || document.cookie.split(';').find(c => c.trim().startsWith('session_token='))?.split('=')?.[1];
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [zRes, dRes, rRes] = await Promise.all([
-        fetch(`${API}/api/warehouse/zones`, { headers, credentials: 'include' }),
-        fetch(`${API}/api/warehouse/depots`, { headers, credentials: 'include' }),
-        fetch(`${API}/api/returns/stats`, { headers, credentials: 'include' }),
+      const [zRes, dRes, rRes] = await Promise.allSettled([
+        getWarehouseZones(),
+        getWarehouseDepots(),
+        getReturnsStats(),
       ]);
-      if (zRes.ok) setZones(await zRes.json());
-      if (dRes.ok) setDepots(await dRes.json());
-      if (rRes.ok) setReturnsStats(await rRes.json());
+      if (zRes.status === 'fulfilled') setZones(zRes.value.data);
+      if (dRes.status === 'fulfilled') setDepots(dRes.value.data);
+      if (rRes.status === 'fulfilled') setReturnsStats(rRes.value.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
