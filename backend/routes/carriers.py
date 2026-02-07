@@ -159,10 +159,10 @@ CARRIER_TEST_ENDPOINTS = {
 }
 
 @router.get("", response_model=List[dict])
-async def get_available_carriers():
+async def get_available_carriers(current_user: User = Depends(get_current_user)):
     """
     Get list of available carriers with configuration status
-    PUBLIC ENDPOINT - No auth required to see available carriers
+    SECURED - Requires authentication
     """
     try:
         # For public view, return carriers without user-specific config
