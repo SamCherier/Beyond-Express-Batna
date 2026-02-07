@@ -1327,6 +1327,14 @@ app.include_router(ai_config_router.router, prefix="/api/ai-config", tags=["ai_c
 from routes import enhanced_chat as enhanced_chat_router
 app.include_router(enhanced_chat_router.router, prefix="/api/chat", tags=["chat"])
 
+# Include Returns/RMA routes
+from routes import returns as returns_router
+app.include_router(returns_router.router, prefix="/api/returns", tags=["returns"])
+
+# Include Smart Circuit Routing routes
+from routes import smart_routing as smart_routing_router
+app.include_router(smart_routing_router.router, prefix="/api/routing", tags=["routing"])
+
 # Include Shipping routes (Smart Router)
 app.include_router(shipping_router.router, prefix="/api/shipping", tags=["shipping"])
 
