@@ -263,6 +263,18 @@ async def get_available_carriers(request: Request):
         logger.error(f"Error getting carriers: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get carriers")
 
+# Pre-configured carriers available for quick setup (MUST be before /{carrier_type})
+@router.get("/preconfigured")
+async def get_preconfigured_carriers():
+    """Get list of pre-configured carriers that can be quickly added"""
+    return {
+        "carriers": [
+            {"id": "anderson", "name": "Anderson Logistics", "description": "Service logistique premium", "logo_color": "#1E3A8A", "requires": ["api_key", "secret_key"]},
+            {"id": "speedz", "name": "SpeedZ Express", "description": "Livraison express Algérie", "logo_color": "#10B981", "requires": ["api_key"]},
+            {"id": "ecotrack", "name": "EcoTrack", "description": "Livraison écologique", "logo_color": "#059669", "requires": ["api_key", "api_token"]},
+        ]
+    }
+
 @router.get("/{carrier_type}")
 async def get_carrier_config(
     carrier_type: str,
