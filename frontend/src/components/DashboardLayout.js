@@ -85,6 +85,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/subscriptions', icon: CreditCard, label: 'Abonnements', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/whatsapp', icon: MessageCircle, label: 'WhatsApp', roles: ['admin'] },
     { path: '/dashboard/settings/ai', icon: Bot, label: 'Config IA', roles: ['admin'] },
+    { path: '/dashboard/ai-brain', icon: Brain, label: 'AI Brain', roles: ['admin'] },
     { path: '/dashboard/settings/integrations', icon: Truck, label: 'Intégrations', roles: ['admin', 'ecommerce'] },
     { path: '/dashboard/settings/pricing', icon: Settings, label: 'Tarifs', roles: ['admin'] },
   ];
