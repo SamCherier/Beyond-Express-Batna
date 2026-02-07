@@ -58,7 +58,7 @@ const AIBrainPage = () => {
 
   const handleToggle = async () => {
     try {
-      await configureAIBrain({ enabled: !(status?.enabled), provider: status?.provider || 'groq', model: status?.model || 'qwen-2.5-72b' });
+      await configureAIBrain({ enabled: !(status?.enabled), provider: status?.provider || 'groq', model: status?.model || 'llama-3.3-70b-versatile' });
       fetchStatus();
       toast.success(status?.enabled ? 'AI désactivée' : 'AI activée');
     } catch { toast.error('Erreur'); }
