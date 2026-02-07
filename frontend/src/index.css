@@ -371,3 +371,54 @@ button:disabled,
     border-top-color: inherit; border-bottom-color: inherit;
   }
 }
+
+/* ========================================================
+   WHITE-LABEL: Hide external platform branding
+   ======================================================== */
+
+#emergent-badge,
+[id*="emergent"],
+a[href*="emergent.sh"],
+a[href*="emergentagent"],
+[class*="emergent-badge"],
+.platform-badge,
+.powered-by {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+}
+
+/* ========================================================
+   LARGE SCREEN / TV / PROJECTOR (1920px+)
+   ======================================================== */
+
+@media (min-width: 1920px) {
+  :root {
+    --space-4: 1.25rem;
+    --space-6: 2rem;
+  }
+  .sidebar { width: 300px; }
+}
+
+@media (min-width: 3840px) {
+  body { font-size: 20px; }
+}
+
+/* ========================================================
+   REDUCED MOTION
+   ======================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
