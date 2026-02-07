@@ -270,21 +270,83 @@ async def process_google_session(request: Request, response: Response):
     }
 
 @api_router.post("/auth/logout")
-async def logout(response: Response, session_token: Optional[str] = Cookie(None), current_user: User = Depends(get_current_user)):
-    if session_token:
-        await db.sessions.delete_one({"session_token": session_token})
-    
+async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
+    """Logout current session - works even without valid auth"""
+    token = session_token
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+
+    user_id = None
+    user_email = None
+
+    if token:
+        # Find session to get user info for audit
+        sess = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+        if sess:
+            user_id = sess.get("user_id")
+            u = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if u:
+                user_email = u.get("email")
+        # Delete this session
+        await db.sessions.delete_one({"session_token": token})
+
     response.delete_cookie(key="session_token", path="/")
-    
-    # Log logout
+    response.delete_cookie(key="session_token", path="/", domain=None)
+
+    if user_id:
+        await audit_logger.log_action(
+            action=AuditAction.LOGOUT,
+            user_id=user_id,
+            user_email=user_email or "unknown",
+            status="success"
+        )
+
+    return {"message": "Logged out successfully"}
+
+
+@api_router.post("/auth/logout-all")
+async def logout_all_devices(request: Request, response: Response):
+    """Logout from ALL devices - invalidate every session for this user"""
+    token = None
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+    cookie_token = request.cookies.get("session_token")
+    if cookie_token:
+        token = cookie_token
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Find user from session or JWT
+    user_id = None
+    sess = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+    if sess:
+        user_id = sess.get("user_id")
+    else:
+        payload = verify_token(token)
+        if payload:
+            user_id = payload.get("sub")
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid session")
+
+    # Delete ALL sessions for this user
+    result = await db.sessions.delete_many({"user_id": user_id})
+
+    response.delete_cookie(key="session_token", path="/")
+
     await audit_logger.log_action(
         action=AuditAction.LOGOUT,
-        user_id=current_user.id,
-        user_email=current_user.email,
+        user_id=user_id,
+        user_email="all-devices",
+        details={"sessions_cleared": result.deleted_count},
         status="success"
     )
-    
-    return {"message": "Logged out successfully"}
+
+    return {"message": f"Logged out from all devices. {result.deleted_count} sessions cleared."}
 
 @api_router.get("/auth/me", response_model=User)
 async def get_me(current_user: User = Depends(get_current_user)):
