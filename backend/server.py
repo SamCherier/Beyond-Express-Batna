@@ -1401,6 +1401,10 @@ app.include_router(smart_routing_router.router, prefix="/api/routing", tags=["ro
 from routes import warehouse as warehouse_router
 app.include_router(warehouse_router.router, prefix="/api/warehouse", tags=["warehouse"])
 
+# Include AI Brain routes
+from routes import ai_brain as ai_brain_router
+app.include_router(ai_brain_router.router, prefix="/api/ai-brain", tags=["ai-brain"])
+
 # Include Shipping routes (Smart Router)
 app.include_router(shipping_router.router, prefix="/api/shipping", tags=["shipping"])
 
