@@ -2,7 +2,7 @@
 Carrier Integration Routes
 Manage carrier API configurations and test connections
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from datetime import datetime, timezone
