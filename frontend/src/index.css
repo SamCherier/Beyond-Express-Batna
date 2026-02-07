@@ -138,6 +138,160 @@ code {
     }
 }
 
+/* ========================================
+   LOGISTICS OS 2050 - FLUID MOTION DESIGN
+   ======================================== */
+
+/* Animated Gradient Background */
+@keyframes logisticFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+body {
+    background: linear-gradient(-45deg, #0f172a, #1e293b, #0c4a6e, #1e3a8a);
+    background-size: 400% 400%;
+    animation: logisticFlow 15s ease infinite;
+    min-height: 100vh;
+}
+
+/* Glassmorphism 3.0 - Floating Cards */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 16px;
+}
+
+/* Micro-interactions - Smooth Transitions */
+button,
+a,
+.interactive-element {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+button:hover,
+a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+button:active,
+a:active {
+    transform: translateY(0);
+}
+
+/* Ripple Effect on Click */
+@keyframes ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-effect::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    animation: ripple 0.6s ease-out;
+}
+
+/* Mobile Responsive Fixes */
+@media (max-width: 768px) {
+    /* Ensure cards stack properly */
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Proper spacing on mobile */
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    /* Tables scroll horizontally */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    /* Buttons full width on mobile */
+    .mobile-full-width {
+        width: 100%;
+    }
+    
+    /* Touch-friendly minimum sizes */
+    button,
+    a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Extra small devices (phones, less than 576px) */
+@media (max-width: 575.98px) {
+    body {
+        font-size: 14px;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    /* Reduce padding on cards for mobile */
+    .card {
+        padding: 0.75rem;
+    }
+}
+
+/* Tablet optimization */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Prevent horizontal scroll */
+html,
+body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
 @layer base {
     * {
         @apply border-border;
