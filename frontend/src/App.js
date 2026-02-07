@@ -87,6 +87,7 @@ function AppRoutes() {
         <Route path="settings/ai" element={LP(AIConfigPage)} />
         <Route path="returns" element={LP(ReturnsPage)} />
         <Route path="warehouse" element={LP(WarehousePage)} />
+        <Route path="ai-brain" element={LP(AIBrainPage)} />
       </Route>
 
       {/* Driver routes */}
