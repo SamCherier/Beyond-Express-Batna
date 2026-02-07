@@ -48,28 +48,19 @@ const AIBrainPage = () => {
   const handleSaveConfig = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API}/api/ai-brain/configure`, {
-        method: 'POST', headers, credentials: 'include',
-        body: JSON.stringify({ api_key: apiKey || null, provider, model, enabled: status?.enabled ?? true }),
-      });
-      if (res.ok) {
-        toast.success('Configuration sauvegardée');
-        setApiKey('');
-        fetchStatus();
-      } else {
-        toast.error('Erreur de configuration');
-      }
-    } catch { toast.error('Erreur réseau'); }
+      await configureAIBrain({ api_key: apiKey || null, provider, model, enabled: status?.enabled ?? true });
+      toast.success('Configuration sauvegardée');
+      setApiKey('');
+      fetchStatus();
+    } catch { toast.error('Erreur de configuration'); }
     finally { setSaving(false); }
   };
 
   const handleToggle = async () => {
     try {
-      const res = await fetch(`${API}/api/ai-brain/configure`, {
-        method: 'POST', headers, credentials: 'include',
-        body: JSON.stringify({ enabled: !(status?.enabled), provider: status?.provider || 'groq', model: status?.model || 'qwen-2.5-72b' }),
-      });
-      if (res.ok) { fetchStatus(); toast.success(status?.enabled ? 'AI désactivée' : 'AI activée'); }
+      await configureAIBrain({ enabled: !(status?.enabled), provider: status?.provider || 'groq', model: status?.model || 'qwen-2.5-72b' });
+      fetchStatus();
+      toast.success(status?.enabled ? 'AI désactivée' : 'AI activée');
     } catch { toast.error('Erreur'); }
   };
 
@@ -78,17 +69,9 @@ const AIBrainPage = () => {
     setResult(null);
     setQueryAgent(agentId);
     try {
-      const res = await fetch(`${API}/api/ai-brain/query`, {
-        method: 'POST', headers, credentials: 'include',
-        body: JSON.stringify({ agent_id: agentId, task }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setResult(data);
-      } else {
-        toast.error('Erreur de requête');
-      }
-    } catch { toast.error('Erreur réseau'); }
+      const res = await queryAIBrain(agentId, task);
+      setResult(res.data);
+    } catch { toast.error('Erreur de requête'); }
     finally { setQuerying(false); }
   };
 
