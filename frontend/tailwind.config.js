@@ -19,6 +19,14 @@ module.exports = {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+			aurora: {
+				primary: '#3B82F6',
+				secondary: '#8B5CF6',
+				success: '#10B981',
+				warning: '#F59E0B',
+				error: '#EF4444',
+				neutral: '#6B7280',
+			},
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
