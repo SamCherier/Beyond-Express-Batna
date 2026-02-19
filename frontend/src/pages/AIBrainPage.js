@@ -26,10 +26,6 @@ const QUICK_TASKS = [
 const AIBrainPage = () => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [apiKey, setApiKey] = useState('');
-  const [provider, setProvider] = useState('groq');
-  const [model, setModel] = useState('llama-3.3-70b-versatile');
-  const [saving, setSaving] = useState(false);
   const [queryAgent, setQueryAgent] = useState(null);
   const [queryTask, setQueryTask] = useState('');
   const [querying, setQuerying] = useState(false);
@@ -39,30 +35,11 @@ const AIBrainPage = () => {
     try {
       const res = await getAIBrainStatus();
       setStatus(res.data);
-    } catch (e) { console.error(e); }
+    } catch (e) { /* silent */ }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
-
-  const handleSaveConfig = async () => {
-    setSaving(true);
-    try {
-      await configureAIBrain({ api_key: apiKey || null, provider, model, enabled: status?.enabled ?? true });
-      toast.success('Configuration sauvegardée');
-      setApiKey('');
-      fetchStatus();
-    } catch { toast.error('Erreur de configuration'); }
-    finally { setSaving(false); }
-  };
-
-  const handleToggle = async () => {
-    try {
-      await configureAIBrain({ enabled: !(status?.enabled), provider: status?.provider || 'groq', model: status?.model || 'llama-3.3-70b-versatile' });
-      fetchStatus();
-      toast.success(status?.enabled ? 'AI désactivée' : 'AI activée');
-    } catch { toast.error('Erreur'); }
-  };
 
   const handleQuery = async (agentId, task) => {
     setQuerying(true);
