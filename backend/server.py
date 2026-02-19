@@ -436,10 +436,12 @@ async def get_orders_by_status(current_user: User = Depends(get_current_user)):
         "returned": "Retourné"
     }
     
-    return [
+    data = [
         {"name": status_labels.get(item["_id"], item["_id"]), "value": item["count"]}
         for item in result
     ]
+    cache.set(cache_key, data, TTL_ORDERS_BY_STATUS)
+    return data
 
 @api_router.get("/dashboard/revenue-evolution")
 async def get_revenue_evolution(current_user: User = Depends(get_current_user)):
