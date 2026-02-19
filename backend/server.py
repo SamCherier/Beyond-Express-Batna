@@ -1427,3 +1427,11 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+@app.on_event("startup")
+async def startup_performance():
+    """Create MongoDB indexes and verify Redis cache on startup."""
+    from services.index_manager import ensure_indexes
+    from services.cache_service import cache
+    idx = await ensure_indexes(db)
+    logger.info(f"Startup: indexes={idx}, redis={cache.is_available}")
