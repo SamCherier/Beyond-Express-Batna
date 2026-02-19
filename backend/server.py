@@ -1443,6 +1443,19 @@ app.include_router(warehouse_router.router, prefix="/api/warehouse", tags=["ware
 from routes import ai_brain as ai_brain_router
 app.include_router(ai_brain_router.router, prefix="/api/ai-brain", tags=["ai-brain"])
 
+# ── Performance Diagnostics ──
+@app.get("/api/perf/status", tags=["performance"])
+async def perf_status():
+    from services.cache_service import cache
+    idx_names = {}
+    for col_name in ["orders", "users", "sessions", "returns", "tracking_events"]:
+        indexes = []
+        async for idx in db[col_name].list_indexes():
+            if idx["name"] != "_id_":
+                indexes.append(idx["name"])
+        idx_names[col_name] = indexes
+    return {"cache": cache.get_info(), "indexes": idx_names}
+
 # Include Shipping routes (Smart Router)
 app.include_router(shipping_router.router, prefix="/api/shipping", tags=["shipping"])
 
