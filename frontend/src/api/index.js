@@ -227,4 +227,12 @@ export const configureAIBrain = (data) => api.post('/ai-brain/configure', data);
 export const queryAIBrain = (agentId, task) => api.post('/ai-brain/query', { agent_id: agentId, task });
 export const getAIBrainLogs = () => api.get('/ai-brain/logs');
 
+// WhatsApp Meta Cloud API (Zero Cost)
+export const getWhatsAppStatus = () => api.get('/whatsapp-meta/status');
+export const configureWhatsApp = (data) => api.post('/whatsapp-meta/configure', data);
+export const sendWhatsAppTest = (data) => api.post('/whatsapp-meta/test', data);
+export const sendWhatsAppText = (data) => api.post('/whatsapp-meta/send-text', data);
+export const getWhatsAppTemplates = () => api.get('/whatsapp-meta/templates');
+export const getWhatsAppLogs = () => api.get('/whatsapp-meta/logs');
+
 export default api;
