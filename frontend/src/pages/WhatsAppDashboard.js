@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   MessageCircle, Send, Settings, CheckCircle, AlertTriangle,
-  Smartphone, Key, Zap, ExternalLink, Loader2, Phone,
-  Bell, ToggleLeft, ToggleRight, RefreshCw, Info, Copy, Check
+  Zap, Loader2, Phone,
+  Bell, RefreshCw, Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import {
-  getWhatsAppStatus, configureWhatsApp, sendWhatsAppTest,
+  getWhatsAppStatus, sendWhatsAppTest,
   getWhatsAppTemplates, getWhatsAppLogs
 } from '@/api';
 
