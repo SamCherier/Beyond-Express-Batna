@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Brain, Truck, BarChart3, Terminal, Settings, Zap, Key,
-  Send, Loader2, CheckCircle, AlertTriangle, Bot, Sparkles,
-  ToggleLeft, ToggleRight
+  Brain, Truck, BarChart3, Terminal, Settings, Zap,
+  Send, Loader2, CheckCircle, AlertTriangle, Bot, Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAIBrainStatus, configureAIBrain, queryAIBrain } from '@/api';
+import { getAIBrainStatus, queryAIBrain } from '@/api';
 
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const fadeUp = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } } };
