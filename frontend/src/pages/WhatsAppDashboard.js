@@ -56,13 +56,10 @@ const WhatsAppDashboard = () => {
   const [templates, setTemplates] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  // Config form
-  const [phoneId, setPhoneId] = useState('');
-  const [accessToken, setAccessToken] = useState('');
+  // Config form — removed for security (server-side only)
 
   // Test form
   const [testPhone, setTestPhone] = useState('');
