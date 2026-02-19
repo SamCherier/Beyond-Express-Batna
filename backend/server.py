@@ -404,6 +404,12 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
 @api_router.get("/dashboard/orders-by-status")
 async def get_orders_by_status(current_user: User = Depends(get_current_user)):
     """Get order count grouped by status for charts"""
+    from services.cache_service import cache, TTL_ORDERS_BY_STATUS
+    cache_key = f"dashboard:orders_status:{current_user.id}:{current_user.role}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
     pipeline = []
     
     # Filter by user role
