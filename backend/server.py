@@ -750,6 +750,17 @@ async def update_order_status(
         {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
+    # Invalidate dashboard cache on status change
+    from services.cache_service import cache
+    cache.invalidate_pattern("dashboard:*")
+
+    # Trigger WhatsApp notification if configured
+    try:
+        from services.whatsapp_meta import whatsapp_meta
+        await whatsapp_meta.on_order_status_change(order, status, db)
+    except Exception:
+        pass
+
     return {"message": "Status updated"}
 
 @api_router.post("/orders/bordereau")
