@@ -72,7 +72,6 @@ const CarriersIntegrationPage = () => {
     try {
       setLoading(true);
       const response = await getCarriers();
-      console.log('✅ Carriers loaded:', response.data);
       
       // Add Anderson to the list if not present
       const carriersList = response.data;
