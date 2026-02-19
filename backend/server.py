@@ -446,6 +446,12 @@ async def get_orders_by_status(current_user: User = Depends(get_current_user)):
 @api_router.get("/dashboard/revenue-evolution")
 async def get_revenue_evolution(current_user: User = Depends(get_current_user)):
     """Get revenue evolution over the last 7 days"""
+    from services.cache_service import cache, TTL_REVENUE
+    cache_key = f"dashboard:revenue:{current_user.id}:{current_user.role}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
     # Calculate date range (last 7 days)
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     seven_days_ago = today - timedelta(days=6)
