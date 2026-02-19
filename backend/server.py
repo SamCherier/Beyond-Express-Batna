@@ -1393,6 +1393,10 @@ app.include_router(enhanced_chat_router.router, prefix="/api/chat", tags=["chat"
 from routes import returns as returns_router
 app.include_router(returns_router.router, prefix="/api/returns", tags=["returns"])
 
+# Include WhatsApp Meta Cloud API routes (Zero Cost)
+from routes import whatsapp_meta as whatsapp_meta_router
+app.include_router(whatsapp_meta_router.router, prefix="/api/whatsapp-meta", tags=["whatsapp_meta"])
+
 # Include Smart Circuit Routing routes
 from routes import smart_routing as smart_routing_router
 app.include_router(smart_routing_router.router, prefix="/api/routing", tags=["routing"])
