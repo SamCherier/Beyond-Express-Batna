@@ -153,7 +153,7 @@ const WhatsAppDashboard = () => {
         {/* ── LEFT: Config + Test ── */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* Config Card */}
+          {/* Config Status (read-only — credentials managed server-side) */}
           <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.05 }}>
             <Card>
               <CardHeader className="pb-3">
@@ -162,31 +162,32 @@ const WhatsAppDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Phone Number ID</label>
-                    <div className="relative">
-                      <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input value={phoneId} onChange={e => setPhoneId(e.target.value)} placeholder={status?.phone_id_set ? '••••••• (déjà configuré)' : '123456789012345'} className="pl-10" />
-                    </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                    <p className="text-xs text-muted-foreground mb-1">Phone Number ID</p>
+                    <p className="text-sm font-semibold">{status?.phone_id_set
+                      ? <span className="text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Configuré</span>
+                      : <span className="text-amber-600 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Non défini</span>
+                    }</p>
                   </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Access Token</label>
-                    <div className="relative">
-                      <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input type="password" value={accessToken} onChange={e => setAccessToken(e.target.value)} placeholder={status?.token_set ? '••••••• (déjà configuré)' : 'EAAxxxxx...'} className="pl-10" />
-                    </div>
+                  <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                    <p className="text-xs text-muted-foreground mb-1">Access Token</p>
+                    <p className="text-sm font-semibold">{status?.token_set
+                      ? <span className="text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Configuré</span>
+                      : <span className="text-amber-600 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Non défini</span>
+                    }</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                    <p className="text-xs text-muted-foreground mb-1">Statut</p>
+                    <p className="text-sm font-semibold">{status?.configured
+                      ? <span className="text-emerald-600">Prêt</span>
+                      : <span className="text-amber-600">Non configuré</span>
+                    }</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    Endpoint: <code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px]">graph.facebook.com/v17.0/&#123;PHONE_ID&#125;/messages</code>
-                  </p>
-                  <Button onClick={handleSaveConfig} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
-                    Sauvegarder
-                  </Button>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Endpoint : <code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px]">graph.facebook.com/v17.0</code> — Credentials gérées côté serveur (<code>.env</code>)
+                </p>
               </CardContent>
             </Card>
           </motion.div>
