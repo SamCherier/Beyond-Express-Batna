@@ -1,306 +1,304 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, MessageCircle, Send, Settings, TrendingUp, CheckCircle, XCircle, Eye } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  MessageCircle, Send, Settings, CheckCircle, AlertTriangle,
+  Smartphone, Key, Zap, ExternalLink, Loader2, Phone,
+  Bell, ToggleLeft, ToggleRight, RefreshCw, Info, Copy, Check
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import api from '@/api';
-import PhonePreview from '@/components/PhonePreview';
-import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
+import {
+  getWhatsAppStatus, configureWhatsApp, sendWhatsAppTest,
+  getWhatsAppTemplates, getWhatsAppLogs
+} from '@/api';
 
+const fadeUp = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
+
+/* ── Status Badge ── */
+const StatusBadge = ({ configured, enabled }) => {
+  if (!configured) return <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">NON CONFIGURÉ</span>;
+  if (!enabled) return <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-500/10 text-gray-400 border border-gray-500/20">DÉSACTIVÉ</span>;
+  return <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">CONNECTÉ</span>;
+};
+
+/* ── Template Card ── */
+const TemplateCard = ({ tpl }) => (
+  <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:border-emerald-500/30 transition-colors">
+    <div className="flex items-center gap-2 mb-2">
+      <MessageCircle className="w-4 h-4 text-emerald-500" />
+      <span className="font-semibold text-sm">{tpl.label}</span>
+      <span className="ml-auto text-[10px] font-mono text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">{tpl.name}</span>
+    </div>
+    <p className="text-xs text-muted-foreground">{tpl.description}</p>
+    {tpl.body && <p className="mt-2 text-xs text-muted-foreground/70 font-mono bg-muted/30 p-2 rounded">{tpl.body}</p>}
+  </div>
+);
+
+/* ── Trigger Row ── */
+const TriggerRow = ({ status, template, icon: Icon, color }) => (
+  <div className="flex items-center gap-3 p-3 rounded-lg border border-border/40 bg-card/40">
+    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
+      <Icon className="w-4 h-4 text-white" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-medium">{status}</p>
+      <p className="text-xs text-muted-foreground">→ Template: <code className="text-emerald-500">{template}</code></p>
+    </div>
+    <Zap className="w-4 h-4 text-yellow-500" />
+  </div>
+);
+
+/* ═══════════ MAIN ═══════════ */
 const WhatsAppDashboard = () => {
-  const { user } = useAuth();
+  const [status, setStatus] = useState(null);
   const [templates, setTemplates] = useState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [previewMessage, setPreviewMessage] = useState('');
-  const [stats, setStats] = useState(null);
-  const [history, setHistory] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  // Admin has access to everything, PRO and BUSINESS plans have access
-  const hasAccess = user?.role === 'admin' || ['pro', 'business', 'PRO', 'BUSINESS'].includes(user?.subscription_plan);
+  // Config form
+  const [phoneId, setPhoneId] = useState('');
+  const [accessToken, setAccessToken] = useState('');
 
-  useEffect(() => {
-    fetchData();
+  // Test form
+  const [testPhone, setTestPhone] = useState('');
+
+  const fetchAll = useCallback(async () => {
+    try {
+      const [sRes, tRes, lRes] = await Promise.allSettled([
+        getWhatsAppStatus(),
+        getWhatsAppTemplates(),
+        getWhatsAppLogs(),
+      ]);
+      if (sRes.status === 'fulfilled') setStatus(sRes.value.data);
+      if (tRes.status === 'fulfilled') setTemplates(tRes.value.data.templates || []);
+      if (lRes.status === 'fulfilled') setLogs(lRes.value.data.logs || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }, []);
 
-  const fetchData = async () => {
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const handleSaveConfig = async () => {
+    if (!phoneId || !accessToken) { toast.error('Remplissez Phone ID et Access Token'); return; }
+    setSaving(true);
     try {
-      setLoading(true);
-      const [templatesRes, statsRes, historyRes] = await Promise.all([
-        api.get('/notifications/templates'),
-        api.get('/notifications/stats'),
-        api.get('/notifications/history?limit=10')
-      ]);
-
-      setTemplates(templatesRes.data.templates);
-      setStats(statsRes.data);
-      setHistory(historyRes.data.notifications);
-
-      // Set first template as selected
-      if (templatesRes.data.templates.length > 0) {
-        const firstTemplate = templatesRes.data.templates[0];
-        setSelectedTemplate(firstTemplate);
-        setPreviewMessage(replaceVariables(firstTemplate.message));
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Erreur lors du chargement des données');
-    } finally {
-      setLoading(false);
-    }
+      await configureWhatsApp({ phone_id: phoneId, access_token: accessToken, enabled: true });
+      toast.success('Configuration WhatsApp sauvegardée !');
+      setPhoneId('');
+      setAccessToken('');
+      fetchAll();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erreur de configuration');
+    } finally { setSaving(false); }
   };
 
-  const replaceVariables = (message) => {
-    // Replace template variables with example values
-    return message
-      .replace(/{name}/g, 'Ahmed')
-      .replace(/{product}/g, 'Samsung A54')
-      .replace(/{price}/g, '45,000')
-      .replace(/{tracking_id}/g, 'TRK123456')
-      .replace(/{total_cod}/g, '45,000');
-  };
-
-  const handleTemplateChange = (template) => {
-    setSelectedTemplate(template);
-    setPreviewMessage(replaceVariables(template.message));
-  };
-
-  const handleMessageChange = (e) => {
-    const newMessage = e.target.value;
-    setSelectedTemplate({ ...selectedTemplate, message: newMessage });
-    setPreviewMessage(replaceVariables(newMessage));
-  };
-
-  const handleToggleTemplate = (index) => {
-    const newTemplates = [...templates];
-    newTemplates[index].enabled = !newTemplates[index].enabled;
-    setTemplates(newTemplates);
-  };
-
-  const handleSaveTemplates = async () => {
+  const handleTestMessage = async () => {
+    if (!testPhone) { toast.error('Entrez un numéro de téléphone'); return; }
+    setTesting(true);
     try {
-      await api.put('/notifications/templates', { templates });
-      toast.success('Templates sauvegardés avec succès !');
-    } catch (error) {
-      console.error('Error saving templates:', error);
-      toast.error('Erreur lors de la sauvegarde');
-    }
+      const res = await sendWhatsAppTest({ to_phone: testPhone, template_name: 'hello_world' });
+      toast.success(`Message envoyé ! ID: ${res.data.message_id}`);
+      fetchAll();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de l\'envoi');
+    } finally { setTesting(false); }
   };
 
-  const templateIcons = {
-    order_confirmed: <CheckCircle className="w-5 h-5" />,
-    out_for_delivery: <Send className="w-5 h-5" />,
-    delivery_failed: <XCircle className="w-5 h-5" />,
-    delivered: <CheckCircle className="w-5 h-5" />
+  const copyText = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+  if (loading) return (
+    <div className="flex items-center justify-center h-96">
+      <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+    </div>
+  );
+
+  return (
+    <div className="space-y-6 p-1">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold">WhatsApp Business</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">Connecteur direct Meta Cloud API — Zéro Coût (1000 conv./mois gratuites)</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <StatusBadge configured={status?.configured} enabled={status?.enabled} />
+          <Button variant="outline" size="sm" onClick={fetchAll}><RefreshCw className="w-3.5 h-3.5 mr-1" /> Actualiser</Button>
+        </div>
       </div>
-    );
-  }
 
-  if (!hasAccess) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border-red-200 dark:border-red-900">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <MessageCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Fonctionnalité Premium</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Les notifications WhatsApp automatisées sont disponibles avec le plan <span className="font-bold text-red-600">PRO</span>.
-              </p>
-              <Button className="bg-red-500 hover:bg-red-600 text-white">
-                Passer au Plan PRO
-              </Button>
+      {/* ── Info Banner ── */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <Card className="border-blue-500/20 bg-blue-500/5">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-blue-300 mb-1">Comment obtenir votre Token gratuit</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground text-xs">
+                  <li>Allez sur <a href="https://developers.facebook.com" target="_blank" rel="noreferrer" className="text-blue-400 underline hover:text-blue-300">developers.facebook.com</a></li>
+                  <li>Créez une App → Type: <strong>Business</strong></li>
+                  <li>Ajoutez le produit <strong>WhatsApp</strong></li>
+                  <li>Dans <strong>API Setup</strong>, copiez le <code className="text-emerald-400">Phone Number ID</code> et le <code className="text-emerald-400">Temporary Access Token</code></li>
+                  <li>Collez-les ci-dessous et cliquez "Sauvegarder"</li>
+                </ol>
+                <p className="mt-2 text-xs text-muted-foreground/70">
+                  Le tier gratuit Meta offre <strong className="text-emerald-400">1 000 conversations/mois</strong> sans frais.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      </motion.div>
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <MessageCircle className="w-8 h-8 text-green-500" />
-            Notifications WhatsApp
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Automatisez vos communications client par WhatsApp
-          </p>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Envoyés</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total || 0}</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Messages simulés (MVP)</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Taux de Réussite</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">100%</div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Mode simulation</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Plus Utilisé</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-gray-900 dark:text-white">
-                {stats.by_type && Object.keys(stats.by_type).length > 0 
-                  ? Object.entries(stats.by_type).sort((a, b) => b[1] - a[1])[0][0]
-                  : 'N/A'
-                }
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Template le plus utilisé</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Templates Editor */}
+        {/* ── LEFT: Config + Test ── */}
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Templates de Messages
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Template Tabs */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {templates.map((template, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleTemplateChange(template)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
-                      selectedTemplate?.type === template.type
-                        ? 'bg-green-500 text-white shadow-md'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {templateIcons[template.type]}
-                    {template.name}
-                  </button>
-                ))}
-              </div>
 
-              {/* Template Editor */}
-              {selectedTemplate && (
-                <div className="space-y-4">
+          {/* Config Card */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.05 }}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Settings className="w-4 h-4 text-emerald-500" /> Configuration Meta Cloud API
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label>Message</Label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedTemplate.enabled}
-                          onChange={() => {
-                            const index = templates.findIndex(t => t.type === selectedTemplate.type);
-                            handleToggleTemplate(index);
-                          }}
-                          className="rounded"
-                        />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Activé</span>
-                      </label>
-                    </div>
-                    <textarea
-                      value={selectedTemplate.message}
-                      onChange={handleMessageChange}
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Écrivez votre message..."
-                    />
-                  </div>
-
-                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-400 mb-2">Variables Disponibles:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {['{name}', '{product}', '{price}', '{tracking_id}', '{total_cod}'].map((variable) => (
-                        <code key={variable} className="px-2 py-1 bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-800 rounded text-xs text-blue-600 dark:text-blue-400">
-                          {variable}
-                        </code>
-                      ))}
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Phone Number ID</label>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input value={phoneId} onChange={e => setPhoneId(e.target.value)} placeholder={status?.phone_id_set ? '••••••• (déjà configuré)' : '123456789012345'} className="pl-10" />
                     </div>
                   </div>
-
-                  <Button onClick={handleSaveTemplates} className="bg-green-500 hover:bg-green-600 text-white w-full">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Sauvegarder les Templates
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Access Token</label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input type="password" value={accessToken} onChange={e => setAccessToken(e.target.value)} placeholder={status?.token_set ? '••••••• (déjà configuré)' : 'EAAxxxxx...'} className="pl-10" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Endpoint: <code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px]">graph.facebook.com/v17.0/&#123;PHONE_ID&#125;/messages</code>
+                  </p>
+                  <Button onClick={handleSaveConfig} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                    Sauvegarder
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Historique Récent
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {history.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">Aucune notification envoyée pour le moment</p>
-              ) : (
-                <div className="space-y-3">
-                  {history.map((notif, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-950 flex items-center justify-center">
-                          <MessageCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.recipient_name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{notif.template_type}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(notif.created_at).toLocaleDateString('fr-FR')}
-                        </p>
-                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-950 text-green-600 dark:text-green-400 rounded-full">
-                          Simulé
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+          {/* Test Message Card */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.1 }}>
+            <Card className={!status?.configured ? 'opacity-50 pointer-events-none' : ''}>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Send className="w-4 h-4 text-blue-500" /> 📲 Test Message
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-xs text-muted-foreground">Envoie le template <code className="text-emerald-400">hello_world</code> (pré-approuvé par Meta) à un numéro de test.</p>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input value={testPhone} onChange={e => setTestPhone(e.target.value)} placeholder="+213 5XX XXX XXX" className="pl-10" />
+                  </div>
+                  <Button onClick={handleTestMessage} disabled={testing || !status?.configured} className="bg-blue-600 hover:bg-blue-700 text-white min-w-[140px]">
+                    {testing ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                    Envoyer Test
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                {!status?.configured && (
+                  <div className="flex items-center gap-2 text-xs text-yellow-500">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Configurez d'abord votre Phone ID et Access Token ci-dessus.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Smart Notifications / Triggers */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.15 }}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Zap className="w-4 h-4 text-yellow-500" /> Smart Notifications (Triggers Automatiques)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-muted-foreground mb-3">Quand le statut d'une commande change, un message WhatsApp est envoyé automatiquement au client.</p>
+                <TriggerRow status="En cours de livraison" template="delivery_update" icon={Send} color="bg-blue-500" />
+                <TriggerRow status="Livré" template="delivery_confirmed" icon={CheckCircle} color="bg-emerald-500" />
+                <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-border/30">
+                  <p className="text-xs text-muted-foreground">
+                    <strong className="text-foreground">Note :</strong> Les templates <code>delivery_update</code> et <code>delivery_confirmed</code> doivent être créés et approuvés dans votre <a href="https://business.facebook.com/wa/manage/message-templates/" target="_blank" rel="noreferrer" className="text-blue-400 underline">Meta Business Manager</a>. Le template <code>hello_world</code> est pré-approuvé.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
-        {/* Right: Phone Preview */}
-        <div className="lg:col-span-1">
-          <PhonePreview message={previewMessage} recipientName="Ahmed" />
+        {/* ── RIGHT: Templates + Logs ── */}
+        <div className="space-y-6">
+          {/* Templates */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.1 }}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MessageCircle className="w-4 h-4 text-emerald-500" /> Templates Disponibles
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {templates.map((tpl, i) => <TemplateCard key={i} tpl={tpl} />)}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Recent Logs */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.15 }}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Bell className="w-4 h-4 text-blue-500" /> Derniers Envois
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {logs.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">Aucun envoi enregistré</p>
+                ) : (
+                  <div className="space-y-2">
+                    {logs.slice(0, 8).map((log, i) => (
+                      <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/20 text-xs">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span className="font-mono truncate">{log.to_phone}</span>
+                        <span className="text-muted-foreground ml-auto text-[10px]">{log.template || 'text'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </div>
