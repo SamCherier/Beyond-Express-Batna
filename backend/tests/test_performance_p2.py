@@ -298,9 +298,9 @@ class TestAIBrainRegression:
         response = authenticated_client.get(f"{BASE_URL}/api/ai-brain/status")
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
-    def test_ai_brain_stats_returns_200(self, authenticated_client):
-        """GET /api/ai-brain/stats should return 200"""
-        response = authenticated_client.get(f"{BASE_URL}/api/ai-brain/stats")
+    def test_ai_brain_agents_returns_200(self, authenticated_client):
+        """GET /api/ai-brain/agents should return 200"""
+        response = authenticated_client.get(f"{BASE_URL}/api/ai-brain/agents")
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
 
 
