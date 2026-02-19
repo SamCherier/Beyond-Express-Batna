@@ -59,10 +59,13 @@ class QueryRequest(BaseModel):
 async def get_brain_status(request: Request):
     await _auth(request)
     status = orchestrator.get_status()
-    # Mask the API key
-    if status.get("has_api_key"):
-        key = orchestrator.api_key or ""
-        status["api_key_preview"] = key[:8] + "..." if len(key) > 8 else "***"
+    # Security: Never expose any part of API keys - just indicate presence
+    # has_api_key is already a boolean indicator
+    # Remove any system prompts from agent data to reduce response size
+    if "agents" in status:
+        for agent in status["agents"]:
+            if "system_prompt" in agent:
+                del agent["system_prompt"]
     return status
 
 
