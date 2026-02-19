@@ -83,19 +83,7 @@ const WhatsAppDashboard = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const handleSaveConfig = async () => {
-    if (!phoneId || !accessToken) { toast.error('Remplissez Phone ID et Access Token'); return; }
-    setSaving(true);
-    try {
-      await configureWhatsApp({ phone_id: phoneId, access_token: accessToken, enabled: true });
-      toast.success('Configuration WhatsApp sauvegardée !');
-      setPhoneId('');
-      setAccessToken('');
-      fetchAll();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Erreur de configuration');
-    } finally { setSaving(false); }
-  };
+  // Config is server-side only — no credential inputs
 
   const handleTestMessage = async () => {
     if (!testPhone) { toast.error('Entrez un numéro de téléphone'); return; }
