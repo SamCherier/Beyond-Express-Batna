@@ -168,7 +168,6 @@ class WhatsAppMetaService:
             return None
 
         tracking_id = order.get("tracking_id", "N/A")
-        customer_name = order.get("recipient", {}).get("name", "Client")
 
         components = []
         if template_name == "delivery_update":
