@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Brain, Truck, BarChart3, Terminal, Settings, Zap,
-  Send, Loader2, CheckCircle, AlertTriangle, Bot, Sparkles
+  Send, Loader2, CheckCircle, AlertTriangle, Bot, Sparkles,
+  ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,11 @@ const AIBrainPage = () => {
   }, []);
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
+
+  const handleToggle = async () => {
+    // Toggle is display-only, AI Brain is always active when API key is configured
+    // This provides visual feedback without needing a configure endpoint
+  };
 
   const handleQuery = async (agentId, task) => {
     setQuerying(true);
