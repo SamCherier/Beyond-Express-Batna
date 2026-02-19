@@ -58,6 +58,7 @@ const WhatsAppDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [saving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Config form — removed for security (server-side only)
 
