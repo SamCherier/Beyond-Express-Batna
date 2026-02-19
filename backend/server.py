@@ -514,6 +514,7 @@ async def get_revenue_evolution(current_user: User = Depends(get_current_user)):
             "revenus": revenue_map.get(date_str, 0)
         })
     
+    cache.set(cache_key, response, TTL_REVENUE)
     return response
 
 @api_router.get("/dashboard/top-wilayas")
