@@ -620,3 +620,24 @@ frontend:
 
 ### Credentials
 - Admin: cherier.sam@beyondexpress-batna.com / admin123456
+
+## Session 10: Security Audit + Vercel Prep
+
+### Security Fixes
+- REMOVED all API key input fields from AIBrainPage.js (was: Groq API key input, provider/model dropdowns)
+- REMOVED all credential input fields from WhatsAppDashboard.js (was: Phone ID, Access Token inputs)
+- Both pages now show read-only status (Configured/Not configured) — keys managed ONLY in backend .env
+- Cleaned ALL console.log/console.warn from pages/components/contexts (57 removed)
+- No API key patterns (gsk_, EAA) in any frontend file
+
+### Bug Status
+- Register: WORKS (tested register + login flow)
+- AI Chat: Groq key expired (401) — fallback to simulation works. UI now shows clear error message.
+
+### Vercel Prep
+- Created /app/vercel.json (rewrites, headers, cache rules)
+- Created /app/DEPLOYMENT.md (complete deployment guide)
+- package.json scripts verified (build: craco build)
+
+### Credentials
+- Admin: cherier.sam@beyondexpress-batna.com / admin123456
