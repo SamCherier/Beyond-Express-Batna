@@ -369,6 +369,12 @@ async def update_profile(update_data: UserUpdate, current_user: User = Depends(g
 # ===== DASHBOARD STATS =====
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
+    from services.cache_service import cache, TTL_DASHBOARD_STATS
+    cache_key = f"dashboard:stats:{current_user.id}:{current_user.role}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+
     if current_user.role == UserRole.ADMIN:
         total_orders = await db.orders.count_documents({})
         total_users = await db.users.count_documents({"role": "ecommerce"})
@@ -386,12 +392,14 @@ async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
         total_users = 0
         total_products = 0
     
-    return {
+    result = {
         "total_orders": total_orders,
         "total_users": total_users,
         "total_products": total_products,
         "in_transit": in_transit
     }
+    cache.set(cache_key, result, TTL_DASHBOARD_STATS)
+    return result
 
 @api_router.get("/dashboard/orders-by-status")
 async def get_orders_by_status(current_user: User = Depends(get_current_user)):
