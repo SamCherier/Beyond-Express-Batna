@@ -64,9 +64,11 @@ class TestAuthentication:
         })
         assert response.status_code in [200, 201], f"Register failed: {response.status_code} - {response.text}"
         data = response.json()
-        # Verify user or token is returned
-        assert "user" in data or "token" in data or "access_token" in data, f"Invalid response: {data}"
-        print(f"Register successful: {data.get('user', {}).get('email', TEST_USER_EMAIL)}")
+        # Verify user data is returned - could be nested in 'user' or direct
+        user_data = data.get("user", data)
+        assert "email" in user_data, f"Missing email in response: {data}"
+        assert "id" in user_data, f"Missing id in response: {data}"
+        print(f"Register successful: {user_data.get('email')}")
 
     def test_login_with_registered_user(self, session):
         """POST /api/auth/login - works with newly registered user"""
