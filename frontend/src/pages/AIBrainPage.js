@@ -82,58 +82,47 @@ const AIBrainPage = () => {
         </div>
       </motion.div>
 
-      {/* Config Card */}
+      {/* Status Card (read-only — keys managed server-side) */}
       <motion.div variants={fadeUp}>
         <Card className="border shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-foreground flex items-center gap-2 text-base">
-              <Settings className="w-4 h-4 text-muted-foreground" /> Configuration LLM
+              <Settings className="w-4 h-4 text-muted-foreground" /> Configuration
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground font-semibold mb-1 block">Clé API (Groq/OpenAI)</label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)}
-                    placeholder={status?.has_api_key ? '••••••••' : 'gsk_xxxxx...'} className="pl-9 h-10"
-                    data-testid="api-key-input"
-                  />
-                </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                <p className="text-xs text-muted-foreground mb-1">Provider</p>
+                <p className="text-sm font-semibold capitalize">{status?.provider || '—'}</p>
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground font-semibold mb-1 block">Provider</label>
-                <select value={provider} onChange={e => setProvider(e.target.value)}
-                  className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm" data-testid="provider-select"
-                >
-                  <option value="groq">Groq (Gratuit & Rapide)</option>
-                  <option value="openai">OpenAI</option>
-                  <option value="custom">Custom Endpoint</option>
-                </select>
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                <p className="text-xs text-muted-foreground mb-1">Modèle</p>
+                <p className="text-sm font-semibold">{status?.model || '—'}</p>
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground font-semibold mb-1 block">Modèle</label>
-                <select value={model} onChange={e => setModel(e.target.value)}
-                  className="w-full h-10 rounded-lg border border-border bg-background px-3 text-sm" data-testid="model-select"
-                >
-                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Recommandé)</option>
-                  <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
-                  <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-                  <option value="gemma2-9b-it">Gemma 2 9B</option>
-                </select>
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                <p className="text-xs text-muted-foreground mb-1">Clé API</p>
+                <p className="text-sm font-semibold">{status?.has_api_key
+                  ? <span className="text-emerald-600 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Configurée</span>
+                  : <span className="text-amber-600 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Non définie</span>
+                }</p>
               </div>
-              <div className="flex items-end">
-                <Button onClick={handleSaveConfig} disabled={saving} className="w-full h-10 bg-[var(--primary-500)] text-white" data-testid="save-config-btn">
-                  {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                  Sauvegarder
-                </Button>
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                <p className="text-xs text-muted-foreground mb-1">Statut</p>
+                <p className="text-sm font-semibold">{status?.is_live
+                  ? <span className="text-emerald-600">Connecté</span>
+                  : <span className="text-amber-600">Mode simulation</span>
+                }</p>
               </div>
             </div>
-            {!status?.is_live && (
-              <p className="text-xs text-amber-600 mt-3 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Mode simulation actif. Entrez une clé API Groq gratuite pour activer les agents réels.
+            {!status?.has_api_key && (
+              <p className="mt-3 text-xs text-muted-foreground bg-muted/20 p-2 rounded">
+                La clé API Groq est gérée côté serveur (<code>GROQ_API_KEY</code> dans <code>.env</code>). Contactez l'administrateur système.
+              </p>
+            )}
+            {status?.has_api_key && !status?.is_live && (
+              <p className="mt-3 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                La clé API est définie mais la connexion échoue. Vérifiez la validité de la clé côté serveur.
               </p>
             )}
           </CardContent>
