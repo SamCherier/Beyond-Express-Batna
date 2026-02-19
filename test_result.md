@@ -574,3 +574,28 @@ frontend:
 
 ### Credentials
 - Admin: cherier.sam@beyondexpress-batna.com / admin123456
+
+## Session 8: WhatsApp Meta Cloud API - Zero Cost Integration
+
+### Changes Made
+1. Created `/app/backend/services/whatsapp_meta.py` - Direct Meta Graph API service (httpx, no Twilio)
+2. Created `/app/backend/routes/whatsapp_meta.py` - API routes at /api/whatsapp-meta/
+3. Registered routes in server.py
+4. Rewrote `/app/frontend/src/pages/WhatsAppDashboard.js` - New Meta-based UI with:
+   - Configuration panel (Phone ID + Access Token)
+   - 📲 Test Message button (hello_world template)
+   - Smart Notifications triggers (OUT_FOR_DELIVERY, DELIVERED)
+   - Documentation with step-by-step Meta setup instructions
+   - Templates list display
+   - Message logs
+
+### Backend Endpoints (All verified via curl ✅)
+- GET /api/whatsapp-meta/status → Returns config state, triggers, templates
+- POST /api/whatsapp-meta/configure → Save phone_id and access_token
+- POST /api/whatsapp-meta/test → Send hello_world template to a phone number
+- POST /api/whatsapp-meta/send-text → Send free-form text
+- GET /api/whatsapp-meta/templates → 3 templates (hello_world, delivery_update, delivery_confirmed)
+- GET /api/whatsapp-meta/logs → MongoDB logs
+
+### Credentials
+- Admin: cherier.sam@beyondexpress-batna.com / admin123456
