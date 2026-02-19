@@ -599,3 +599,24 @@ frontend:
 
 ### Credentials
 - Admin: cherier.sam@beyondexpress-batna.com / admin123456
+
+## Session 9: P2 Performance — MongoDB Indexes + Redis Caching
+
+### P2.1 MongoDB Indexes
+- Created 23 indexes across 11 collections
+- Key indexes: orders(tracking_id UNIQUE, status, created_at, recipient.phone, user+status, driver+status), users(email UNIQUE, phone, role), sessions(user_id, token UNIQUE, TTL), returns(status, created_at, tracking_id), tracking_events(order+timestamp), audit_logs(timestamp, user_id)
+- Fixed 3 duplicate emails and 10 duplicate sessions before creating unique indexes
+
+### P2.2 Redis Caching
+- Installed Redis server + redis-py
+- Created /app/backend/services/cache_service.py (RedisCacheService singleton)
+- Cached endpoints: dashboard/stats (TTL 60s), orders-by-status (TTL 60s), revenue-evolution (TTL 120s)
+- Cache invalidation on order status change (dashboard:* pattern)
+- Created /api/perf/status diagnostic endpoint
+
+### P2 Supporting
+- WhatsApp trigger on order status change (auto-notify on OUT_FOR_DELIVERY/DELIVERED)
+- Data cleanup (duplicate emails, stale sessions)
+
+### Credentials
+- Admin: cherier.sam@beyondexpress-batna.com / admin123456
