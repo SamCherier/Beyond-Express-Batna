@@ -3,7 +3,7 @@ Proforma Invoice / Décharge de Colis API
 Generates invoice data for a batch of orders.
 """
 
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -12,6 +12,31 @@ import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _db():
+    from server import db
+    return db
+
+
+async def _auth(request):
+    from auth_utils import verify_token
+    from models import User
+    db = _db()
+    token = request.cookies.get("session_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    session = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    user_doc = await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user_doc)
 
 
 class ProformaRequest(BaseModel):
@@ -26,8 +51,8 @@ class ProformaRequest(BaseModel):
 @router.post("/generate")
 async def generate_proforma(req: ProformaRequest, request: Request):
     """Generate a proforma invoice for a set of orders."""
-    from server import db, get_current_user
-    current_user = await get_current_user(request)
+    db = _db()
+    current_user = await _auth(request)
 
     if not req.order_ids:
         raise HTTPException(status_code=400, detail="Aucune commande sélectionnée")
@@ -47,7 +72,6 @@ async def generate_proforma(req: ProformaRequest, request: Request):
         return_document=True,
     )
     seq_num = seq.get("seq", 1) if seq else 1
-    # Remove _id from counter response if leaked
     reference = f"BEY-{seq_num:04d}"
 
     now = datetime.now(timezone.utc)
