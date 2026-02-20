@@ -211,15 +211,125 @@ const LandingPageModernV2 = () => {
 
       <div className="section-divider" />
 
-      {/* ════════ PARTNERS ════════ */}
-      <section className="py-16 px-4 sm:px-6">
-        <div className="container mx-auto max-w-4xl text-center">
-          <p className="text-xs text-gray-600 uppercase tracking-[0.2em] font-semibold mb-8">Intégré avec les meilleurs transporteurs</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-12">
-            {partners.map((p, i) => (
-              <div key={i} className="group flex flex-col items-center gap-2 opacity-50 hover:opacity-100 transition-all cursor-default">
-                <span className="text-4xl group-hover:scale-110 transition-transform block">{p.emoji}</span>
-                <span className="text-xs font-medium text-gray-500 group-hover:text-[#00F2FF] transition-colors">{p.name}</span>
+      {/* ════════ PRICING PACKS ════════ */}
+      <section className="relative py-20 sm:py-28 px-4 sm:px-6" data-testid="pricing-section">
+        <div className="absolute inset-0 z-0" style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 30%, rgba(0,242,255,0.04) 0%, transparent 70%)' }} />
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-semibold mb-4" style={{ color: '#00F2FF' }}>
+              <Zap className="w-3.5 h-3.5" /> Offres &amp; Tarifs
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3" style={{ fontFamily: 'Montserrat' }}>
+              Choisissez Votre <span className="text-gradient-cyan">Pack</span>
+            </h2>
+            <p className="text-base text-gray-500 max-w-lg mx-auto">Des tarifs transparents. Pas de frais cachés. Évoluez sans limite.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* STARTER */}
+            <div className="glass-strong rounded-2xl p-8 group hover:border-[#00F2FF]/30 transition-all duration-500 relative overflow-hidden" data-testid="pack-starter">
+              <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(0,242,255,0.3), transparent)' }} />
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Starter</p>
+              <div className="flex items-end gap-1 mb-1">
+                <span className="text-4xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>0</span>
+                <span className="text-lg font-bold text-gray-400 mb-1">DA</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-6">Gratuit pour toujours</p>
+              <ul className="space-y-3 mb-8">
+                {['50 commandes/mois', '1 entrepôt', 'Suivi en temps réel', 'AI Brain (Simulation)', 'Support email'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-gray-400">
+                    <CheckCircle className="w-4 h-4 text-[#00F2FF]/60 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/register')} className="w-full btn-neon-cyan text-sm font-bold py-3 rounded-xl">
+                Commencer
+              </button>
+            </div>
+
+            {/* PRO — Popular */}
+            <div className="relative rounded-2xl p-8 group transition-all duration-500 overflow-hidden" data-testid="pack-pro"
+              style={{ background: 'linear-gradient(135deg, rgba(0,242,255,0.08), rgba(139,92,246,0.06))', border: '1.5px solid rgba(0,242,255,0.25)' }}>
+              <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: 'linear-gradient(90deg, #00F2FF, #8B5CF6)' }} />
+              <div className="absolute -top-0 right-4 px-3 py-1 rounded-b-lg text-[10px] font-black uppercase tracking-wider" style={{ background: 'linear-gradient(135deg, #00F2FF, #8B5CF6)', color: '#050505' }}>
+                Populaire
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#00F2FF' }}>Pro</p>
+              <div className="flex items-end gap-1 mb-1">
+                <span className="text-4xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>4,900</span>
+                <span className="text-lg font-bold text-gray-400 mb-1">DA/mois</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-6">Pour les marchands en croissance</p>
+              <ul className="space-y-3 mb-8">
+                {['500 commandes/mois', '3 entrepôts', 'AI Brain LIVE (Llama 3.3)', 'WhatsApp automatique', 'Multi-transporteurs', 'Rapports avancés'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-gray-300">
+                    <CheckCircle className="w-4 h-4 text-[#00F2FF] shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/register')} className="w-full btn-neon-red text-sm font-bold py-3 rounded-xl">
+                Essai Gratuit 14 jours
+              </button>
+            </div>
+
+            {/* BUSINESS */}
+            <div className="glass-strong rounded-2xl p-8 group hover:border-[#E61E2A]/30 transition-all duration-500 relative overflow-hidden" data-testid="pack-business">
+              <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(230,30,42,0.4), transparent)' }} />
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Business</p>
+              <div className="flex items-end gap-1 mb-1">
+                <span className="text-4xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>Sur Mesure</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-6">Solutions entreprise</p>
+              <ul className="space-y-3 mb-8">
+                {['Commandes illimitées', 'Entrepôts illimités', 'API dédiée', 'Account Manager', 'SLA garanti 99.9%', 'Intégration sur-mesure'].map((f, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-gray-400">
+                    <CheckCircle className="w-4 h-4 text-[#E61E2A]/60 shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => navigate('/register')} className="w-full btn-neon-cyan text-sm font-bold py-3 rounded-xl">
+                Nous Contacter
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* ════════ PARTNERS (Premium Glassmorphism) ════════ */}
+      <section className="relative py-20 sm:py-24 px-4 sm:px-6" data-testid="partners-section">
+        <div className="absolute inset-0 z-0" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 70%)' }} />
+        <div className="container mx-auto max-w-5xl relative z-10">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-semibold mb-4" style={{ color: '#8B5CF6' }}>
+              <Globe className="w-3.5 h-3.5" /> Réseau de Transporteurs
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-white mb-3" style={{ fontFamily: 'Montserrat' }}>
+              Nos <span style={{ background: 'linear-gradient(135deg, #8B5CF6, #00F2FF)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Partenaires</span>
+            </h2>
+            <p className="text-base text-gray-500">Intégration directe avec les leaders du transport algérien</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { name: 'Yalidine', color: '#E61E2A', icon: Truck, desc: 'Leader national' },
+              { name: 'ZR Express', color: '#3B82F6', icon: Package, desc: 'Express 24h' },
+              { name: 'Procolis', color: '#10B981', icon: Zap, desc: 'E-commerce' },
+              { name: 'Maystro', color: '#F59E0B', icon: TrendingUp, desc: 'Smart delivery' },
+              { name: 'DHD', color: '#8B5CF6', icon: Globe, desc: 'Dernière mile' },
+            ].map((p, i) => (
+              <div key={i} className="glass-strong rounded-2xl p-5 text-center group hover:scale-105 transition-all duration-300 cursor-default"
+                style={{ '--glow': p.color }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 30px ${p.color}20, inset 0 0 20px ${p.color}08`}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+              >
+                <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center transition-transform group-hover:scale-110"
+                  style={{ background: `linear-gradient(135deg, ${p.color}25, ${p.color}08)`, border: `1px solid ${p.color}30` }}>
+                  <p.icon className="w-5 h-5" style={{ color: p.color }} />
+                </div>
+                <p className="text-sm font-bold text-white mb-0.5" style={{ fontFamily: 'Montserrat' }}>{p.name}</p>
+                <p className="text-[10px] text-gray-500">{p.desc}</p>
               </div>
             ))}
           </div>
