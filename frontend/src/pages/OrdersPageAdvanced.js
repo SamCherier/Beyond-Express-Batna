@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Search, FileDown, Package, Eye, Clock, MapPin, CheckCircle, AlertTriangle, RefreshCw, MessageCircle, Truck, ExternalLink, Send, Loader2, X, Printer } from 'lucide-react';
+import { Plus, Search, FileDown, Package, Eye, Clock, MapPin, CheckCircle, AlertTriangle, RefreshCw, MessageCircle, Truck, ExternalLink, Send, Loader2, X, Printer, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { COMMUNES_BY_WILAYA } from '@/data/communes';
 
