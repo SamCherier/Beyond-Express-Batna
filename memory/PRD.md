@@ -1,87 +1,62 @@
 # Beyond Express — Product Requirements Document
 
 ## Problem Statement
-Production-grade white-labeled logistics SaaS platform for the Algerian market (58 wilayas). Features include order management, carrier integration, AI-powered analytics, WhatsApp notifications, and financial reconciliation.
+Production-grade white-labeled logistics SaaS platform for the Algerian market (58 wilayas).
 
 ## Architecture
 - **Frontend**: React + Tailwind + Shadcn UI + Framer Motion + cmdk
 - **Backend**: FastAPI + MongoDB (Motor async) + Argon2id
-- **AI**: OpenRouter API (meta-llama/llama-3.3-70b-instruct:free + qwen/qwen3-4b:free fallback)
-- **Caching**: Redis (optional)
+- **AI**: OpenRouter API (meta-llama/llama-3.3-70b-instruct:free + qwen/qwen3-4b:free fallback → simulation)
 - **Deployment**: Vercel-ready (vercel.json)
 
-## Credentials
-- Admin: cherier.sam@beyondexpress-batna.com / admin123456
-- Test: test_reg_check@test.com / test123456
-
 ---
 
-## Completed (All Tested)
+## Completed (All Tested via curl + testing agent)
 
 ### Core Platform
-- [x] White-Label (Beyond Express branding)
-- [x] Authentication (JWT + Sessions, Google OAuth, Argon2id)
-- [x] Registration (all 3 roles: ecommerce, admin, delivery)
-- [x] Command Bar (Cmd+K)
-- [x] Responsive Layout
+- [x] Authentication (JWT + Argon2id + Google OAuth)
+- [x] Registration — all 3 roles (ecommerce, admin, delivery) ✅
+- [x] Command Bar, Responsive Layout, Landing Page
 
-### Logistics Operations
-- [x] Orders CRUD with pagination
-- [x] Warehouse management
-- [x] Returns/RMA with smart routing
-- [x] Carrier integration (Yalidine, ZR Express, DHD)
-- [x] Shipping labels (A6 thermal, fixed overlap bug)
-- [x] Financial COD reconciliation
+### AI Brain Center (OpenRouter - FREE, 0$)
+- [x] Primary: meta-llama/llama-3.3-70b-instruct:free
+- [x] Fallback cascade: qwen3-4b:free → simulation (zero red errors)
+- [x] All roles can query (delivery, ecommerce, admin) ✅
+- [x] No "SIM" badge, no model name exposed, no error messages
 
-### AI & Intelligence (OpenRouter - FREE)
-- [x] AI Brain Center — OpenRouter integration (LIVE mode, 0$ cost)
-  - Primary: meta-llama/llama-3.3-70b-instruct:free
-  - Fallback: qwen/qwen3-4b:free → simulation
-  - Silent error handling (no red errors ever)
-  - 3 agents: Logisticien, Analyste, Moniteur
+### WhatsApp
+- [x] All roles: admin, ecommerce, delivery can access sidebar + routes ✅
+- [x] MongoDB _id leak fixed in conversations endpoint
 
-### Communication
-- [x] WhatsApp integration — ALL ROLES (admin, ecommerce, delivery)
-- [x] Notification system
+### Landing Page
+- [x] Pricing Packs (Starter/Pro/Business) — Glassmorphism
+- [x] Partners (5 carriers) — hover glow effects
+- [x] Hero, Features, Stats, CTA, Footer
 
-### Performance & Security
-- [x] Centralized API client with retry
-- [x] MongoDB indexes (23 indexes)
-- [x] Security audit — API keys backend-only
-- [x] Vercel deployment config
-
-### Landing Page (Premium Dark Tech)
-- [x] Hero with video backgrounds
-- [x] Features grid with animations
-- [x] Stats widgets (10K+ orders, 500+ merchants)
-- [x] **Pricing Packs** (Starter/Pro/Business) — Glassmorphism
-- [x] **Partners section** (5 carriers, hover glow effects)
-- [x] CTA + Footer
+### Security & Production
+- [x] API keys backend-only (zero trust frontend)
+- [x] MongoDB _id exclusion audit
+- [x] 23 MongoDB indexes
 
 ---
+
+## Known Mocks (Documented & Transparent)
+- ZR Express carrier: Mock adapter (no real API available)
+- Subscriptions: Simulated payment (no Stripe configured)
+- Notifications (legacy): Logs to DB with `simulated: true` flag
+- AI fallback: Returns cached simulation responses when OpenRouter unavailable
 
 ## Test Results
-| Iteration | Backend | Frontend | Notes |
-|-----------|---------|----------|-------|
-| 8 | 100% | 100% | OpenRouter, Registration, Labels |
-| 9 | 100% | 100% | AI silent fallback, WhatsApp roles, Packs/Partners |
-
----
+| Iteration | Backend | Frontend |
+|-----------|---------|----------|
+| 8 | 100% | 100% |
+| 9 | 100% | 100% |
+| QA Audit | 9/9 pass | Compiled OK |
 
 ## Backlog
-
-### P0 — Proforma Invoice
-- "Décharge de colis — Facture Proforma" generation
-
-### P1 — Enhancements
-- Admin bulk-labels user filtering fix
-- Real carrier API live integration
-
-### P2 — Future
-- Live Map Tracking (Leaflet)
-- AR Package Scanner mock
-- Interactive Shipment Timeline
-- Unit tests (Jest/Pytest >80%)
+- P0: Proforma Invoice generation
+- P1: Admin bulk-labels filtering
+- P2: Live Map Tracking, AR Scanner, Unit tests
 
 ---
-*Last updated: February 20, 2026*
+*Last updated: February 20, 2026 — QA Senior Audit Complete*
