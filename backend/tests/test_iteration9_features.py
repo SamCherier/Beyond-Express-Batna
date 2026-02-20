@@ -30,7 +30,7 @@ class TestAIBrainStatus:
         )
         if response.status_code != 200:
             pytest.skip(f"Authentication failed: {response.status_code} - {response.text}")
-        return response.json().get("token")
+        return response.json().get("access_token")
 
     def test_ai_brain_status_is_live(self, auth_token):
         """AI Brain status should return is_live: true"""
@@ -99,7 +99,7 @@ class TestAIBrainQuerySilentFallback:
         )
         if response.status_code != 200:
             pytest.skip(f"Authentication failed: {response.status_code} - {response.text}")
-        return response.json().get("token")
+        return response.json().get("access_token")
 
     def test_query_logistician_returns_200(self, auth_token):
         """POST /api/ai-brain/query should return 200 even if rate limited"""
