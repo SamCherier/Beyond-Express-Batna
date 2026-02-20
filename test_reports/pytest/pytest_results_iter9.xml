@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="10" time="3.608" timestamp="2026-02-20T21:41:21.040291+00:00" hostname="agent-env-b48aa636-c1ee-491a-bbe5-a076a03b67ee"><testcase classname="tests.test_iteration9_features.TestAIBrainStatus" name="test_ai_brain_status_is_live" time="0.600"><failure message="AssertionError: Expected 200, got 401: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:42: in test_ai_brain_status_is_live
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+E   AssertionError: Expected 200, got 401: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainStatus" name="test_ai_brain_status_provider" time="0.338"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:55: in test_ai_brain_status_provider
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainStatus" name="test_ai_brain_status_model" time="0.426"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:68: in test_ai_brain_status_model
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainStatus" name="test_ai_brain_status_has_api_key" time="0.333"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:82: in test_ai_brain_status_has_api_key
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainQuerySilentFallback" name="test_query_logistician_returns_200" time="0.372"><failure message="AssertionError: Expected 200, got 401: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:113: in test_query_logistician_returns_200
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+E   AssertionError: Expected 200, got 401: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainQuerySilentFallback" name="test_query_analyst_returns_200" time="0.267"><failure message="AssertionError: Expected 200, got 401&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:132: in test_query_analyst_returns_200
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+E   AssertionError: Expected 200, got 401
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainQuerySilentFallback" name="test_query_monitor_returns_200" time="0.387"><failure message="AssertionError: Expected 200, got 401&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:146: in test_query_monitor_returns_200
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+E   AssertionError: Expected 200, got 401
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestAIBrainQuerySilentFallback" name="test_query_invalid_agent_returns_200_with_error_message" time="0.324"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:165: in test_query_invalid_agent_returns_200_with_error_message
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="tests.test_iteration9_features.TestLoginRoleAccess" name="test_login_ecommerce_user" time="0.182" /><testcase classname="tests.test_iteration9_features.TestLoginRoleAccess" name="test_ecommerce_can_access_ai_brain" time="0.275"><failure message="AssertionError: Ecommerce user should access AI Brain, got 401&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_iteration9_features.py:201: in test_ecommerce_can_access_ai_brain
+    assert response.status_code == 200, f"Ecommerce user should access AI Brain, got {response.status_code}"
+E   AssertionError: Ecommerce user should access AI Brain, got 401
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase></testsuite></testsuites>
