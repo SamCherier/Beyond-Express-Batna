@@ -73,7 +73,7 @@ const LandingPageModernV2 = () => {
     { icon: Bot, title: 'WhatsApp Bot', desc: 'Support client Darja/FR/AR automatique 24/7. Réponses instantanées à vos clients.', color: '#10B981', delay: -4 },
     { icon: Shield, title: 'Audit Immutable', desc: 'Chaîne de hash cryptographique pour chaque action. Traçabilité totale conforme ISO.', color: '#E61E2A', delay: -1 },
     { icon: Boxes, title: 'Multi-Entrepôt', desc: 'Gestion visuelle de vos zones de stockage en temps réel avec alertes de capacité.', color: '#F59E0B', delay: -3 },
-    { icon: Cpu, title: 'AI Brain Center', desc: '3 agents IA spécialisés alimentés par Groq LPU pour des analyses en <300ms.', color: '#00F2FF', delay: -5 },
+    { icon: Cpu, title: 'AI Brain Center', desc: '3 agents IA spécialisés alimentés par Llama 3.3 Open Source — analyses ultra-rapides et gratuites.', color: '#00F2FF', delay: -5 },
   ];
 
   const partners = [
@@ -115,7 +115,7 @@ const LandingPageModernV2 = () => {
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs sm:text-sm font-semibold mb-6" style={{ color: '#00F2FF', borderColor: 'rgba(0,242,255,0.2)' }}>
-            <Sparkles className="w-3.5 h-3.5" /> Powered by Groq LPU — Inférence &lt;300ms
+            <Sparkles className="w-3.5 h-3.5" /> Powered by Llama 3.3 70B — Open Source &amp; Gratuit
           </div>
 
           {/* Heading */}
