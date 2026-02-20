@@ -156,119 +156,121 @@ class LabelGenerator:
     
     def generate_single_label(self, order: Dict[str, Any]) -> io.BytesIO:
         """
-        Generate a single A6 label PDF for an order
-        
-        Args:
-            order: Order data with recipient, tracking, COD info
-            
-        Returns:
-            BytesIO buffer containing PDF
+        Generate a single A6 label PDF for an order.
+        Layout uses strict vertical zones to prevent overlap.
         """
         buffer = io.BytesIO()
-        
-        # Create canvas for A6 page
         c = canvas.Canvas(buffer, pagesize=(A6_WIDTH, A6_HEIGHT))
-        
+
         recipient = order.get('recipient', {})
         carrier_type = order.get('carrier_type', 'default')
         carrier_tracking = order.get('carrier_tracking_id', order.get('tracking_id', 'N/A'))
+        internal_tracking = order.get('tracking_id', '')
         cod_amount = order.get('cod_amount', 0)
-        
-        # Get carrier color
+
         r, g, b = self._get_carrier_color(carrier_type)
         carrier_color = colors.Color(r/255, g/255, b/255)
-        
-        # === HEADER SECTION (Top) ===
-        # Carrier banner
+
+        margin = 4 * mm
+
+        # ── ZONE 1: Header banner (150mm → 135mm) ──
+        banner_h = 15 * mm
+        banner_y = A6_HEIGHT - banner_h
         c.setFillColor(carrier_color)
-        c.rect(0, A6_HEIGHT - 20*mm, A6_WIDTH, 20*mm, fill=1, stroke=0)
-        
-        # Carrier name
+        c.rect(0, banner_y, A6_WIDTH, banner_h, fill=1, stroke=0)
         c.setFillColor(colors.white)
-        c.setFont("Helvetica-Bold", 14)
-        carrier_name = carrier_type.replace('_', ' ').upper()
-        c.drawCentredString(A6_WIDTH/2, A6_HEIGHT - 13*mm, carrier_name)
-        
-        # === QR CODE SECTION ===
-        qr_data = f"{carrier_tracking}|{recipient.get('name','')}|{recipient.get('phone','')}"
+        c.setFont("Helvetica-Bold", 13)
+        c.drawCentredString(A6_WIDTH / 2, banner_y + 4 * mm, carrier_type.replace('_', ' ').upper())
+
+        # ── ZONE 2: QR + Tracking Info (135mm → 102mm) ──
+        zone2_top = banner_y
+        qr_size = 22 * mm
+        qr_data = f"{carrier_tracking}|{recipient.get('name', '')}|{recipient.get('phone', '')}"
         qr_buffer = self._generate_qr_code(qr_data, size=70)
-        qr_img = RLImage(qr_buffer, width=25*mm, height=25*mm)
-        qr_img.drawOn(c, 5*mm, A6_HEIGHT - 48*mm)
-        
-        # === TRACKING ID (Large) ===
+        qr_img = RLImage(qr_buffer, width=qr_size, height=qr_size)
+        qr_img.drawOn(c, margin, zone2_top - qr_size - 3 * mm)
+
+        text_x = margin + qr_size + 3 * mm
         c.setFillColor(colors.black)
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(35*mm, A6_HEIGHT - 30*mm, carrier_tracking)
-        
-        # Internal tracking (smaller)
-        internal_tracking = order.get('tracking_id', '')
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(text_x, zone2_top - 8 * mm, carrier_tracking)
+
         if internal_tracking and internal_tracking != carrier_tracking:
-            c.setFont("Helvetica", 8)
+            c.setFont("Helvetica", 7)
             c.setFillColor(colors.gray)
-            c.drawString(35*mm, A6_HEIGHT - 36*mm, f"Ref: {internal_tracking}")
-        
-        # Date
-        c.setFont("Helvetica", 8)
+            c.drawString(text_x, zone2_top - 13 * mm, f"Ref: {internal_tracking}")
+
+        c.setFont("Helvetica", 7)
         c.setFillColor(colors.gray)
-        c.drawString(35*mm, A6_HEIGHT - 42*mm, datetime.now().strftime("%d/%m/%Y %H:%M"))
-        
-        # === SEPARATOR LINE ===
-        c.setStrokeColor(colors.lightgrey)
+        c.drawString(text_x, zone2_top - 18 * mm, datetime.now().strftime("%d/%m/%Y %H:%M"))
+
+        # ── Separator ──
+        sep1_y = zone2_top - 30 * mm
+        c.setStrokeColor(colors.Color(0.85, 0.85, 0.85))
         c.setLineWidth(0.5)
-        c.line(5*mm, A6_HEIGHT - 52*mm, A6_WIDTH - 5*mm, A6_HEIGHT - 52*mm)
-        
-        # === RECIPIENT SECTION ===
+        c.line(margin, sep1_y, A6_WIDTH - margin, sep1_y)
+
+        # ── ZONE 3: Recipient (102mm → 55mm) ──
+        y = sep1_y - 5 * mm
         c.setFillColor(colors.black)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(margin, y, "DESTINATAIRE")
+
+        y -= 6 * mm
         c.setFont("Helvetica-Bold", 12)
-        c.drawString(5*mm, A6_HEIGHT - 60*mm, "DESTINATAIRE")
-        
-        c.setFont("Helvetica-Bold", 14)
-        recipient_name = recipient.get('name', 'N/A')[:30]
-        c.drawString(5*mm, A6_HEIGHT - 68*mm, recipient_name)
-        
-        c.setFont("Helvetica", 11)
-        phone = recipient.get('phone', 'N/A')
-        c.drawString(5*mm, A6_HEIGHT - 76*mm, f"📱 {phone}")
-        
-        # === WILAYA / COMMUNE (Prominent) ===
-        c.setFillColor(carrier_color)
-        c.setFont("Helvetica-Bold", 18)
-        wilaya = recipient.get('wilaya', 'N/A')
-        c.drawCentredString(A6_WIDTH/2, A6_HEIGHT - 90*mm, wilaya.upper())
-        
-        c.setFillColor(colors.black)
-        c.setFont("Helvetica", 12)
-        commune = recipient.get('commune', '')
-        c.drawCentredString(A6_WIDTH/2, A6_HEIGHT - 98*mm, commune)
-        
-        # Address
+        c.drawString(margin, y, recipient.get('name', 'N/A')[:32])
+
+        y -= 5 * mm
         c.setFont("Helvetica", 9)
-        address = recipient.get('address', '')[:50]
-        c.drawCentredString(A6_WIDTH/2, A6_HEIGHT - 106*mm, address)
-        
-        # === SEPARATOR LINE ===
-        c.line(5*mm, A6_HEIGHT - 112*mm, A6_WIDTH - 5*mm, A6_HEIGHT - 112*mm)
-        
-        # === COD AMOUNT (VERY LARGE) ===
+        c.drawString(margin, y, f"Tel: {recipient.get('phone', 'N/A')}")
+
+        y -= 7 * mm
+        c.setFillColor(carrier_color)
+        c.setFont("Helvetica-Bold", 15)
+        c.drawCentredString(A6_WIDTH / 2, y, recipient.get('wilaya', 'N/A').upper())
+
+        y -= 5 * mm
+        c.setFillColor(colors.black)
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(A6_WIDTH / 2, y, recipient.get('commune', ''))
+
+        y -= 5 * mm
+        c.setFont("Helvetica", 8)
+        address = recipient.get('address', '')[:55]
+        c.drawCentredString(A6_WIDTH / 2, y, address)
+
+        # ── Separator ──
+        y -= 4 * mm
+        c.setStrokeColor(colors.Color(0.85, 0.85, 0.85))
+        c.line(margin, y, A6_WIDTH - margin, y)
+
+        # ── ZONE 4: COD Amount (55mm → 30mm) ──
+        y -= 5 * mm
         c.setFillColor(colors.HexColor('#DC3545'))
-        c.setFont("Helvetica-Bold", 10)
-        c.drawCentredString(A6_WIDTH/2, A6_HEIGHT - 120*mm, "MONTANT À ENCAISSER")
-        
-        c.setFont("Helvetica-Bold", 32)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawCentredString(A6_WIDTH / 2, y, "MONTANT A ENCAISSER")
+
+        y -= 10 * mm
+        c.setFont("Helvetica-Bold", 26)
         cod_text = f"{cod_amount:,.0f} DA".replace(',', ' ')
-        c.drawCentredString(A6_WIDTH/2, A6_HEIGHT - 135*mm, cod_text)
-        
-        # === BARCODE (Bottom) ===
+        c.drawCentredString(A6_WIDTH / 2, y, cod_text)
+
+        # ── Separator ──
+        y -= 5 * mm
+        c.setStrokeColor(colors.Color(0.85, 0.85, 0.85))
+        c.line(margin, y, A6_WIDTH - margin, y)
+
+        # ── ZONE 5: Barcode + Footer (30mm → 0mm) ──
+        barcode_y = y - 16 * mm
         try:
-            self._draw_barcode(c, carrier_tracking, 15*mm, 8*mm)
-        except:
+            self._draw_barcode(c, carrier_tracking, 15 * mm, max(barcode_y, 8 * mm))
+        except Exception:
             pass
-        
-        # === FOOTER ===
+
         c.setFillColor(colors.gray)
         c.setFont("Helvetica", 6)
-        c.drawCentredString(A6_WIDTH/2, 3*mm, f"Beyond Express - {datetime.now().strftime('%Y')}")
-        
+        c.drawCentredString(A6_WIDTH / 2, 2 * mm, f"Beyond Express - {datetime.now().strftime('%Y')}")
+
         c.save()
         buffer.seek(0)
         return buffer
