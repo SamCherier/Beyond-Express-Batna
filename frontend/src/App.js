@@ -43,6 +43,7 @@ const AIConfigPage = lazy(() => import('@/pages/AIConfigPage'));
 const ReturnsPage = lazy(() => import('@/pages/ReturnsPage'));
 const WarehousePage = lazy(() => import('@/pages/WarehousePage'));
 const AIBrainPage = lazy(() => import('@/pages/AIBrainPage'));
+const ProformaInvoicePage = lazy(() => import('@/pages/ProformaInvoicePage'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -88,6 +89,7 @@ function AppRoutes() {
         <Route path="returns" element={LP(ReturnsPage)} />
         <Route path="warehouse" element={LP(WarehousePage)} />
         <Route path="ai-brain" element={LP(AIBrainPage)} />
+        <Route path="proforma" element={LP(ProformaInvoicePage)} />
       </Route>
 
       {/* Driver routes */}
