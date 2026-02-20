@@ -255,7 +255,7 @@ class AIOrchestrator:
         }
 
     async def _query_openrouter(self, agent: dict, task: str, context: dict = None) -> dict:
-        """Live query using OpenRouter API (OpenAI-compatible)."""
+        """Live query using OpenRouter API (OpenAI-compatible). Falls back to FALLBACK_MODEL then simulation."""
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -263,73 +263,80 @@ class AIOrchestrator:
             "X-Title": "Beyond Express Logistics",
         }
 
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": agent["system_prompt"]},
-                {"role": "user", "content": task},
-            ],
-            "temperature": 0.7,
-            "max_tokens": 1024,
-        }
+        for model in [self.model, FALLBACK_MODEL]:
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": agent["system_prompt"]},
+                    {"role": "user", "content": task},
+                ],
+                "temperature": 0.7,
+                "max_tokens": 1024,
+            }
 
-        try:
-            response = await self._http_client.post(
-                OPENROUTER_BASE_URL,
-                headers=headers,
-                json=payload,
-            )
+            try:
+                response = await self._http_client.post(
+                    OPENROUTER_BASE_URL,
+                    headers=headers,
+                    json=payload,
+                )
 
-            if response.status_code == 429:
+                if response.status_code == 429:
+                    if model == FALLBACK_MODEL:
+                        return {
+                            "agent": agent["name"],
+                            "agent_id": agent["id"],
+                            "model": model,
+                            "response": RATE_LIMIT_MESSAGE,
+                            "is_simulated": False,
+                            "rate_limited": True,
+                            "task": task,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        }
+                    logger.warning(f"Rate limited on {model}, trying fallback {FALLBACK_MODEL}")
+                    continue
+
+                if response.status_code != 200:
+                    logger.error(f"OpenRouter {model} error {response.status_code}: {response.text[:200]}")
+                    if model != FALLBACK_MODEL:
+                        continue
+                    result = self._query_simulated(agent, task, context)
+                    result["fallback"] = True
+                    result["error"] = f"OpenRouter HTTP {response.status_code}"
+                    return result
+
+                data = response.json()
+                content = data["choices"][0]["message"]["content"]
+                usage = data.get("usage", {})
+
                 return {
                     "agent": agent["name"],
                     "agent_id": agent["id"],
-                    "model": self.model,
-                    "response": RATE_LIMIT_MESSAGE,
+                    "model": model,
+                    "response": content,
                     "is_simulated": False,
-                    "rate_limited": True,
                     "task": task,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "usage": {
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "total_tokens": usage.get("total_tokens", 0),
+                    },
                 }
 
-            if response.status_code != 200:
-                logger.error(f"OpenRouter API error {response.status_code}: {response.text}")
-                result = self._query_simulated(agent, task, context)
-                result["fallback"] = True
-                result["error"] = f"OpenRouter HTTP {response.status_code}"
-                return result
+            except httpx.TimeoutException:
+                logger.error(f"OpenRouter {model} timed out")
+                if model != FALLBACK_MODEL:
+                    continue
+            except Exception as e:
+                logger.error(f"OpenRouter {model} error: {e}")
+                if model != FALLBACK_MODEL:
+                    continue
 
-            data = response.json()
-            content = data["choices"][0]["message"]["content"]
-            usage = data.get("usage", {})
-
-            return {
-                "agent": agent["name"],
-                "agent_id": agent["id"],
-                "model": self.model,
-                "response": content,
-                "is_simulated": False,
-                "task": task,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "usage": {
-                    "prompt_tokens": usage.get("prompt_tokens", 0),
-                    "completion_tokens": usage.get("completion_tokens", 0),
-                    "total_tokens": usage.get("total_tokens", 0),
-                },
-            }
-
-        except httpx.TimeoutException:
-            logger.error("OpenRouter request timed out")
-            result = self._query_simulated(agent, task, context)
-            result["fallback"] = True
-            result["error"] = "Timeout — le modèle n'a pas répondu à temps"
-            return result
-        except Exception as e:
-            logger.error(f"OpenRouter API error: {e}")
-            result = self._query_simulated(agent, task, context)
-            result["fallback"] = True
-            result["error"] = str(e)
-            return result
+        result = self._query_simulated(agent, task, context)
+        result["fallback"] = True
+        result["error"] = "Tous les modèles sont indisponibles"
+        return result
 
 
 # Singleton
