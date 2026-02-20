@@ -226,15 +226,12 @@ const AIBrainPage = () => {
                     <div className="flex items-center gap-2 mb-3">
                       <Bot className="w-4 h-4 text-[var(--accent-info)]" />
                       <span className="text-xs font-bold text-foreground">{result.agent}</span>
-                      <span className="text-[10px] text-muted-foreground font-mono">({result.model})</span>
-                      {result.is_simulated && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700">SIM</span>
-                      )}
+                      <span className="text-[10px] text-muted-foreground font-mono">(IA Logistique)</span>
                     </div>
                     <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: result.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
                     />
-                    <p className="text-[10px] text-muted-foreground mt-3 font-mono">{result.timestamp}</p>
+                    <p className="text-[10px] text-muted-foreground mt-3 font-mono">{new Date(result.timestamp).toLocaleString('fr-FR')}</p>
                   </div>
                 )}
               </CardContent>
