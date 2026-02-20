@@ -205,7 +205,10 @@ class AIOrchestrator:
             "model": self.model,
             "is_live": self.is_live,
             "has_api_key": bool(self.api_key),
-            "agents": list(AGENTS.values()),
+            "agents": [
+                {k: v for k, v in agent.items() if k != "system_prompt"}
+                for agent in AGENTS.values()
+            ],
         }
 
     async def query_agent(self, agent_id: str, task: str, context: dict = None) -> dict:
