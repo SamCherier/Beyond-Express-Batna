@@ -147,8 +147,8 @@ SIMULATED_RESPONSES = {
 }
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = "qwen/qwen3-30b-a3b:free"
-FALLBACK_MODEL = "deepseek/deepseek-r1-0528:free"
+DEFAULT_MODEL = "qwen/qwen-2-7b-instruct:free"
+FALLBACK_MODEL = "meta-llama/llama-3-8b-instruct:free"
 
 RATE_LIMIT_MESSAGE = (
     "Le réseau IA est très sollicité, veuillez réessayer dans quelques secondes. "
