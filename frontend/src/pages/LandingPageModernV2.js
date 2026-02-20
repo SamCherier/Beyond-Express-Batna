@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Package, Truck, MessageCircle, Brain, Zap, Shield, ChevronRight,
   Sparkles, TrendingUp, BarChart3, Globe, Play, ArrowRight, Cpu,
-  Route, Bot, Boxes
+  Route, Bot, Boxes, CheckCircle
 } from 'lucide-react';
 import './LandingDarkTech.css';
 
