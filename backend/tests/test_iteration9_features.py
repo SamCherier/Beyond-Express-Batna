@@ -190,7 +190,7 @@ class TestLoginRoleAccess:
             json={"email": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
             timeout=30
         )
-        token = login_response.json().get("token")
+        token = login_response.json().get("access_token")
         
         # Access AI Brain status
         response = requests.get(
