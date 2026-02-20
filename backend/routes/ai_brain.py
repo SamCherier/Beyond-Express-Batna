@@ -44,8 +44,8 @@ async def _auth(request):
 
 class ConfigureRequest(BaseModel):
     api_key: Optional[str] = None
-    provider: str = "groq"
-    model: str = "llama-3.3-70b-versatile"
+    provider: str = "openrouter"
+    model: str = "qwen/qwen3-30b-a3b:free"
     enabled: bool = True
 
 class QueryRequest(BaseModel):

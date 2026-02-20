@@ -1,17 +1,16 @@
 """
 AI Orchestrator — Multi-Agent Brain Center
-Uses Groq SDK (AsyncGroq) for ultra-fast LPU inference.
+Uses OpenRouter API (OpenAI-compatible) for free Open-Source LLM inference.
 Falls back to realistic simulation when no API key is set.
 """
 
 import os
 import logging
+import httpx
 from datetime import datetime, timezone
 from typing import Optional
 
 logger = logging.getLogger(__name__)
-
-# ── Master System Prompt ──
 
 MASTER_SYSTEM_PROMPT = (
     "Tu es un Senior Logistics Analyst chez Beyond Express, "
@@ -25,13 +24,11 @@ MASTER_SYSTEM_PROMPT = (
     "et des actions concrètes."
 )
 
-# ── Agent Definitions ──
-
 AGENTS = {
     "logistician": {
         "id": "logistician",
         "name": "Le Logisticien",
-        "model_hint": "Qwen 2.5",
+        "model_hint": "Qwen 3",
         "icon": "truck",
         "color": "#3B82F6",
         "description": "Optimisation des routes, packaging et capacité entrepôt",
@@ -44,7 +41,7 @@ AGENTS = {
     "analyst": {
         "id": "analyst",
         "name": "L'Analyste",
-        "model_hint": "Llama 3.3",
+        "model_hint": "Qwen 3",
         "icon": "bar-chart",
         "color": "#8B5CF6",
         "description": "Analyse de données, documents, tendances et prévisions",
@@ -57,7 +54,7 @@ AGENTS = {
     "monitor": {
         "id": "monitor",
         "name": "Le Moniteur",
-        "model_hint": "Mixtral",
+        "model_hint": "Qwen 3",
         "icon": "terminal",
         "color": "#10B981",
         "description": "Surveillance des erreurs, alertes système et santé plateforme",
@@ -68,8 +65,6 @@ AGENTS = {
         ),
     },
 }
-
-# ── Simulated Responses (demo mode) ──
 
 SIMULATED_RESPONSES = {
     "logistician": {
@@ -131,14 +126,14 @@ SIMULATED_RESPONSES = {
         "health_check": (
             "Diagnostic système complet.\n\n"
             "**Santé de la plateforme :**\n"
-            "- API Backend : ✅ Opérationnel (latence moy. 45ms)\n"
-            "- Base de données : ✅ MongoDB connecté (4 collections actives)\n"
-            "- Authentification : ✅ Argon2id + Sessions\n"
-            "- Audit Log : ✅ Chaîne de hash intègre\n\n"
+            "- API Backend : Opérationnel (latence moy. 45ms)\n"
+            "- Base de données : MongoDB connecté (4 collections actives)\n"
+            "- Authentification : Argon2id + Sessions\n"
+            "- Audit Log : Chaîne de hash intègre\n\n"
             "**Alertes :**\n"
-            "- ⚠️ 153 sessions obsolètes nettoyées\n"
-            "- ⚠️ Entrepôt Constantine à 91% — seuil d'alerte\n"
-            "- ✅ Aucune erreur 500 dans les dernières 24h"
+            "- 153 sessions obsolètes nettoyées\n"
+            "- Entrepôt Constantine à 91% — seuil d'alerte\n"
+            "- Aucune erreur 500 dans les dernières 24h"
         ),
         "default": (
             "Surveillance en cours...\n\n"
@@ -151,52 +146,57 @@ SIMULATED_RESPONSES = {
     },
 }
 
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
+DEFAULT_MODEL = "qwen/qwen3-30b-a3b:free"
+FALLBACK_MODEL = "deepseek/deepseek-r1-0528:free"
+
+RATE_LIMIT_MESSAGE = (
+    "Le réseau IA est très sollicité, veuillez réessayer dans quelques secondes. "
+    "(Rate limit atteint sur le modèle gratuit)"
+)
+
 
 class AIOrchestrator:
-    """Central brain that routes requests to the appropriate agent via Groq SDK."""
+    """Central brain that routes requests to the appropriate agent via OpenRouter."""
 
     def __init__(self):
         self.api_key: Optional[str] = None
         self.provider: str = "simulation"
         self.enabled: bool = True
-        self.model: str = "llama-3.3-70b-versatile"
-        self._groq_client = None
+        self.model: str = DEFAULT_MODEL
+        self._http_client: Optional[httpx.AsyncClient] = None
         self._load_config()
 
     def _load_config(self):
-        self.api_key = os.environ.get("GROQ_API_KEY")
+        self.api_key = os.environ.get("OPENROUTER_API_KEY")
         if self.api_key:
-            self.provider = "groq"
-            self._init_groq_client()
+            self.provider = "openrouter"
+            self._init_client()
+        else:
+            logger.warning("OPENROUTER_API_KEY not set — AI Brain running in SIMULATION mode")
 
-    def _init_groq_client(self):
-        """Initialize the AsyncGroq client."""
+    def _init_client(self):
         if not self.api_key:
-            self._groq_client = None
+            self._http_client = None
             return
-        try:
-            from groq import AsyncGroq
-            self._groq_client = AsyncGroq(api_key=self.api_key)
-            logger.info(f"✅ Groq client initialized (model: {self.model})")
-        except Exception as e:
-            logger.error(f"❌ Failed to init Groq client: {e}")
-            self._groq_client = None
+        self._http_client = httpx.AsyncClient(timeout=30.0)
+        logger.info(f"OpenRouter client initialized (model: {self.model})")
 
-    def configure(self, api_key: Optional[str] = None, provider: str = "groq",
-                  model: str = "llama-3.3-70b-versatile", enabled: bool = True):
+    def configure(self, api_key: Optional[str] = None, provider: str = "openrouter",
+                  model: str = DEFAULT_MODEL, enabled: bool = True):
         if api_key:
             self.api_key = api_key
         self.provider = provider if self.api_key else "simulation"
         self.model = model
         self.enabled = enabled
         if self.api_key:
-            self._init_groq_client()
+            self._init_client()
         else:
-            self._groq_client = None
+            self._http_client = None
 
     @property
     def is_live(self) -> bool:
-        return bool(self.api_key) and self.provider != "simulation" and self._groq_client is not None
+        return bool(self.api_key) and self.provider != "simulation" and self._http_client is not None
 
     def get_status(self) -> dict:
         return {
@@ -215,7 +215,7 @@ class AIOrchestrator:
         agent = AGENTS[agent_id]
 
         if self.is_live:
-            return await self._query_groq(agent, task, context)
+            return await self._query_openrouter(agent, task, context)
         else:
             return self._query_simulated(agent, task, context)
 
@@ -251,36 +251,78 @@ class AIOrchestrator:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    async def _query_groq(self, agent: dict, task: str, context: dict = None) -> dict:
-        """Live query using the Groq SDK (AsyncGroq)."""
+    async def _query_openrouter(self, agent: dict, task: str, context: dict = None) -> dict:
+        """Live query using OpenRouter API (OpenAI-compatible)."""
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://beyondexpress.dz",
+            "X-Title": "Beyond Express Logistics",
+        }
+
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": agent["system_prompt"]},
+                {"role": "user", "content": task},
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1024,
+        }
+
         try:
-            completion = await self._groq_client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": agent["system_prompt"]},
-                    {"role": "user", "content": task},
-                ],
-                temperature=0.7,
-                max_tokens=1024,
+            response = await self._http_client.post(
+                OPENROUTER_BASE_URL,
+                headers=headers,
+                json=payload,
             )
+
+            if response.status_code == 429:
+                return {
+                    "agent": agent["name"],
+                    "agent_id": agent["id"],
+                    "model": self.model,
+                    "response": RATE_LIMIT_MESSAGE,
+                    "is_simulated": False,
+                    "rate_limited": True,
+                    "task": task,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+
+            if response.status_code != 200:
+                logger.error(f"OpenRouter API error {response.status_code}: {response.text}")
+                result = self._query_simulated(agent, task, context)
+                result["fallback"] = True
+                result["error"] = f"OpenRouter HTTP {response.status_code}"
+                return result
+
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+            usage = data.get("usage", {})
 
             return {
                 "agent": agent["name"],
                 "agent_id": agent["id"],
                 "model": self.model,
-                "response": completion.choices[0].message.content,
+                "response": content,
                 "is_simulated": False,
                 "task": task,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "usage": {
-                    "prompt_tokens": completion.usage.prompt_tokens if completion.usage else 0,
-                    "completion_tokens": completion.usage.completion_tokens if completion.usage else 0,
-                    "total_tokens": completion.usage.total_tokens if completion.usage else 0,
+                    "prompt_tokens": usage.get("prompt_tokens", 0),
+                    "completion_tokens": usage.get("completion_tokens", 0),
+                    "total_tokens": usage.get("total_tokens", 0),
                 },
             }
 
+        except httpx.TimeoutException:
+            logger.error("OpenRouter request timed out")
+            result = self._query_simulated(agent, task, context)
+            result["fallback"] = True
+            result["error"] = "Timeout — le modèle n'a pas répondu à temps"
+            return result
         except Exception as e:
-            logger.error(f"Groq API error: {e}")
+            logger.error(f"OpenRouter API error: {e}")
             result = self._query_simulated(agent, task, context)
             result["fallback"] = True
             result["error"] = str(e)
