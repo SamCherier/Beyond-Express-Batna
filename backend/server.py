@@ -1443,6 +1443,10 @@ app.include_router(warehouse_router.router, prefix="/api/warehouse", tags=["ware
 from routes import ai_brain as ai_brain_router
 app.include_router(ai_brain_router.router, prefix="/api/ai-brain", tags=["ai-brain"])
 
+# Include Proforma Invoice routes
+from routes import proforma as proforma_router
+app.include_router(proforma_router.router, prefix="/api/invoices/proforma", tags=["proforma"])
+
 # ── Performance Diagnostics ──
 @app.get("/api/perf/status", tags=["performance"])
 async def perf_status():
