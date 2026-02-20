@@ -45,7 +45,7 @@ async def _auth(request):
 class ConfigureRequest(BaseModel):
     api_key: Optional[str] = None
     provider: str = "openrouter"
-    model: str = "qwen/qwen3-30b-a3b:free"
+    model: str = "qwen/qwen-2-7b-instruct:free"
     enabled: bool = True
 
 class QueryRequest(BaseModel):
