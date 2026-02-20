@@ -283,16 +283,9 @@ class AIOrchestrator:
 
                 if response.status_code == 429:
                     if model == FALLBACK_MODEL:
-                        return {
-                            "agent": agent["name"],
-                            "agent_id": agent["id"],
-                            "model": model,
-                            "response": RATE_LIMIT_MESSAGE,
-                            "is_simulated": False,
-                            "rate_limited": True,
-                            "task": task,
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
-                        }
+                        result = self._query_simulated(agent, task, context)
+                        result["fallback"] = True
+                        return result
                     logger.warning(f"Rate limited on {model}, trying fallback {FALLBACK_MODEL}")
                     continue
 
