@@ -1,0 +1,321 @@
+/* ═══════════════════════════════════════════
+   Proforma Invoice — Print-Optimized A4
+   ═══════════════════════════════════════════ */
+
+.proforma-page {
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: #1a1a1a;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 24px;
+  background: white;
+}
+
+/* ── Print Styles ── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  body, html {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide everything except invoice */
+  nav, header, .sidebar, .navbar, .command-bar,
+  .dashboard-layout, .no-print, button,
+  [data-testid="sidebar"], [class*="Sidebar"],
+  [class*="CommandBar"], [class*="DashboardLayout"] > aside {
+    display: none !important;
+  }
+
+  .proforma-page {
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+    box-shadow: none !important;
+  }
+
+  .proforma-table {
+    page-break-inside: avoid;
+  }
+
+  .proforma-table tr {
+    page-break-inside: avoid;
+  }
+
+  .proforma-footer {
+    page-break-inside: avoid;
+  }
+
+  .proforma-signature {
+    page-break-inside: avoid;
+  }
+}
+
+/* ── Header ── */
+.proforma-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 2px solid #E61E2A;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.proforma-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.proforma-logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #E61E2A, #ff4d4d);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 900;
+  font-size: 20px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.proforma-logo-text {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.proforma-logo-text h1 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.proforma-logo-text p {
+  font-size: 9px;
+  color: #888;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.proforma-title-block {
+  text-align: center;
+  flex: 1;
+  padding: 0 16px;
+}
+
+.proforma-title-block h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #E61E2A;
+  margin: 0 0 2px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.proforma-title-block p {
+  font-size: 10px;
+  color: #666;
+  margin: 0;
+}
+
+.proforma-barcode {
+  text-align: right;
+}
+
+/* ── Meta Info ── */
+.proforma-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: #f8f8f8;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.proforma-meta-item {
+  font-size: 11px;
+  color: #444;
+}
+
+.proforma-meta-item strong {
+  color: #1a1a1a;
+}
+
+/* ── Client Info ── */
+.proforma-client {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.proforma-client-title {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #E61E2A;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.proforma-client-field {
+  font-size: 10.5px;
+  color: #333;
+}
+
+.proforma-client-field span {
+  color: #888;
+  font-size: 9px;
+  display: block;
+  margin-bottom: 1px;
+}
+
+/* ── Table ── */
+.proforma-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 9px;
+}
+
+.proforma-table thead th {
+  background: #E61E2A;
+  color: white;
+  font-weight: 700;
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  border: 1px solid #c5171f;
+}
+
+.proforma-table tbody td {
+  padding: 5px 4px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 9px;
+  color: #333;
+}
+
+.proforma-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.proforma-table tbody tr:hover {
+  background: #fff3f3;
+}
+
+.proforma-table .col-ref {
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  color: #E61E2A;
+}
+
+.proforma-table .col-amount {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.proforma-table .col-text-left {
+  text-align: left;
+  padding-left: 6px;
+}
+
+/* ── Footer Totals ── */
+.proforma-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.proforma-totals {
+  min-width: 240px;
+  border: 1.5px solid #1a1a1a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.proforma-totals-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 10.5px;
+  border-bottom: 1px solid #eee;
+}
+
+.proforma-totals-row:last-child {
+  border-bottom: none;
+}
+
+.proforma-totals-row.total-row {
+  background: #E61E2A;
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+.proforma-totals-row span:last-child {
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Signature ── */
+.proforma-signature {
+  flex: 1;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  padding: 12px;
+  min-height: 100px;
+}
+
+.proforma-signature-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.proforma-signature-line {
+  border-bottom: 1px solid #ccc;
+  margin-top: 50px;
+}
+
+.proforma-signature-label {
+  font-size: 9px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ── Print button bar ── */
+.proforma-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
