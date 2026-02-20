@@ -298,7 +298,7 @@ async def list_conversations(
         
         conversations = []
         async for conv in cursor:
-            conv["_id"] = str(conv["_id"])
+            conv_id = str(conv.pop("_id", ""))
             conv["created_at"] = conv["created_at"].isoformat()
             conv["updated_at"] = conv["updated_at"].isoformat()
             conv["last_message_at"] = conv["last_message_at"].isoformat()
