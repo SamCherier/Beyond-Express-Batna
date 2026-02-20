@@ -30,10 +30,24 @@ async def _auth(request):
             token = auth_header.split(" ")[1]
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Try session token
     session = await db.sessions.find_one({"session_token": token}, {"_id": 0})
-    if not session:
-        raise HTTPException(status_code=401, detail="Invalid session")
-    user_doc = await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+    if session:
+        from datetime import datetime as dt
+        if dt.fromisoformat(session["expires_at"]) > datetime.now(timezone.utc):
+            user_doc = await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+            if user_doc:
+                return User(**user_doc)
+
+    # Try JWT token
+    payload = verify_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_doc = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user_doc:
         raise HTTPException(status_code=401, detail="User not found")
     return User(**user_doc)
