@@ -1035,6 +1035,19 @@ const OrdersPageAdvanced = () => {
               Imprimer Étiquettes ({selectedOrders.length})
             </Button>
             <Button
+              onClick={() => {
+                if (selectedOrders.length === 0) return;
+                window.open(`/dashboard/proforma?orders=${selectedOrders.join(',')}`, '_blank');
+              }}
+              variant="outline"
+              disabled={selectedOrders.length === 0}
+              data-testid="generate-proforma-button"
+              className="border-amber-300 text-amber-700 hover:bg-amber-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Facture Proforma ({selectedOrders.length})
+            </Button>
+            <Button
               onClick={() => setAssignDriverDialogOpen(true)}
               variant="default"
               className="bg-blue-600 hover:bg-blue-700"
