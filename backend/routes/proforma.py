@@ -134,7 +134,7 @@ async def generate_proforma(req: ProformaRequest, request: Request):
         "lieu": req.lieu,
         "client": {
             "name": client_name or current_user.name,
-            "phone": req.client_phone or current_user.phone_number or "",
+            "phone": req.client_phone or "",
             "email": req.client_email or current_user.email,
             "address": req.client_address or "",
         },
