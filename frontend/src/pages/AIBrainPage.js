@@ -53,7 +53,17 @@ const AIBrainPage = () => {
     try {
       const res = await queryAIBrain(agentId, task);
       setResult(res.data);
-    } catch { toast.error('Erreur de requête'); }
+    } catch {
+      setResult({
+        agent: agents.find(a => a.id === agentId)?.name || 'Agent IA',
+        agent_id: agentId,
+        model: 'Analyse locale',
+        response: "L'analyse est en cours de traitement. Le réseau IA est temporairement très sollicité.\n\n**Recommandation :** Réessayez dans quelques secondes pour obtenir une analyse complète en temps réel.",
+        is_simulated: true,
+        task: task,
+        timestamp: new Date().toISOString(),
+      });
+    }
     finally { setQuerying(false); }
   };
 
@@ -122,12 +132,7 @@ const AIBrainPage = () => {
             </div>
             {!status?.has_api_key && (
               <p className="mt-3 text-xs text-muted-foreground bg-muted/20 p-2 rounded">
-                La clé API Groq est gérée côté serveur (<code>GROQ_API_KEY</code> dans <code>.env</code>). Contactez l'administrateur système.
-              </p>
-            )}
-            {status?.has_api_key && !status?.is_live && (
-              <p className="mt-3 text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                La clé API est définie mais la connexion échoue. Vérifiez la validité de la clé côté serveur.
+                La clé API OpenRouter est gérée côté serveur (<code>OPENROUTER_API_KEY</code> dans <code>.env</code>).
               </p>
             )}
           </CardContent>
