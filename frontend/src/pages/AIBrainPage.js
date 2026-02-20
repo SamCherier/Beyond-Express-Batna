@@ -72,7 +72,7 @@ const AIBrainPage = () => {
             </div>
             AI Brain Center
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Architecture Multi-Agents — OpenRouter / Qwen 3 (Open Source)</p>
+          <p className="text-sm text-muted-foreground mt-1">Architecture Multi-Agents — OpenRouter / Llama 3.3 70B (Open Source)</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={handleToggle} className="no-fx flex items-center gap-2 text-sm font-semibold" data-testid="ai-toggle">
