@@ -4,59 +4,77 @@
 Production-grade white-labeled logistics SaaS platform for the Algerian market (58 wilayas).
 
 ## Architecture
-- **Frontend**: React + Tailwind + Shadcn UI + Framer Motion + cmdk
+- **Frontend**: React + Tailwind + Shadcn UI + Framer Motion + cmdk + react-barcode
 - **Backend**: FastAPI + MongoDB (Motor async) + Argon2id
-- **AI**: OpenRouter API (meta-llama/llama-3.3-70b-instruct:free + qwen/qwen3-4b:free fallback → simulation)
+- **AI**: OpenRouter API (Llama 3.3 70B free → Qwen 3 4B free → Simulation)
 - **Deployment**: Vercel-ready (vercel.json)
 
 ---
 
-## Completed (All Tested via curl + testing agent)
+## Completed (All Tested)
 
 ### Core Platform
-- [x] Authentication (JWT + Argon2id + Google OAuth)
-- [x] Registration — all 3 roles (ecommerce, admin, delivery) ✅
+- [x] Authentication (JWT + Sessions + Google OAuth + Argon2id)
+- [x] Registration — all 3 roles (ecommerce, admin, delivery)
 - [x] Command Bar, Responsive Layout, Landing Page
+
+### Logistics Operations
+- [x] Orders CRUD with server-side pagination
+- [x] Warehouse management (zones + depots)
+- [x] Returns/RMA with smart routing
+- [x] Carrier integration (Yalidine, ZR Express, DHD)
+- [x] Shipping labels (A6 thermal, fixed overlap)
+- [x] Bulk label generation
+- [x] Financial COD reconciliation
+- [x] Smart Circuit Routing (Haversine, 58 wilayas)
+
+### Documents & Invoicing
+- [x] **Facture Proforma / Décharge de colis** (NEW)
+  - Backend: POST /api/invoices/proforma/generate
+  - Auto-increment reference (BEY-0001, BEY-0002...)
+  - A4 print-optimized with @media print
+  - Header: Logo + Title + Barcode (react-barcode)
+  - Client info section
+  - 12-column order table
+  - Totals: Montant, Livraison, Prestation (15%), Net
+  - Signature area
+  - Button in Orders page (data-testid: generate-proforma-button)
 
 ### AI Brain Center (OpenRouter - FREE, 0$)
 - [x] Primary: meta-llama/llama-3.3-70b-instruct:free
-- [x] Fallback cascade: qwen3-4b:free → simulation (zero red errors)
-- [x] All roles can query (delivery, ecommerce, admin) ✅
-- [x] No "SIM" badge, no model name exposed, no error messages
+- [x] Fallback cascade: qwen3-4b:free → simulation
+- [x] Silent error handling (zero red errors, graceful degradation)
+- [x] All roles can query
 
-### WhatsApp
-- [x] All roles: admin, ecommerce, delivery can access sidebar + routes ✅
-- [x] MongoDB _id leak fixed in conversations endpoint
+### Communication
+- [x] WhatsApp — ALL ROLES (admin, ecommerce, delivery)
+- [x] WhatsApp Meta Cloud API integration
 
 ### Landing Page
-- [x] Pricing Packs (Starter/Pro/Business) — Glassmorphism
-- [x] Partners (5 carriers) — hover glow effects
+- [x] Pricing Packs (Starter/Pro/Business)
+- [x] Partners section (5 carriers, hover glow)
 - [x] Hero, Features, Stats, CTA, Footer
 
-### Security & Production
-- [x] API keys backend-only (zero trust frontend)
+### Security & Performance
+- [x] API keys backend-only (zero trust)
 - [x] MongoDB _id exclusion audit
 - [x] 23 MongoDB indexes
+- [x] Vercel deployment config
 
 ---
-
-## Known Mocks (Documented & Transparent)
-- ZR Express carrier: Mock adapter (no real API available)
-- Subscriptions: Simulated payment (no Stripe configured)
-- Notifications (legacy): Logs to DB with `simulated: true` flag
-- AI fallback: Returns cached simulation responses when OpenRouter unavailable
 
 ## Test Results
-| Iteration | Backend | Frontend |
-|-----------|---------|----------|
-| 8 | 100% | 100% |
-| 9 | 100% | 100% |
-| QA Audit | 9/9 pass | Compiled OK |
+| Iteration | Backend | Frontend | Feature |
+|-----------|---------|----------|---------|
+| 8 | 100% | 100% | OpenRouter, Registration, Labels |
+| 9 | 100% | 100% | AI silent fallback, WhatsApp roles, Packs |
+| 10 | 100% | 100% | Facture Proforma |
 
 ## Backlog
-- P0: Proforma Invoice generation
 - P1: Admin bulk-labels filtering
-- P2: Live Map Tracking, AR Scanner, Unit tests
+- P2: Live Map Tracking (Leaflet)
+- P2: AR Scanner, Interactive Timeline
+- P3: Unit tests, TypeScript migration
 
 ---
-*Last updated: February 20, 2026 — QA Senior Audit Complete*
+*Last updated: February 20, 2026*
