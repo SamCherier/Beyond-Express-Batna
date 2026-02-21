@@ -1,0 +1,66 @@
+{
+  "summary": "Iteration 10 testing complete - Facture Proforma (Décharge de colis) feature fully verified. Backend: All 7 API tests passed (proforma generation, auto-increment reference BEY-XXXX, totals calculation with 15% prestation, item fields, error handling). Frontend: All UI elements verified (barcode, 12-column table, print button, totals block, signature area).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_proforma.py",
+    "/app/test_reports/pytest/pytest_results_proforma.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Proforma API correctly generates invoice with BEY-XXXX reference format",
+    "Auto-increment counter uses MongoDB atomic find_one_and_update",
+    "Prestation calculation verified: 15% of shipping cost (e.g., 900 * 0.15 = 135)",
+    "Net calculation verified: montant - livraison - prestation",
+    "All 12 table columns present: #, Référence, Article, Destinataire, Téléphone, Wilaya, Commune, Poids, Montant, Livraison, Prestation, Net",
+    "Barcode renders correctly using react-barcode library",
+    "Print CSS properly hides non-print elements (@media print)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_proforma.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "100% (All UI elements verified)"
+  },
+  "test_credentials": {
+    "admin_user": "final_admin@qa.com / Final123!"
+  },
+  "seed_data_creation": "None required - used existing orders",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Proforma feature fully implemented and tested. Use existing order IDs: 9cd313ff-5c5c-424f-b868-3499a7e6918d, 7b0c93bb-80cb-40b5-883b-60e9c176f529 for testing. Proforma route: /dashboard/proforma?orders=ID1,ID2. Facture Proforma button on orders page has data-testid='generate-proforma-button'.",
+  "features_tested": {
+    "backend_api": {
+      "POST /api/invoices/proforma/generate": "PASS",
+      "reference_format": "BEY-XXXX (e.g., BEY-0014)",
+      "auto_increment": "PASS - Counter increments correctly",
+      "totals_calculation": "PASS - montant, livraison, prestation (15%), net",
+      "item_fields": "PASS - All 11 item fields present",
+      "error_empty_orders": "PASS - Returns 400",
+      "error_invalid_orders": "PASS - Returns 404",
+      "error_unauthenticated": "PASS - Returns 401"
+    },
+    "frontend_ui": {
+      "data-testid='proforma-page'": "PASS",
+      "data-testid='proforma-barcode'": "PASS - react-barcode renders correctly",
+      "data-testid='proforma-table'": "PASS - 12 columns verified",
+      "data-testid='proforma-print-btn'": "PASS - 'Imprimer / PDF' button present",
+      "data-testid='proforma-footer'": "PASS",
+      "data-testid='proforma-totals'": "PASS - Shows Total Montant, Frais de Livraison, Frais de Prestation, NET A PAYER",
+      "data-testid='proforma-client'": "PASS",
+      "data-testid='generate-proforma-button'": "PASS - Button on orders page"
+    },
+    "table_columns_verified": [
+      "#", "Référence", "Article", "Destinataire", "Téléphone",
+      "Wilaya", "Commune", "Poids", "Montant", "Livraison", "Prestation", "Net"
+    ]
+  }
+}
