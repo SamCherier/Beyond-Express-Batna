@@ -735,10 +735,13 @@ async def get_order(order_id: str, current_user: User = Depends(get_current_user
     
     return Order(**order)
 
+class StatusUpdateBody(BaseModel):
+    status: str
+
 @api_router.patch("/orders/{order_id}/status")
 async def update_order_status(
     order_id: str,
-    status: OrderStatus,
+    body: StatusUpdateBody,
     current_user: User = Depends(get_current_user)
 ):
     order = await db.orders.find_one({"id": order_id}, {"_id": 0})
@@ -747,7 +750,7 @@ async def update_order_status(
     
     await db.orders.update_one(
         {"id": order_id},
-        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"status": body.status, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
     # Invalidate dashboard cache on status change
