@@ -15,7 +15,7 @@ import secrets
 from models import *
 from auth_utils import hash_password, verify_password, create_access_token, verify_token, generate_session_token
 from pdf_generator_yalidine import generate_bordereau_pdf_yalidine_format as generate_bordereau_pdf
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import httpx as httpx_client  # For AI chat
 from audit_logger import AuditLogger, AuditAction
 from routes import whatsapp as whatsapp_router
 from routes import subscriptions as subscriptions_router
