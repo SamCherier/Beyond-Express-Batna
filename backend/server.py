@@ -1102,80 +1102,88 @@ async def get_invoices(current_user: User = Depends(get_current_user)):
     return invoices
 
 # ===== AI CHAT ROUTES =====
+class ChatMessage(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
 @api_router.post("/ai-chat")
 async def ai_chat(
-    message: str,
-    model: str = "gpt-4o",
-    provider: str = "openai",
-    session_id: Optional[str] = None,
+    body: ChatMessage,
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    if not session_id:
-        session_id = str(uuid.uuid4())
-    
-    # Get or create chat session
+    session_id = body.session_id or str(uuid.uuid4())
+
     chat_session = await db.chat_sessions.find_one({
         "user_id": current_user.id,
         "session_id": session_id
     }, {"_id": 0})
-    
+
     if not chat_session:
         chat_session = {
             "id": str(uuid.uuid4()),
             "user_id": current_user.id,
             "session_id": session_id,
-            "model": model,
-            "provider": provider,
             "messages": [],
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.chat_sessions.insert_one(chat_session)
-    
-    # Initialize LLM chat
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
-    
-    system_message = f"""You are an AI assistant for Beyond Express, a 3PL logistics platform. 
-User role: {current_user.role}
-User name: {current_user.name}
-You can help with:
-- Order status queries (format: BEX-XXXXXX)
-- Stock information
-- Creating shipments
-- Generating shipping labels
-- General logistics questions
 
-Answer in the user's preferred language: {current_user.language}"""
-    
-    chat = LlmChat(
-        api_key=api_key,
-        session_id=session_id,
-        system_message=system_message
-    ).with_model(provider, model)
-    
-    user_message = UserMessage(text=message)
-    response = await chat.send_message(user_message)
-    
-    # Save messages
-    chat_session['messages'].append({
-        "role": "user",
-        "content": message,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
-    chat_session['messages'].append({
-        "role": "assistant",
-        "content": response,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    })
-    
+    system_prompt = (
+        f"Tu es l'assistant IA de Beyond Express, plateforme logistique 3PL algérienne. "
+        f"Utilisateur: {current_user.name} (Rôle: {current_user.role}). "
+        f"Tu aides avec: suivi de commandes (format BEX-XXXXXX), stock, expéditions, "
+        f"étiquettes, questions logistiques. Réponds en français, de manière concise et utile."
+    )
+
+    history = chat_session.get("messages", [])[-10:]
+    messages = [{"role": "system", "content": system_prompt}]
+    for m in history:
+        messages.append({"role": m["role"], "content": m["content"]})
+    messages.append({"role": "user", "content": body.message})
+
+    response_text = "Assistant en maintenance. Veuillez réessayer dans quelques instants."
+
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not api_key:
+        stored = await db.ai_provider_keys.find_one({"provider": "openrouter"}, {"_id": 0})
+        if stored:
+            api_key = stored.get("api_key", "")
+
+    if api_key:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                resp = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://beyondexpress.dz",
+                        "X-Title": "Beyond Express Logistics",
+                    },
+                    json={
+                        "model": "meta-llama/llama-3.3-70b-instruct:free",
+                        "messages": messages,
+                        "max_tokens": 800,
+                        "temperature": 0.7,
+                    },
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    response_text = data["choices"][0]["message"]["content"]
+        except Exception as e:
+            logger.warning(f"AI Chat OpenRouter error: {e}")
+
+    chat_session["messages"].append({"role": "user", "content": body.message, "timestamp": datetime.now(timezone.utc).isoformat()})
+    chat_session["messages"].append({"role": "assistant", "content": response_text, "timestamp": datetime.now(timezone.utc).isoformat()})
+
     await db.chat_sessions.update_one(
         {"user_id": current_user.id, "session_id": session_id},
-        {"$set": {"messages": chat_session['messages']}}
+        {"$set": {"messages": chat_session["messages"]}}
     )
-    
-    return {
-        "response": response,
-        "session_id": session_id
-    }
+
+    return {"response": response_text, "session_id": session_id}
 
 @api_router.get("/ai-chat/history")
 async def get_chat_history(
