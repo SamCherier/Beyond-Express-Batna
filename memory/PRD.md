@@ -6,75 +6,54 @@ Production-grade white-labeled logistics SaaS platform for the Algerian market (
 ## Architecture
 - **Frontend**: React + Tailwind + Shadcn UI + Framer Motion + cmdk + react-barcode
 - **Backend**: FastAPI + MongoDB (Motor async) + Argon2id
-- **AI**: OpenRouter API (Llama 3.3 70B free → Qwen 3 4B free → Simulation)
+- **AI**: Multi-Provider Mesh (OpenRouter, Groq, Together AI, Moonshot/Kimi) — per-agent model assignment
 - **Deployment**: Vercel-ready (vercel.json)
 
 ---
 
-## Completed (All Tested)
+## Completed
 
-### Core Platform
-- [x] Authentication (JWT + Sessions + Google OAuth + Argon2id)
-- [x] Registration — all 3 roles (ecommerce, admin, delivery)
-- [x] Command Bar, Responsive Layout, Landing Page
+### Core
+- [x] Auth (JWT + Sessions + Google OAuth + Argon2id)
+- [x] Registration (3 roles), Command Bar, Responsive Layout
 
-### Logistics Operations
-- [x] Orders CRUD with server-side pagination
-- [x] Warehouse management (zones + depots)
-- [x] Returns/RMA with smart routing
-- [x] Carrier integration (Yalidine, ZR Express, DHD)
-- [x] Shipping labels (A6 thermal, fixed overlap)
-- [x] Bulk label generation
-- [x] Financial COD reconciliation
-- [x] Smart Circuit Routing (Haversine, 58 wilayas)
+### Logistics
+- [x] Orders CRUD, Warehouse, Returns/RMA, Carrier Integration
+- [x] Shipping Labels (A6, fixed overlap), Bulk Labels
+- [x] COD Reconciliation, Smart Routing (58 wilayas)
+- [x] **Facture Proforma** (BEY-XXXX, 12-col table, print CSS)
 
-### Documents & Invoicing
-- [x] **Facture Proforma / Décharge de colis** (NEW)
-  - Backend: POST /api/invoices/proforma/generate
-  - Auto-increment reference (BEY-0001, BEY-0002...)
-  - A4 print-optimized with @media print
-  - Header: Logo + Title + Barcode (react-barcode)
-  - Client info section
-  - 12-column order table
-  - Totals: Montant, Livraison, Prestation (15%), Net
-  - Signature area
-  - Button in Orders page (data-testid: generate-proforma-button)
-
-### AI Brain Center (OpenRouter - FREE, 0$)
-- [x] Primary: meta-llama/llama-3.3-70b-instruct:free
-- [x] Fallback cascade: qwen3-4b:free → simulation
-- [x] Silent error handling (zero red errors, graceful degradation)
-- [x] All roles can query
+### AI Multi-Agent Architecture (NEW)
+- [x] **4 Providers**: OpenRouter, Groq, Together AI, Moonshot/Kimi
+- [x] **Per-provider API key management** (save, mask, test connection)
+- [x] **3 Agents**: Logisticien, Analyste, Moniteur
+- [x] **Agent Matrix**: Admin assigns provider+model per agent via dropdown
+- [x] **Graceful error handling**: 402/429 → amber warning, never red crash
+- [x] **Zero Trust**: Keys stored in DB, never exposed to frontend
 
 ### Communication
-- [x] WhatsApp — ALL ROLES (admin, ecommerce, delivery)
-- [x] WhatsApp Meta Cloud API integration
+- [x] WhatsApp — ALL ROLES
 
 ### Landing Page
-- [x] Pricing Packs (Starter/Pro/Business)
-- [x] Partners section (5 carriers, hover glow)
-- [x] Hero, Features, Stats, CTA, Footer
+- [x] Packs (Starter/Pro/Business), Partners (5 carriers)
 
-### Security & Performance
-- [x] API keys backend-only (zero trust)
-- [x] MongoDB _id exclusion audit
-- [x] 23 MongoDB indexes
-- [x] Vercel deployment config
+### Security
+- [x] API keys backend-only, MongoDB _id exclusion, 23 indexes
 
 ---
 
 ## Test Results
-| Iteration | Backend | Frontend | Feature |
-|-----------|---------|----------|---------|
+| Iter | Backend | Frontend | Feature |
+|------|---------|----------|---------|
 | 8 | 100% | 100% | OpenRouter, Registration, Labels |
-| 9 | 100% | 100% | AI silent fallback, WhatsApp roles, Packs |
+| 9 | 100% | 100% | AI fallback, WhatsApp roles, Packs |
 | 10 | 100% | 100% | Facture Proforma |
+| 11 | 100% (20/20) | 100% | Multi-Provider AI Config |
 
 ## Backlog
 - P1: Admin bulk-labels filtering
-- P2: Live Map Tracking (Leaflet)
-- P2: AR Scanner, Interactive Timeline
+- P2: Live Map Tracking, AR Scanner, Timeline
 - P3: Unit tests, TypeScript migration
 
 ---
-*Last updated: February 20, 2026*
+*Last updated: February 24, 2026*
